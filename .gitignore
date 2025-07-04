@@ -1,0 +1,35 @@
+# Go
+.go-packages/
+*.exe         # Windows executables
+*.dll         # Windows shared libraries
+*.so          # Linux shared libraries
+*.dylib       # macOS shared libraries
+*.o           # Object files
+*.a           # Archive files
+*.gcno        # Coverage files
+*.gcov        # Coverage files
+*.test        # Go test binaries
+*.out         # Go test output
+
+# Database
+associates.db
+
+# Node.js / Svelte
+node_modules/
+.svelte-kit/
+.env
+.env.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.pnpm-store/
+dist/
+build/        # Svelte's compiled output directory (static/build is served, but build/ might be created by some tools)
+public/build/ # If Svelte outputs directly to public/build (though we're using static/build)
+
+# IDE and OS specific files
+.idea/        # IntelliJ IDEA
+.vscode/      # VS Code
+.DS_Store     # macOS
+Thumbs.db     # Windows
