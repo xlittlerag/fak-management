@@ -286,24 +286,24 @@
                 {#if hasKendo}
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                            <label for="kendoLastExam" class="block text-sm font-medium text-gray-700">Último Examen</label>
+                            <label for="kendoLastExam" class="block text-sm font-medium text-gray-700">Último Examen Aprobado</label>
                             <select id="kendoLastExam" bind:value={kendoLastExam} class="form-input" required>
-                                <option value="" disabled selected>Selecciona un nivel</option>
+                                <option value="" disabled selected>Selecciona una graduación</option>
                                 {#each examLevels as level}
                                     <option value={level}>{level}</option>
                                 {/each}
                             </select>
                         </div>
                         <div>
-                            <label for="kendoExamDate" class="block text-sm font-medium text-gray-700">Fecha Examen</label>
+                            <label for="kendoExamDate" class="block text-sm font-medium text-gray-700">Fecha del Examen</label>
                             <input type="date" id="kendoExamDate" bind:value={kendoExamDate} class="form-input" required>
                         </div>
                         <div>
-                            <label for="kendoExamCity" class="block text-sm font-medium text-gray-700">Ciudad Examen</label>
+                            <label for="kendoExamCity" class="block text-sm font-medium text-gray-700">Ciudad Donde Rindió el Examen</label>
                             <input type="text" id="kendoExamCity" bind:value={kendoExamCity} class="form-input" required>
                         </div>
                         <div>
-                            <label for="kendoExamEmissor" class="block text-sm font-medium text-gray-700">Emisor Examen</label>
+                            <label for="kendoExamEmissor" class="block text-sm font-medium text-gray-700">Entidad Emisora del Examen</label>
                             <input type="text" id="kendoExamEmissor" bind:value={kendoExamEmissor} class="form-input" required>
                         </div>
                     </div>
@@ -321,7 +321,7 @@
                         <div>
                             <label for="iaidoLastExam" class="block text-sm font-medium text-gray-700">Último Examen</label>
                             <select id="iaidoLastExam" bind:value={iaidoLastExam} class="form-input" required>
-                                <option value="" disabled selected>Selecciona un nivel</option>
+                                <option value="" disabled selected>Selecciona una graduación</option>
                                 {#each examLevels as level}
                                     <option value={level}>{level}</option>
                                 {/each}
@@ -354,7 +354,7 @@
                         <div>
                             <label for="jodoLastExam" class="block text-sm font-medium text-gray-700">Último Examen</label>
                             <select id="jodoLastExam" bind:value={jodoLastExam} class="form-input" required>
-                                <option value="" disabled selected>Selecciona un nivel</option>
+                                <option value="" disabled selected>Selecciona una graduación</option>
                                 {#each examLevels as level}
                                     <option value={level}>{level}</option>
                                 {/each}
@@ -394,13 +394,13 @@
                 <table class="min-w-full divide-y divide-gray-200">
                     <thead class="bg-gray-50">
                         <tr>
-                            <th class="table-header">Nº Identificación</th>
+                            <th class="table-header">Legajo</th>
                             <th class="table-header">Nombre Completo</th>
                             <th class="table-header">Fecha Nacimiento</th>
                             <th class="table-header">Estado</th>
-                            <th class="table-header">Examen Kendo</th>
-                            <th class="table-header">Examen Iaido</th>
-                            <th class="table-header">Examen Jodo</th>
+                            <th class="table-header">Kendo</th>
+                            <th class="table-header">Iaido</th>
+                            <th class="table-header">Jodo</th>
                             <th class="table-header">Acciones</th>
                         </tr>
                     </thead>
@@ -413,23 +413,23 @@
                                 <td class="table-cell capitalize">{formatStatus(associate.status)}</td>
                                 <td class="table-cell">
                                     {#if associate.kendo}
-                                        {associate.kendo.lastExam} ({formatDate(associate.kendo.examDate)}) en {associate.kendo.examCity} por {associate.kendo.examEmissor}
+                                        {associate.kendo.lastExam} ({associate.kendo.examEmissor}) en {associate.kendo.examCity} ({formatDate(associate.kendo.examDate)}) 
                                     {:else}
-                                        N/A
+                                        Sin graduación
                                     {/if}
                                 </td>
                                 <td class="table-cell">
                                     {#if associate.iaido}
-                                        {associate.iaido.lastExam} ({formatDate(associate.iaido.examDate)}) en {associate.iaido.examCity} por {associate.iaido.examEmissor}
+                                        {associate.iaido.lastExam} ({associate.iaido.examEmissor}) en {associate.iaido.examCity} ({formatDate(associate.iaido.examDate)}) 
                                     {:else}
-                                        N/A
+                                        Sin graduación
                                     {/if}
                                 </td>
                                 <td class="table-cell">
                                     {#if associate.jodo}
-                                        {associate.jodo.lastExam} ({formatDate(associate.jodo.examDate)}) en {associate.jodo.examCity} por {associate.jodo.examEmissor}
+                                        {associate.jodo.lastExam} ({associate.jodo.examEmissor}) en {associate.jodo.examCity} ({formatDate(associate.jodo.examDate)}) 
                                     {:else}
-                                        N/A
+                                        Sin graduación
                                     {/if}
                                 </td>
                                 <td class="table-cell">

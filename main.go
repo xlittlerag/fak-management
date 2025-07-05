@@ -13,9 +13,6 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-// Define the valid exam levels for validation and frontend dropdown
-var validExamLevels = "3er Kyu 2do Kyu 1er Kyu 1er Dan 2do Dan 3er Dan 4to Dan 5to Dan 6to Dan 7mo Dan 8vo Dan"
-
 // ActivityRecord represents the details for a specific martial arts activity.
 type ActivityRecord struct {
 	LastExam    string `json:"lastExam" binding:"required,oneof=3er\\ Kyu 2do\\ Kyu 1er\\ Kyu 1er\\ Dan 2do\\ Dan 3er\\ Dan 4to\\ Dan 5to\\ Dan 6to\\ Dan 7mo\\ Dan 8vo\\ Dan"` // Validated exam levels
@@ -84,7 +81,7 @@ func initDatabase() {
 					LastExam:    "3er Dan",
 					ExamDate:    "2023-11-20",
 					ExamCity:    "Buenos Aires",
-					ExamEmissor: "Federación Argentina de Kendo", // Argentina city
+					ExamEmissor: "FAK",
 				},
 				Iaido: nil,
 				Jodo:  nil,
@@ -99,7 +96,7 @@ func initDatabase() {
 				Iaido: &ActivityRecord{
 					LastExam:    "2do Dan",
 					ExamDate:    "2022-08-10",
-					ExamCity:    "Santiago de Chile", // Latin America (not Argentina)
+					ExamCity:    "Santiago de Chile",
 					ExamEmissor: "CLAK",
 				},
 				Jodo: nil,
@@ -115,8 +112,8 @@ func initDatabase() {
 				Jodo: &ActivityRecord{
 					LastExam:    "1er Kyu",
 					ExamDate:    "2024-03-05",
-					ExamCity:    "Rosario", // Argentina city
-					ExamEmissor: "Federación Argentina de Kendo",
+					ExamCity:    "Rosario",
+					ExamEmissor: "FAK",
 				},
 			},
 			{
@@ -128,13 +125,13 @@ func initDatabase() {
 				Kendo: &ActivityRecord{
 					LastExam:    "4to Dan",
 					ExamDate:    "2024-01-10",
-					ExamCity:    "Mar del Plata", // Argentina city
-					ExamEmissor: "Federación Argentina de Kendo",
+					ExamCity:    "Mar del Plata",
+					ExamEmissor: "FAK",
 				},
 				Iaido: &ActivityRecord{
 					LastExam:    "3er Dan",
 					ExamDate:    "2023-07-25",
-					ExamCity:    "Montevideo", // Latin America (not Argentina)
+					ExamCity:    "Montevideo",
 					ExamEmissor: "CLAK",
 				},
 				Jodo: nil,
@@ -148,14 +145,14 @@ func initDatabase() {
 				Kendo: &ActivityRecord{
 					LastExam:    "1er Kyu",
 					ExamDate:    "2024-06-01",
-					ExamCity:    "Córdoba", // Argentina city
-					ExamEmissor: "Federación Argentina de Kendo",
+					ExamCity:    "Córdoba",
+					ExamEmissor: "FAK",
 				},
 				Iaido: nil,
 				Jodo: nil,
 			},
 			{
-				IDNumber:  "CL001",
+				IDNumber:  "AR006",
 				FirstName: "Pedro",
 				LastName:  "Ramírez",
 				Birthday:  "1988-11-25",
@@ -165,7 +162,7 @@ func initDatabase() {
 				Jodo: &ActivityRecord{
 					LastExam:    "2do Kyu",
 					ExamDate:    "2023-09-15",
-					ExamCity:    "Lima", // Latin America (not Argentina)
+					ExamCity:    "Lima",
 					ExamEmissor: "CLAK",
 				},
 			},
