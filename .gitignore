@@ -27,6 +27,7 @@ yarn-error.log*
 dist/
 build/        # Svelte's compiled output directory (static/build is served, but build/ might be created by some tools)
 public/build/ # If Svelte outputs directly to public/build (though we're using static/build)
+static/build/
 
 # IDE and OS specific files
 .idea/        # IntelliJ IDEA
