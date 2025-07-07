@@ -1,72 +1,61 @@
 package handlers
 
 import (
+	"net/http"
+
+	"fak-api/internal/middleware"
 	"fak-api/internal/repository"
 	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
 )
 
+type LoginRequest struct {
+	Username string `json:"username" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 type AuthHandler struct {
-	repo repository.UserRepository
+	userRepo repository.UserRepository
 }
 
-func NewAuthHandler(repo repository.UserRepository) *AuthHandler {
-	return &AuthHandler{repo}
+func NewAuthHandler(userRepo repository.UserRepository) *AuthHandler {
+	return &AuthHandler{userRepo: userRepo}
 }
 
+// Login handles the user login process, validates credentials, and returns a JWT.
 func (h *AuthHandler) Login(c *gin.Context) {
-	var req models.LoginRequest
+	var req LoginRequest
+
+	// Bind the incoming JSON request to the LoginRequest struct.
 	if err := c.ShouldBindJSON(&req); err != nil {
-		h.logger.Warnf("invalid login request: %v", err)
-		c.JSON(http.StatusBadRequest, models.ErrorResponse{Error: "Invalid request"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request format"})
 		return
 	}
 
-	body, err := json.Marshal(req)
+	// Find the user by username using the repository.
+	user, err := h.userRepo.FindByUsername(req.Username)
 	if err != nil {
-		h.logger.Errorf("failed to marshal login request: %v", err)
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to marshal request"})
+		// Do not specify whether the username or password was wrong for security.
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
-	resp, err := http.Post(h.cfg.UsersURL+"/auth", "application/json", bytes.NewBuffer(body))
+	// Compare the provided password with the stored hash.
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password))
 	if err != nil {
-		h.logger.Errorf("failed to contact users service: %v", err)
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to contact users service"})
-		return
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var errResp models.ErrorResponse
-		if err := json.NewDecoder(resp.Body).Decode(&errResp); err != nil {
-			h.logger.Warn("invalid credentials: unable to decode error response")
-			c.JSON(http.StatusUnauthorized, models.ErrorResponse{Error: "Invalid credentials"})
-			return
-		}
-		h.logger.Warnf("login failed: %s", errResp.Error)
-		c.JSON(resp.StatusCode, errResp)
+		// Password does not match.
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username or password"})
 		return
 	}
 
-	var user models.UserResponse
-	if err := json.NewDecoder(resp.Body).Decode(&user); err != nil {
-		h.logger.Errorf("failed to decode user response: %v", err)
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Invalid user response"})
-		return
-	}
-	if user.ID == "" {
-		h.logger.Error("empty user ID in response from users service")
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "User ID is missing in response"})
-		return
-	}
-
-	token, err := GenerateJWT(user.ID, h.cfg.JWTSecret)
+	// If credentials are valid, generate a JWT.
+	// We pass all the necessary details to be included in the token's claims.
+	token, err := middleware.GenerateToken(user.ID, user.Role, user.FederateID, user.AssociationID)
 	if err != nil {
-		h.logger.Errorf("failed to generate JWT: %v", err)
-		c.JSON(http.StatusInternalServerError, models.ErrorResponse{Error: "Failed to generate token"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not generate token"})
 		return
 	}
 
-	h.logger.Infof("user %s logged in successfully", user.ID)
-	c.JSON(http.StatusOK, models.AuthResponse{Token: token})
+	// Return the token in the response.
+	c.JSON(http.StatusOK, gin.H{"token": token})
 }
