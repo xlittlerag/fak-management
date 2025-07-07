@@ -25,6 +25,7 @@
             sqlite # SQLite database command-line tool
             git # Git for version control (useful for Go modules)
             nodejs # For Svelte build process (npm, npx)
+            pnpm
           ];
 
           # Environment variables for Go development
@@ -39,8 +40,8 @@
 
                                     echo "Entering Go and Svelte development shell!"
                                     echo "GOPATH: $GOPATH"
-                                    echo "To install Svelte dependencies: npm install"
-                                    echo "To build Svelte frontend (watch mode): npm run dev"
+                                    echo "To install Svelte dependencies: pnpm install"
+                                    echo "To build Svelte frontend (watch mode): pnpm run dev"
                                     echo "To run the backend: go run main.go"
 
           '';
