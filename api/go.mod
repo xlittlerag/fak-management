@@ -1,4 +1,4 @@
-module fak-management
+module fak-api
 
 go 1.24.4
 
