@@ -22,6 +22,7 @@
           # Define the packages available in the development shell
           packages = with pkgs; [
             elixir # Elixir programming language
+            inotify-tools
             sqlite # SQLite database command-line tool
             git # Git for version control (useful for Go modules)
             nodejs # For Svelte build process (npm, npx)

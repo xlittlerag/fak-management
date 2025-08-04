@@ -16,7 +16,7 @@ config :api, ApiWeb.Endpoint,
   url: [host: "localhost"],
   adapter: Bandit.PhoenixAdapter,
   render_errors: [
-    formats: [html: ApiWeb.ErrorHTML, json: ApiWeb.ErrorJSON],
+    formats: [json: ApiWeb.ErrorJSON],
     layout: false
   ],
   pubsub_server: Api.PubSub,

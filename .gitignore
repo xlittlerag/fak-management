@@ -25,7 +25,6 @@ config/runtime.exs
 *.app.src
 ebin/
 priv/
-lib/
 
 # Database
 associates.db
