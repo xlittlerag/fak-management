@@ -1,135 +1,136 @@
-### **Especificaciones Técnicas de la API**
+### **Elixir/Phoenix API Technical Specification**
 
-Este documento detalla **cómo** se implementan los requerimientos. Describe la arquitectura, los modelos de datos y los endpoints de la API.
-
------
-
-#### **1. Arquitectura y Tecnologías**
-
-  * **Lenguaje**: Go (Golang)
-  * **Framework Web**: Gin Gonic
-  * **ORM**: GORM
-  * **Base de Datos**: SQLite
-  * **Autenticación**: JSON Web Tokens (JWT)
-  * **Estructura**: Modularizada en capas (handlers, repositories, models, router).
+This document details the architecture, data schemas, and API endpoints for the application. The implementation uses the Elixir language and Phoenix framework, emphasizing a domain-driven approach with Contexts.
 
 -----
 
-#### **2. Modelos de Datos Principales**
+### **Architecture and Technologies** ⚙️
 
-```go
-// Representa a un practicante individual.
-type Federate struct {
-    gorm.Model
-    IDNumber      string // DNI o identificador único
-    FirstName     string
-    LastName      string
-    Status        string // activo, en_deuda, inactivo
-    AssociationID uint   // ID de la asociación a la que pertenece
-    Kendo         *ActivityRecord `gorm:"embedded;..."`
-    Iaido         *ActivityRecord `gorm:"embedded;..."`
-    Jodo          *ActivityRecord `gorm:"embedded;..."`
-}
+The stack is chosen to leverage the strengths of the Elixir ecosystem for building robust and maintainable web applications.
 
-// Representa a una asociación o dojo.
-type Association struct {
-    gorm.Model
-    Name      string
-    Federates []Federate // Lista de federados asociados
-}
+  * **Language**: **Elixir**. Running on the BEAM (Erlang VM), it provides exceptional concurrency and fault tolerance, which is ideal for a responsive API.
+  * **Framework**: **Phoenix**. A productive web framework that provides excellent structure, tooling, and performance.
+  * **Data Mapper**: **Ecto**. The standard for data interaction in Elixir. It promotes data integrity and clear queries through the use of **Changesets**.
+  * **Database**: **SQLite**. A lightweight, file-based database suitable for applications that don't require high levels of concurrent write operations. It is managed via the `ecto_sqlite3` adapter.
+  * **Authentication**: **Phoenix Tokens**. We will use Phoenix's built-in `Phoenix.Token` for creating and verifying secure JSON Web Tokens (JWTs).
+  * **Structure**: **Domain-Driven Contexts**. Business logic is organized into modules called "Contexts," each responsible for a specific domain (e.g., `Accounts`, `Federations`), separating concerns from the web layer.
 
-// Representa a un usuario del sistema con credenciales y rol.
-type User struct {
-    gorm.Model
-    Username      string
-    Password      string // Hashed
-    Role          string // admin, approved_federate, federate
-    FederateID    uint   // Vinculado a un Federate si el rol es "federate"
-    AssociationID uint   // Vinculado a una Association si el rol es "approved_federate"
-}
+-----
+
+### **Core Schemas and Contexts** 🗂️
+
+Data is represented by Ecto schemas, and business logic is encapsulated within context modules. This separation ensures that the core application logic is independent of the web interface.
+
+#### **Proposed Contexts**
+
+  * `KendoApp.Federations`: Manages federates and associations.
+  * `KendoApp.Accounts`: Handles users, roles, and authentication.
+  * `KendoApp.Events`: Manages events and registrations.
+  * `KendoApp.Payments`: Manages payment records and third-party integrations.
+
+#### **Ecto Schemas**
+
+```elixir
+# lib/kendo_app/federations/federate.ex
+defmodule KendoApp.Federations.Federate do
+  use Ecto.Schema
+
+  schema "federates" do
+    field :id_number, :string
+    field :first_name, :string
+    field :last_name, :string
+    field :status, :string, default: "activo"
+    field :debt_amount, :float, default: 0.0
+
+    belongs_to :association, KendoApp.Federations.Association
+    timestamps()
+  end
+end
+
+# lib/kendo_app/accounts/user.ex
+defmodule KendoApp.Accounts.User do
+  use Ecto.Schema
+
+  schema "users" do
+    field :username, :string
+    field :password_hash, :string
+    field :role, :string # admin, approved_federate, federate
+
+    belongs_to :federate, KendoApp.Federations.Federate, foreign_key: :federate_id, type: :id
+    belongs_to :association, KendoApp.Federations.Association, foreign_key: :association_id, type: :id
+    timestamps()
+  end
+end
+
+# lib/kendo_app/events/event.ex
+defmodule KendoApp.Events.Event do
+  use Ecto.Schema
+
+  schema "events" do
+    field :name, :string
+    field :description, :string
+    field :event_date, :utc_datetime
+    field :cost, :float
+    field :capacity, :integer
+
+    has_many :registrations, KendoApp.Events.Registration
+    timestamps()
+  end
+end
+
+# lib/kendo_app/events/registration.ex
+defmodule KendoApp.Events.Registration do
+  use Ecto.Schema
+
+  schema "registrations" do
+    field :status, :string, default: "pending"
+
+    belongs_to :federate, KendoApp.Federations.Federate
+    belongs_to :event, KendoApp.Events.Event
+    timestamps()
+  end
+end
+
+# lib/kendo_app/payments/payment.ex
+defmodule KendoApp.Payments.Payment do
+  use Ecto.Schema
+
+  schema "payments" do
+    field :amount, :float
+    field :status, :string, default: "pending"
+    field :mercadopago_id, :string
+    field :payment_date, :utc_datetime
+
+    belongs_to :federate, KendoApp.Federations.Federate
+    timestamps()
+  end
+end
 ```
 
 -----
 
-#### **3. Endpoints de la API**
+### **API Endpoints and Authorization** Endpoints are defined in the Phoenix Router. Authorization is handled declaratively using a custom **Plug**, which is a composable function that processes the request before it reaches the main controller action.
 
-Todas las rutas dentro de `/api` requieren un token JWT válido en la cabecera `Authorization: Bearer <token>`.
+#### **Authorization Plug**
 
-| Método | Ruta | Descripción | Autorización Requerida |
+A custom plug, `KendoAppWeb.Plugs.Authorize`, will be created. It will inspect the JWT from the `Authorization: Bearer <token>` header, load the associated user, and verify their role against the required role for the requested endpoint.
+
+#### **Endpoint Definitions**
+
+| Method | Route | Description | Authorization Required |
 | :--- | :--- | :--- | :--- |
-| **POST** | `/login` | Inicia sesión para obtener un token JWT. | Pública |
-| **GET** | `/api/federates` | Obtiene una lista de todos los federados. | **Admin** |
-| **GET** | `/api/federates/:id` | Obtiene los detalles de un federado específico. | **Admin**: Cualquiera.\<br\>**Federado Aprobado**: Solo si pertenece a su asociación.\<br\>**Federado**: Solo si es su propio perfil. |
-| **GET** | `/api/associations` | Obtiene una lista de todas las asociaciones. | **Admin** |
-| **POST** | `/api/associations` | Crea una nueva asociación. | **Admin** |
-| **PUT** | `/api/associations/:id`| Actualiza el nombre de una asociación. | **Admin** |
-| **GET** | `/api/associations/my-association` | Obtiene los detalles de la asociación del usuario. | **Federado Aprobado** |
-
-
-
---------------
-
-
-### **Ampliación de Especificaciones Técnicas (V2)**
-
-Detalles técnicos sobre cómo se implementarán las nuevas funcionalidades.
-
------
-
-#### **1. Nuevos Modelos de Datos**
-
-Se añadirán los siguientes modelos a la base de datos y se modificará el modelo `Federate`.
-
-```go
-// Modificación al modelo Federate para incluir la deuda.
-type Federate struct {
-    gorm.Model
-    // ... campos existentes ...
-    DebtAmount    float64 `json:"debtAmount"` // Monto adeudado
-}
-
-// Registro de una transacción de pago.
-type Payment struct {
-    gorm.Model
-    FederateID      uint      `json:"federateId"`
-    Amount          float64   `json:"amount"`
-    Status          string    `json:"status"` // "pending", "approved", "rejected"
-    MercadoPagoID   string    `json:"-"`      // ID de la preferencia o pago en MercadoPago
-    PaymentDate     time.Time `json:"paymentDate"`
-}
-
-// Representa un evento creado por un administrador.
-type Event struct {
-    gorm.Model
-    Name          string    `json:"name"`
-    Description   string    `json:"description"`
-    EventDate     time.Time `json:"eventDate"`
-    Cost          float64   `json:"cost"`
-    Capacity      int       `json:"capacity"` // Cupo máximo
-}
-
-// Tabla intermedia para la inscripción de un federado a un evento.
-type Registration struct {
-    gorm.Model
-    FederateID    uint   `json:"federateId"`
-    EventID       uint   `json:"eventId"`
-    Status        string `json:"status"` // "pending", "approved", "rejected"
-}
-```
-
------
-
-#### **2. Nuevos Endpoints de la API**
-
-Se agregarán las siguientes rutas a la API, cada una con su respectiva autorización.
-
-| Método | Ruta | Descripción | Autorización Requerida |
-| :--- | :--- | :--- | :--- |
-| **GET** | `/api/federates/me/debt` | Un federado consulta su propia deuda. | **Federado** |
-| **POST**| `/api/payments/me/create-preference`| Un federado solicita un link de pago de MercadoPago. | **Federado** |
-| **POST**| `/api/payments/webhook/mercadopago` | Endpoint para recibir notificaciones de pago. | **Pública** (con validación de firma de MP) |
-| **GET** | `/api/events` | Lista todos los eventos disponibles. | **Cualquier rol autenticado** |
-| **POST**| `/api/events` | Un administrador crea un nuevo evento. | **Admin** |
-| **POST**| `/api/events/:id/register`| Un federado se inscribe a un evento. | **Federado** |
-| **GET** | `/api/associations/me/registrations` | Un federado aprobado ve las inscripciones pendientes de su asociación. | **Federado Aprobado** |
-| **PUT** | `/api/registrations/:reg_id/status`| Un federado aprobado aprueba o rechaza una inscripción. | **Federado Aprobado** |
+| **POST** | `/login` | Initiates a session to obtain a JWT. | Public |
+| **GET** | `/api/federates` | Retrieves a list of all federates. | **Admin** |
+| **GET** | `/api/federates/:id` | Retrieves a specific federate's details. | **Admin**: Any. \<br\> **Approved Federate**: Only from their association. \<br\> **Federate**: Only their own profile. |
+| **GET** | `/api/associations` | Retrieves a list of all associations. | **Admin** |
+| **POST** | `/api/associations` | Creates a new association. | **Admin** |
+| **PUT** | `/api/associations/:id` | Updates an association's name. | **Admin** |
+| **GET** | `/api/associations/my-association` | Retrieves the user's own association details. | **Approved Federate** |
+| **GET** | `/api/federates/me/debt` | Allows a federate to check their own debt. | **Federate** |
+| **POST** | `/api/payments/me/create-preference`| A federate requests a MercadoPago payment link. | **Federate** |
+| **POST** | `/api/payments/webhook/mercadopago` | Endpoint for receiving payment notifications. | **Public** (with MP signature validation) |
+| **GET** | `/api/events` | Lists all available events. | **Any authenticated role** |
+| **POST** | `/api/events` | An administrator creates a new event. | **Admin** |
+| **POST** | `/api/events/:id/register`| A federate registers for an event. | **Federate** |
+| **GET** | `/api/associations/me/registrations` | An approved federate views pending registrations for their association. | **Approved Federate** |
+| **PUT** | `/api/registrations/:reg_id/status`| An approved federate approves or rejects a registration. | **Approved Federate** |
