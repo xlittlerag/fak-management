@@ -4,32 +4,33 @@ defmodule Api.FederationsFixtures do
   entities via the `Api.Federations` context.
   """
 
-  @doc """
-  Generate a association.
-  """
+  def unique_association_name, do: "Association #{System.unique_integer()}"
+
   def association_fixture(attrs \\ %{}) do
     {:ok, association} =
       attrs
       |> Enum.into(%{
-        name: "some name"
+        name: unique_association_name()
       })
       |> Api.Federations.create_association()
 
     association
   end
 
-  @doc """
-  Generate a federate.
-  """
   def federate_fixture(attrs \\ %{}) do
+    association = attrs[:association] || association_fixture()
+
+    # The fix is to add the required fields that were missing.
+    # We use the default values from your specification.
     {:ok, federate} =
       attrs
       |> Enum.into(%{
-        debt_amount: 120.5,
-        first_name: "some first_name",
-        id_number: "some id_number",
-        last_name: "some last_name",
-        status: "some status"
+        first_name: "John",
+        last_name: "Doe",
+        id_number: to_string(System.unique_integer()),
+        association_id: association.id,
+        status: "activo",
+        debt_amount: 0.0
       })
       |> Api.Federations.create_federate()
 

@@ -5,18 +5,32 @@ defmodule Api.AccountsFixtures do
   """
 
   @doc """
+  Generate a unique user username.
+  """
+  def unique_user_username, do: "user#{System.unique_integer([:positive])}"
+
+  @doc """
   Generate a user.
   """
   def user_fixture(attrs \\ %{}) do
     {:ok, user} =
       attrs
       |> Enum.into(%{
-        password_hash: "some password_hash",
-        role: "some role",
-        username: "some username"
+        username: unique_user_username(),
+        password: attrs[:password] || "supersecret",
+        # Default role
+        role: "federate"
       })
-      |> Api.Accounts.create_user()
+      |> Api.Accounts.register_user()
 
     user
+  end
+
+  @doc """
+  Generate an admin user.
+  """
+  def admin_user_fixture(attrs \\ %{}) do
+    # Create a user and explicitly set the role to "admin"
+    user_fixture(Map.put(attrs, :role, "admin"))
   end
 end
