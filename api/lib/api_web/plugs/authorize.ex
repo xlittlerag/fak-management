@@ -35,7 +35,7 @@ defmodule ApiWeb.Plugs.Authorize do
   defp has_simple_permission?(user, required_role) do
     case {user.role, required_role} do
       # An admin user is always authorized.
-      {"admin", _} -> true
+      {:admin, _} -> true
       # If the route allows "any" authenticated user.
       {_, :any} -> true
       # If the user's role matches the required role.

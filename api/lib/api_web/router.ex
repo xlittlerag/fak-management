@@ -17,6 +17,10 @@ defmodule ApiWeb.Router do
     plug ApiWeb.Plugs.Authorize, {ApiWeb.Authorizer, :can_access_federate?}
   end
 
+  pipeline :approved_federate_required do
+    plug ApiWeb.Plugs.Authorize, :approved_federate
+  end
+
   # --- Public API Routes ---
   scope "/api", ApiWeb do
     pipe_through :api
@@ -46,6 +50,12 @@ defmodule ApiWeb.Router do
       get "/associations", AssociationController, :index
       post "/associations", AssociationController, :create
       put "/associations/:id", AssociationController, :update
+    end
+
+    scope "/" do
+      pipe_through [:approved_federate_required]
+
+      get "/associations/mine", AssociationController, :mine
     end
   end
 

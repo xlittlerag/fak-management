@@ -41,4 +41,22 @@ defmodule ApiWeb.AssociationController do
         end
     end
   end
+
+  def mine(conn, _params) do
+    user = conn.assigns.current_user
+
+    # The business logic now lives in the controller where it belongs.
+    case user.role do
+      :admin ->
+        # Return a specific, helpful error for admins.
+        conn
+        |> put_status(:forbidden)
+        |> json(%{error: %{message: "Admins do not have an association"}})
+
+      :approved_federate ->
+        # Proceed as normal for approved federates.
+        association = Federations.get_association!(user.association_id)
+        json(conn, %{data: association})
+    end
+  end
 end

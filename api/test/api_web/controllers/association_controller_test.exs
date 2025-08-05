@@ -127,6 +127,50 @@ defmodule ApiWeb.AssociationControllerTest do
     end
   end
 
+  describe "GET /api/associations/mine" do
+    setup do
+      # Create a specific association for our approved federate
+      my_assoc = FederationsFixtures.association_fixture(%{name: "My Kendo Dojo"})
+      # Create another association to ensure we don't accidentally fetch it
+      _other_assoc = FederationsFixtures.association_fixture(%{name: "Other Dojo"})
+
+      # Create the three user types for testing permissions
+      approved_user = AccountsFixtures.approved_federate_fixture(%{association: my_assoc})
+      admin_user = AccountsFixtures.admin_user_fixture()
+      federate_user = AccountsFixtures.user_fixture()
+
+      %{
+        approved_conn: build_conn() |> login_user(approved_user),
+        admin_conn: build_conn() |> login_user(admin_user),
+        federate_conn: build_conn() |> login_user(federate_user),
+        my_assoc: my_assoc
+      }
+    end
+
+    test "allows an approved federate to get their own association", %{
+      approved_conn: conn,
+      my_assoc: assoc
+    } do
+      conn = get(conn, "/api/associations/mine")
+
+      assert %{"data" => data} = json_response(conn, 200)
+      assert data["id"] == assoc.id
+      assert data["name"] == "My Kendo Dojo"
+    end
+
+    test "forbids an admin from accessing this route with a specific error", %{admin_conn: conn} do
+      conn = get(conn, "/api/associations/mine")
+
+      assert %{"error" => %{"message" => "Admins do not have an association"}} =
+               json_response(conn, 403)
+    end
+
+    test "forbids a regular federate from accessing this route", %{federate_conn: conn} do
+      conn = get(conn, "/api/associations/mine")
+      assert json_response(conn, 401)["error"]["message"] == "Unauthorized"
+    end
+  end
+
   defp login_user(conn, user) do
     {:ok, {token, _user}} = Accounts.login_user(user.username, "supersecret")
     put_req_header(conn, "authorization", "Bearer #{token}")

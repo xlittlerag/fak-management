@@ -13,7 +13,7 @@ defmodule Api.Accounts.User do
     field :username, :string
     field :password, :string, virtual: true
     field :password_hash, :string
-    field :role, :string
+    field :role, Ecto.Enum, values: [:admin, :approved_federate, :federate]
 
     belongs_to :federate, Api.Federations.Federate, foreign_key: :federate_id, type: :id
     belongs_to :association, Api.Federations.Association, foreign_key: :association_id, type: :id

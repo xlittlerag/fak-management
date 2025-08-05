@@ -10,9 +10,6 @@ defmodule Api.AccountsTest do
       user = AccountsFixtures.user_fixture()
       fetched_user = Accounts.get_user!(user.id)
 
-      # The original test failed because `user` has a `password` field,
-      # but `fetched_user` doesn't (it's a virtual field).
-      # This is the correct way to assert they are the same user.
       assert fetched_user.id == user.id
       assert fetched_user.username == user.username
     end
@@ -26,7 +23,7 @@ defmodule Api.AccountsTest do
 
       assert {:ok, %User{} = user} = Accounts.register_user(valid_attrs)
       assert user.username == "testuser"
-      assert user.role == "federate"
+      assert user.role == :federate
       assert user.password_hash
     end
 

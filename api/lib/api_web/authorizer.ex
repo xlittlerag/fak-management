@@ -10,16 +10,16 @@ defmodule ApiWeb.Authorizer do
 
     case current_user.role do
       # Admins can see any profile.
-      "admin" ->
+      :admin ->
         true
 
       # A regular federate can only see their own profile.
-      "federate" ->
+      :federate ->
         # Note: Elixir's type-safe comparison will not equate integer 1 and string "1"
         to_string(current_user.federate_id) == requested_federate_id
 
       # An approved federate can see any profile within their own association.
-      "approved_federate" ->
+      :approved_federate ->
         case Federations.get_federate!(requested_federate_id) do
           # Requested federate doesn't exist
           nil -> false
