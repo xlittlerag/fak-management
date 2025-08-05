@@ -1,28 +1,21 @@
 defmodule ApiWeb.Router do
   use ApiWeb, :router
 
-  # The :browser pipeline is no longer needed.
-  # pipeline :browser do
-  #   ...
-  # end
-
   pipeline :api do
     plug :accepts, ["json"]
   end
 
-  pipeline :api_protected do
+  pipeline :login_required do
     plug ApiWeb.Plugs.Authorize, :any
   end
 
-  pipeline :api_admin_protected do
+  pipeline :admin_required do
     plug ApiWeb.Plugs.Authorize, :admin
   end
 
-  # The scope for browser routes is no longer needed.
-  # scope "/", ApiWeb do
-  #   pipe_through :browser
-  #   get "/", PageController, :index
-  # end
+  pipeline :federate_access do
+    plug ApiWeb.Plugs.Authorize, {ApiWeb.Authorizer, :can_access_federate?}
+  end
 
   # --- Public API Routes ---
   scope "/api", ApiWeb do
@@ -33,18 +26,27 @@ defmodule ApiWeb.Router do
 
   # --- Protected API Routes ---
   scope "/api", ApiWeb do
-    pipe_through [:api, :api_protected]
+    pipe_through [:api]
 
-    get "/events", EventController, :index
+    scope "/" do
+      get "/events", EventController, :index
 
-    get "/federates/:id", FederateController, :show,
-      plugs: [{ApiWeb.Plugs.Authorize, {ApiWeb.Authorizer, :can_access_federate?}}]
-  end
+      scope "/" do
+        pipe_through [:federate_access]
 
-  scope "/api", ApiWeb do
-    pipe_through [:api, :api_admin_protected]
+        get "/federates/:id", FederateController, :show
+      end
+    end
 
-    get "/federates", FederateController, :index
+    scope "/" do
+      pipe_through [:admin_required]
+
+      get "/federates", FederateController, :index
+
+      get "/associations", AssociationController, :index
+      post "/associations", AssociationController, :create
+      put "/associations/:id", AssociationController, :update
+    end
   end
 
   # Dev routes can remain as they are useful for development.
