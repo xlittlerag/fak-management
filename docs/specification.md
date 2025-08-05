@@ -123,11 +123,11 @@ A custom plug, `KendoAppWeb.Plugs.Authorize`, will be created. It will inspect t
 | Method | Route | Description | Authorization Required |
 | :--- | :--- | :--- | :--- |
 | **POST** | `/login` | Initiates a session to obtain a JWT. | Public |
+| **PUT** | `/api/accounts/me/update-password` | An authenticated user updates their own password. Requires current and new password. | **Authenticated user** |
 | **GET** | `/api/federates` | Retrieves a list of all federates. | **Admin** |
 | **POST** | `/api/federates` | An admin creates a new federate profile and a corresponding user account with a random password. The response includes this password. | **Admin** |
 | **GET** | `/api/federates/:id` | Retrieves a specific federate's details. | **Admin**: Any. \<br\> **Approved Federate**: Only from their association. \<br\> **Federate**: Only their own profile. |
 | **PUT** | `/api/federates/:id` | An admin updates a federate's details. | **Admin** |
-| **PUT** | `/api/federates/me/update-password` | An authenticated user updates their own password. Requires current and new password. | **Any authenticated role** |
 | **GET** | `/api/associations` | Retrieves a list of all associations. | **Admin** |
 | **POST** | `/api/associations` | Creates a new association. | **Admin** |
 | **PUT** | `/api/associations/:id` | Updates an association's name. | **Admin** |
