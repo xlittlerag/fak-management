@@ -1,15 +1,30 @@
-# Go
-.go-packages/
-*.exe         # Windows executables
-*.dll         # Windows shared libraries
-*.so          # Linux shared libraries
-*.dylib       # macOS shared libraries
-*.o           # Object files
-*.a           # Archive files
-*.gcno        # Coverage files
-*.gcov        # Coverage files
-*.test        # Go test binaries
-*.out         # Go test output
+# Dependency directories
+deps/
+_build/
+lib/.compile.elixir
+*.beam
+*.ez
+
+# Phoenix generated files
+priv/static/assets/*
+priv/static/robots.txt
+priv/static/cache_manifest.json
+priv/static/.gitignore
+
+# Configuration files
+config/dev.exs
+config/test.exs
+config/prod.exs
+config/runtime.exs
+
+# Elixir
+*.ez
+*.beam
+*.boot
+*.app
+*.app.src
+ebin/
+priv/
 
 # Database
 associates.db
