@@ -3,10 +3,12 @@ defmodule ApiWeb.FederateController do
 
   alias Api.Federations
 
+  action_fallback ApiWeb.FallbackController
+
   def index(conn, _params) do
     federates = Federations.list_federates()
 
-    # Manually map the data to ensure we only expose the fields we want.
+    # Manually map the data to ensure we only expose the fields we want (not the password).
     data =
       Enum.map(federates, fn f ->
         %{
@@ -20,6 +22,18 @@ defmodule ApiWeb.FederateController do
       end)
 
     json(conn, %{data: data})
+  end
+
+  def create(conn, %{"federate" => federate_params}) do
+    with {:ok, %{federate: federate, password: password}} <-
+           Federations.create_federate_with_user(federate_params) do
+      conn
+      |> put_status(:created)
+      |> json(%{data: federate, generated_password: password})
+    else
+      {:error, changeset} ->
+        {:error, changeset}
+    end
   end
 
   def show(conn, %{"id" => id}) do

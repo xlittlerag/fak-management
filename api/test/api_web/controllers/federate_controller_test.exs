@@ -107,6 +107,60 @@ defmodule ApiWeb.FederateControllerTest do
     end
   end
 
+  describe "POST /api/federates" do
+    setup do
+      # We need an association to assign the new federate to.
+      association = FederationsFixtures.association_fixture()
+      admin = AccountsFixtures.admin_user_fixture()
+      federate_user = AccountsFixtures.user_fixture()
+
+      %{
+        association: association,
+        admin_conn: build_conn() |> login_user(admin),
+        federate_conn: build_conn() |> login_user(federate_user)
+      }
+    end
+
+    test "allows an admin to create a federate and user with valid data", %{
+      admin_conn: conn,
+      association: assoc
+    } do
+      # The attributes for the new federate.
+      # The username will be derived from the id_number.
+      attrs = %{
+        first_name: "Jane",
+        last_name: "Doe",
+        id_number: "12345678",
+        association_id: assoc.id
+      }
+
+      conn = post(conn, "/api/federates", %{federate: attrs})
+
+      # Assert the response is 201 Created and has the correct structure.
+      assert %{"data" => data, "generated_password" => password} = json_response(conn, 201)
+      assert data["first_name"] == "Jane"
+      assert data["id_number"] == "12345678"
+      assert is_binary(password) and String.length(password) > 8
+
+      # Verify that we can log in as the new user with the generated password.
+      assert {:ok, _} = Accounts.login_user("12345678", password)
+    end
+
+    test "returns an error when an admin provides invalid data", %{admin_conn: conn} do
+      # Send a request with a missing first_name.
+      conn = post(conn, "/api/federates", %{federate: %{last_name: "Doe"}})
+
+      assert %{"errors" => errors} = json_response(conn, 422)
+      assert errors["first_name"] == ["can't be blank"]
+    end
+
+    test "forbids a non-admin user from creating a federate", %{federate_conn: conn} do
+      attrs = %{first_name: "Unauthorized", last_name: "User"}
+      conn = post(conn, "/api/federates", %{federate: attrs})
+      assert json_response(conn, 401)["error"]["message"] == "Unauthorized"
+    end
+  end
+
   # Helper to sign in a user and add the auth header to the connection
   defp login_user(conn, user) do
     {:ok, {token, _user}} = Accounts.login_user(user.username, "supersecret")

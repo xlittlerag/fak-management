@@ -45,11 +45,17 @@ defmodule ApiWeb.Router do
     scope "/" do
       pipe_through [:admin_required]
 
-      get "/federates", FederateController, :index
+      scope "/federates" do
+        get "/", FederateController, :index
+        post "/", FederateController, :create
+        put "/:id", FederateController, :update
+      end
 
-      get "/associations", AssociationController, :index
-      post "/associations", AssociationController, :create
-      put "/associations/:id", AssociationController, :update
+      scope "/associations" do
+        get "/", AssociationController, :index
+        post "/", AssociationController, :create
+        put "/:id", AssociationController, :update
+      end
     end
 
     scope "/" do
