@@ -1,18 +1,38 @@
-# Api
+# **Kendo Federation Management API**
 
-To start your Phoenix server:
+This is the official backend API for the Kendo Federation management application.
+The API is designed to be a secure and reliable JSON interface for any front-end client (web, mobile, etc.).
 
-  * Run `mix setup` to install and setup dependencies
-  * Start Phoenix endpoint with `mix phx.server` or inside IEx with `iex -S mix phx.server`
+## **Getting Started**
 
-Now you can visit [`localhost:4000`](http://localhost:4000) from your browser.
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 
-Ready to run in production? Please [check our deployment guides](https://hexdocs.pm/phoenix/deployment.html).
+### **Prerequisites**
 
-## Learn more
+* Elixir \~\> 1.15  
+* Erlang/OTP \~\> 26.0  
+* SQLite3
 
-  * Official website: https://www.phoenixframework.org/
-  * Guides: https://hexdocs.pm/phoenix/overview.html
-  * Docs: https://hexdocs.pm/phoenix
-  * Forum: https://elixirforum.com/c/phoenix-forum
-  * Source: https://github.com/phoenixframework/phoenix
+### **Installation**
+
+1. **Clone the repository:**  
+   git clone ...  
+   cd api
+
+2. **Install dependencies:**
+   Fetch all the necessary Elixir packages.  
+   mix deps.get
+
+3. **Set up the database:**
+   This command will create the database, run all migrations, and populate it with any initial seed data.  
+   mix ecto.setup
+
+4. **Run the tests:**
+   Verify that your local setup is correct by running the full test suite. All tests should pass.  
+   mix test
+
+5. **Start the server:**
+   You can now run the Phoenix server.  
+   mix phx.server
+
+   By default, the API will be running at http://localhost:4000.
