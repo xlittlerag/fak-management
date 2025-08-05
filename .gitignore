@@ -30,19 +30,19 @@ priv/
 associates.db
 
 # Node.js / Svelte
-node_modules/
-.svelte-kit/
-.env
-.env.*
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.pnpm-debug.log*
-.pnpm-store/
-dist/
-build/        # Svelte's compiled output directory (static/build is served, but build/ might be created by some tools)
-public/build/ # If Svelte outputs directly to public/build (though we're using static/build)
-static/build/
+client/node_modules/
+client/.svelte-kit/
+client/.env
+client/.env.*
+client/npm-debug.log*
+client/yarn-debug.log*
+client/yarn-error.log*
+client/.pnpm-debug.log*
+client/.pnpm-store/
+client/dist/
+client/build/        # Svelte's compiled output directory (static/build is served, but build/ might be created by some tools)
+client/public/build/ # If Svelte outputs directly to public/build (though we're using static/build)
+client/static/build/
 
 # IDE and OS specific files
 .idea/        # IntelliJ IDEA
