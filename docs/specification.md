@@ -53,14 +53,17 @@ defmodule KendoApp.Accounts.User do
 
   schema "users" do
     field :username, :string
+    field :password, :string, virtual: true
     field :password_hash, :string
-    field :role, :string # admin, approved_federate, federate
+    field :role, Ecto.Enum, values: [:admin, :approved_federate, :federate]
 
-    belongs_to :federate, KendoApp.Federations.Federate, foreign_key: :federate_id, type: :id
-    belongs_to :association, KendoApp.Federations.Association, foreign_key: :association_id, type: :id
+    belongs_to :federate, Api.Federations.Federate, foreign_key: :federate_id, type: :id
+    belongs_to :association, Api.Federations.Association, foreign_key: :association_id, type: :id
+
     timestamps()
   end
 end
+
 
 # lib/kendo_app/events/event.ex
 defmodule KendoApp.Events.Event do
@@ -121,11 +124,14 @@ A custom plug, `KendoAppWeb.Plugs.Authorize`, will be created. It will inspect t
 | :--- | :--- | :--- | :--- |
 | **POST** | `/login` | Initiates a session to obtain a JWT. | Public |
 | **GET** | `/api/federates` | Retrieves a list of all federates. | **Admin** |
+| **POST** | `/api/federates` | An admin creates a new federate profile and a corresponding user account with a random password. The response includes this password. | **Admin** |
 | **GET** | `/api/federates/:id` | Retrieves a specific federate's details. | **Admin**: Any. \<br\> **Approved Federate**: Only from their association. \<br\> **Federate**: Only their own profile. |
+| **PUT** | `/api/federates/:id` | An admin updates a federate's details. | **Admin** |
+| **PUT** | `/api/federates/me/update-password` | An authenticated user updates their own password. Requires current and new password. | **Any authenticated role** |
 | **GET** | `/api/associations` | Retrieves a list of all associations. | **Admin** |
 | **POST** | `/api/associations` | Creates a new association. | **Admin** |
 | **PUT** | `/api/associations/:id` | Updates an association's name. | **Admin** |
-| **GET** | `/api/associations/my-association` | Retrieves the user's own association details. | **Approved Federate** |
+| **GET** | `/api/associations/mine` | Retrieves the user's own association details. | **Approved Federate** |
 | **GET** | `/api/federates/me/debt` | Allows a federate to check their own debt. | **Federate** |
 | **POST** | `/api/payments/me/create-preference`| A federate requests a MercadoPago payment link. | **Federate** |
 | **POST** | `/api/payments/webhook/mercadopago` | Endpoint for receiving payment notifications. | **Public** (with MP signature validation) |
