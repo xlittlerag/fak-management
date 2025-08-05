@@ -26,42 +26,41 @@ defmodule ApiWeb.Router do
     pipe_through :api
 
     post "/login", SessionController, :create
-  end
 
-  # --- Protected API Routes ---
-  scope "/api", ApiWeb do
-    pipe_through [:api]
-
+    # --- Protected API Routes ---
     scope "/" do
+      pipe_through [:login_required]
+
       get "/events", EventController, :index
+      put "/accounts/me/update-password", AccountController, :update_password
 
       scope "/" do
         pipe_through [:federate_access]
 
         get "/federates/:id", FederateController, :show
       end
-    end
 
-    scope "/" do
-      pipe_through [:admin_required]
+      scope "/" do
+        pipe_through [:admin_required]
 
-      scope "/federates" do
-        get "/", FederateController, :index
-        post "/", FederateController, :create
-        put "/:id", FederateController, :update
+        scope "/federates" do
+          get "/", FederateController, :index
+          post "/", FederateController, :create
+          put "/:id", FederateController, :update
+        end
+
+        scope "/associations" do
+          get "/", AssociationController, :index
+          post "/", AssociationController, :create
+          put "/:id", AssociationController, :update
+        end
       end
 
-      scope "/associations" do
-        get "/", AssociationController, :index
-        post "/", AssociationController, :create
-        put "/:id", AssociationController, :update
+      scope "/" do
+        pipe_through [:approved_federate_required]
+
+        get "/associations/mine", AssociationController, :mine
       end
-    end
-
-    scope "/" do
-      pipe_through [:approved_federate_required]
-
-      get "/associations/mine", AssociationController, :mine
     end
   end
 

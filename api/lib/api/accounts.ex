@@ -4,6 +4,7 @@ defmodule Api.Accounts do
   """
 
   import Ecto.Query, warn: false
+  alias Ecto.Multi
   alias Api.Repo
 
   alias Api.Accounts.User
@@ -79,5 +80,20 @@ defmodule Api.Accounts do
     # The token will be valid for 60 days.
     # It contains the user's ID, which we'll use to fetch the user on subsequent requests.
     Phoenix.Token.sign(ApiWeb.Endpoint, "user", %{user_id: user.id})
+  end
+
+  def update_password(user, attrs) do
+    changeset = User.password_changeset(user, attrs)
+
+    Multi.new()
+    |> Multi.update(:user, changeset)
+    |> Repo.transaction()
+    |> case do
+      {:ok, %{user: updated_user}} ->
+        {:ok, updated_user}
+
+      {:error, :user, changeset, _changes} ->
+        {:error, changeset}
+    end
   end
 end
