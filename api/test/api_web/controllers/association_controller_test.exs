@@ -127,7 +127,7 @@ defmodule ApiWeb.AssociationControllerTest do
     end
   end
 
-  describe "GET /api/associations/mine" do
+  describe "GET /api/associations/me" do
     setup do
       # Create a specific association for our approved federate
       my_assoc = FederationsFixtures.association_fixture(%{name: "My Kendo Dojo"})
@@ -151,7 +151,7 @@ defmodule ApiWeb.AssociationControllerTest do
       approved_conn: conn,
       my_assoc: assoc
     } do
-      conn = get(conn, "/api/associations/mine")
+      conn = get(conn, "/api/associations/me")
 
       assert %{"data" => data} = json_response(conn, 200)
       assert data["id"] == assoc.id
@@ -159,14 +159,14 @@ defmodule ApiWeb.AssociationControllerTest do
     end
 
     test "forbids an admin from accessing this route with a specific error", %{admin_conn: conn} do
-      conn = get(conn, "/api/associations/mine")
+      conn = get(conn, "/api/associations/me")
 
       assert %{"error" => %{"message" => "Admins do not have an association"}} =
                json_response(conn, 403)
     end
 
     test "forbids a regular federate from accessing this route", %{federate_conn: conn} do
-      conn = get(conn, "/api/associations/mine")
+      conn = get(conn, "/api/associations/me")
       assert json_response(conn, 401)["error"]["message"] == "Unauthorized"
     end
   end

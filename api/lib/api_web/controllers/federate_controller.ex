@@ -43,7 +43,16 @@ defmodule ApiWeb.FederateController do
         |> put_status(:not_found)
 
       federate ->
-        json(conn, %{data: federate})
+        json(conn, %{
+          data: %{
+            id: federate.id,
+            first_name: federate.first_name,
+            last_name: federate.last_name,
+            id_number: federate.id_number,
+            status: federate.status,
+            debt_amount: federate.debt_amount
+          }
+        })
     end
   end
 end

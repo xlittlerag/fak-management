@@ -42,7 +42,7 @@ defmodule ApiWeb.AssociationController do
     end
   end
 
-  def mine(conn, _params) do
+  def show_me(conn, _params) do
     user = conn.assigns.current_user
 
     # The business logic now lives in the controller where it belongs.

@@ -59,7 +59,7 @@ defmodule ApiWeb.Router do
       scope "/" do
         pipe_through [:approved_federate_required]
 
-        get "/associations/mine", AssociationController, :mine
+        get "/associations/me", AssociationController, :show_me
       end
     end
   end
