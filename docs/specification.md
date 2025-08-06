@@ -131,9 +131,8 @@ A custom plug, `KendoAppWeb.Plugs.Authorize`, will be created. It will inspect t
 | **GET** | `/api/associations` | Retrieves a list of all associations. | **Admin** |
 | **POST** | `/api/associations` | Creates a new association. | **Admin** |
 | **PUT** | `/api/associations/:id` | Updates an association's name. | **Admin** |
-| **GET** | `/api/associations/mine` | Retrieves the user's own association details. | **Approved Federate** |
-| **GET** | `/api/federates/me/debt` | Allows a federate to check their own debt. | **Federate** |
-| **POST** | `/api/payments/me/create-preference`| A federate requests a MercadoPago payment link. | **Federate** |
+| **GET** | `/api/associations/me` | Retrieves the user's own association details. | **Approved Federate** |
+| **POST** | `/api/payments/me/create-payment`| A federate requests a MercadoPago payment link. | **Federate** |
 | **POST** | `/api/payments/webhook/mercadopago` | Endpoint for receiving payment notifications. | **Public** (with MP signature validation) |
 | **GET** | `/api/events` | Lists all available events. | **Any authenticated role** |
 | **POST** | `/api/events` | An administrator creates a new event. | **Admin** |

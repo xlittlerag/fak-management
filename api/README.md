@@ -50,14 +50,13 @@ These instructions will get you a copy of the project up and running on your loc
 * [x] POST /api/federates - An admin creates a new federate and user account.
 * [x] GET /api/federates/:id - Retrieves a specific federate's details.
 * [ ] PUT /api/federates/:id - An admin updates a federate's details.
-* [ ] GET /api/federates/me/debt - Allows a federate to check their own debt.
 
 ### Associations
 
 * [x] GET /api/associations - Retrieves a list of all associations.
 * [x] POST /api/associations - Creates a new association.
 * [x] PUT /api/associations/:id - Updates an association's name.
-* [x] GET /api/associations/my-association - Retrieves the user's own association details.
+* [x] GET /api/associations/me - Retrieves the user's own association details.
 * [ ] GET /api/associations/me/registrations - An approved federate views pending registrations for their association.
 
 ### Events & Registrations
