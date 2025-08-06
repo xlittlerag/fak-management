@@ -20,7 +20,7 @@ defmodule ApiWeb.Authorizer do
 
       # An approved federate can see any profile within their own association.
       :approved_federate ->
-        case Federations.get_federate!(requested_federate_id) do
+        case Federations.get_federate(requested_federate_id) do
           # Requested federate doesn't exist
           nil -> false
           federate -> federate.association_id == current_user.association_id

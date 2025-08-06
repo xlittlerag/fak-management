@@ -35,13 +35,18 @@ defmodule Api.FederationsTest do
       association = association_fixture()
       update_attrs = %{name: "some updated name"}
 
-      assert {:ok, %Association{} = association} = Federations.update_association(association, update_attrs)
+      assert {:ok, %Association{} = association} =
+               Federations.update_association(association, update_attrs)
+
       assert association.name == "some updated name"
     end
 
     test "update_association/2 with invalid data returns error changeset" do
       association = association_fixture()
-      assert {:error, %Ecto.Changeset{}} = Federations.update_association(association, @invalid_attrs)
+
+      assert {:error, %Ecto.Changeset{}} =
+               Federations.update_association(association, @invalid_attrs)
+
       assert association == Federations.get_association!(association.id)
     end
 
@@ -62,20 +67,32 @@ defmodule Api.FederationsTest do
 
     import Api.FederationsFixtures
 
-    @invalid_attrs %{status: nil, id_number: nil, first_name: nil, last_name: nil, debt_amount: nil}
+    @invalid_attrs %{
+      status: nil,
+      id_number: nil,
+      first_name: nil,
+      last_name: nil,
+      debt_amount: nil
+    }
 
     test "list_federates/0 returns all federates" do
       federate = federate_fixture()
       assert Federations.list_federates() == [federate]
     end
 
-    test "get_federate!/1 returns the federate with given id" do
+    test "get_federate/1 returns the federate with given id" do
       federate = federate_fixture()
-      assert Federations.get_federate!(federate.id) == federate
+      assert Federations.get_federate(federate.id) == federate
     end
 
     test "create_federate/1 with valid data creates a federate" do
-      valid_attrs = %{status: "some status", id_number: "some id_number", first_name: "some first_name", last_name: "some last_name", debt_amount: 120.5}
+      valid_attrs = %{
+        status: "some status",
+        id_number: "some id_number",
+        first_name: "some first_name",
+        last_name: "some last_name",
+        debt_amount: 120.5
+      }
 
       assert {:ok, %Federate{} = federate} = Federations.create_federate(valid_attrs)
       assert federate.status == "some status"
@@ -91,7 +108,14 @@ defmodule Api.FederationsTest do
 
     test "update_federate/2 with valid data updates the federate" do
       federate = federate_fixture()
-      update_attrs = %{status: "some updated status", id_number: "some updated id_number", first_name: "some updated first_name", last_name: "some updated last_name", debt_amount: 456.7}
+
+      update_attrs = %{
+        status: "some updated status",
+        id_number: "some updated id_number",
+        first_name: "some updated first_name",
+        last_name: "some updated last_name",
+        debt_amount: 456.7
+      }
 
       assert {:ok, %Federate{} = federate} = Federations.update_federate(federate, update_attrs)
       assert federate.status == "some updated status"
@@ -104,13 +128,13 @@ defmodule Api.FederationsTest do
     test "update_federate/2 with invalid data returns error changeset" do
       federate = federate_fixture()
       assert {:error, %Ecto.Changeset{}} = Federations.update_federate(federate, @invalid_attrs)
-      assert federate == Federations.get_federate!(federate.id)
+      assert federate == Federations.get_federate(federate.id)
     end
 
     test "delete_federate/1 deletes the federate" do
       federate = federate_fixture()
       assert {:ok, %Federate{}} = Federations.delete_federate(federate)
-      assert_raise Ecto.NoResultsError, fn -> Federations.get_federate!(federate.id) end
+      assert is_nil(Federations.get_federate(federate.id))
     end
 
     test "change_federate/1 returns a federate changeset" do

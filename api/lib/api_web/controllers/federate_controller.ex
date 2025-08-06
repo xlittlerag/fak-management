@@ -37,7 +37,7 @@ defmodule ApiWeb.FederateController do
   end
 
   def show(conn, %{"id" => id}) do
-    case Federations.get_federate!(id) do
+    case Federations.get_federate(id) do
       nil ->
         json(conn, %{error: "Not found"})
         |> put_status(:not_found)
@@ -53,6 +53,22 @@ defmodule ApiWeb.FederateController do
             debt_amount: federate.debt_amount
           }
         })
+    end
+  end
+
+  def update(conn, %{"id" => id, "federate" => federate_params}) do
+    case Federations.get_federate(id) do
+      nil ->
+        {:error, :not_found}
+
+      federate ->
+        with {:ok, updated_federate} <-
+               Federations.update_federate(federate, federate_params) do
+          json(conn, %{data: updated_federate})
+        else
+          {:error, changeset} ->
+            {:error, changeset}
+        end
     end
   end
 end

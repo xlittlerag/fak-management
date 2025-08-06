@@ -161,6 +161,65 @@ defmodule ApiWeb.FederateControllerTest do
     end
   end
 
+  describe "PUT /api/federates/:id" do
+    setup do
+      # Create a federate to be updated in the tests
+      federate = FederationsFixtures.federate_fixture()
+      admin_user = AccountsFixtures.admin_user_fixture()
+      non_admin_user = AccountsFixtures.user_fixture()
+
+      %{
+        federate: federate,
+        admin_conn: build_conn() |> login_user(admin_user),
+        non_admin_conn: build_conn() |> login_user(non_admin_user)
+      }
+    end
+
+    test "allows an admin to update a federate with valid data", %{
+      admin_conn: conn,
+      federate: federate
+    } do
+      update_attrs = %{
+        first_name: "John Updated",
+        last_name: "Doe Updated",
+        status: "inactive"
+      }
+
+      conn = put(conn, "/api/federates/#{federate.id}", %{federate: update_attrs})
+
+      assert %{"data" => data} = json_response(conn, 200)
+      assert data["id"] == federate.id
+      assert data["first_name"] == "John Updated"
+      assert data["status"] == "inactive"
+    end
+
+    test "returns an error when an admin provides invalid data", %{
+      admin_conn: conn,
+      federate: federate
+    } do
+      # Attempt to update with a blank first name
+      update_attrs = %{first_name: ""}
+      conn = put(conn, "/api/federates/#{federate.id}", %{federate: update_attrs})
+
+      assert %{"errors" => %{"first_name" => ["can't be blank"]}} = json_response(conn, 422)
+    end
+
+    test "forbids a non-admin user from updating a federate", %{
+      non_admin_conn: conn,
+      federate: federate
+    } do
+      update_attrs = %{first_name: "Unauthorized"}
+      conn = put(conn, "/api/federates/#{federate.id}", %{federate: update_attrs})
+
+      assert json_response(conn, 401)["error"]["message"] == "Unauthorized"
+    end
+
+    test "returns a 404 if an admin tries to update a non-existent federate", %{admin_conn: conn} do
+      conn = put(conn, "/api/federates/999999", %{federate: %{first_name: "Ghost"}})
+      assert json_response(conn, 404)
+    end
+  end
+
   # Helper to sign in a user and add the auth header to the connection
   defp login_user(conn, user) do
     {:ok, {token, _user}} = Accounts.login_user(user.username, "supersecret")

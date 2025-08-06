@@ -66,10 +66,9 @@ defmodule Api.Federations do
   end
 
   @doc """
-  Gets a single federate.
-  Raises `Ecto.NoResultsError` if the Federate does not exist.
+  Gets a single federate. Returns nil if does not exist.
   """
-  def get_federate!(id), do: Repo.get!(Federate, id)
+  def get_federate(id), do: Repo.get(Federate, id)
 
   @doc """
   Creates a federate.
