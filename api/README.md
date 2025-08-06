@@ -68,5 +68,5 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Payments
 
-* [ ] POST /api/payments/me/create-preference - A federate requests a MercadoPago payment link.
+* [ ] POST /api/payments/me/create-payment - A federate requests a MercadoPago payment link.
 * [ ] POST /api/payments/webhook/mercadopago - Endpoint for receiving payment notifications.
