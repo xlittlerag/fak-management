@@ -49,7 +49,7 @@ These instructions will get you a copy of the project up and running on your loc
 * [x] GET /api/federates - Retrieves a list of all federates.
 * [x] POST /api/federates - An admin creates a new federate and user account.
 * [x] GET /api/federates/:id - Retrieves a specific federate's details.
-* [ ] PUT /api/federates/:id - An admin updates a federate's details.
+* [x] PUT /api/federates/:id - An admin updates a federate's details.
 
 ### Associations
 
