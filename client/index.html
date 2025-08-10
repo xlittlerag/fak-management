@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kendo Federation Admin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/mithril/mithril.js"></script>
+    <style>
+        /* Simple transition for a smoother UI feel */
+        .transition-all { transition: all 0.3s ease-in-out; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans">
+    <script>
+        // --- API Configuration ---
+        const API_BASE_URL = "http://localhost:4000/api"; // Replace with your actual API URL
+
+        // --- Authentication Service ---
+        // Manages JWT token, user role, and authentication state.
+        const Auth = {
+            token: localStorage.getItem('auth_token'),
+            user: JSON.parse(localStorage.getItem('auth_user')),
+
+            login: (username, password) => {
+                return m.request({
+                    method: "POST",
+                    url: `${API_BASE_URL}/login`,
+                    body: { username, password }
+                }).then(result => {
+                    Auth.token = result.jwt;
+                    Auth.user = result.user;
+                    localStorage.setItem('auth_token', Auth.token);
+                    localStorage.setItem('auth_user', JSON.stringify(Auth.user));
+                    m.route.set('/federates'); // Redirect to admin dashboard on success
+                });
+            },
+
+            logout: () => {
+                Auth.token = null;
+                Auth.user = null;
+                localStorage.removeItem('auth_token');
+                localStorage.removeItem('auth_user');
+                m.route.set('/login');
+            },
+
+            isAuthenticated: () => !!Auth.token,
+            isAdmin: () => Auth.user && Auth.user.role === 'admin',
+        };
+
+        // --- Generic API Request Utility ---
+        // A wrapper for m.request that automatically adds the auth header.
+        const request = (options) => {
+            const extendedOptions = {
+                ...options,
+                headers: {
+                    ...options.headers,
+                    'Authorization': `Bearer ${Auth.token}`
+                }
+            };
+            return m.request(extendedOptions);
+        };
+
+        // --- Components ---
+
+        // Main Layout Component (includes navigation)
+        const Layout = {
+            view: (vnode) => m("div.min-h-screen.flex.flex-col", [
+                m("nav.bg-white.shadow-md.p-4.flex.justify-between.items-center", [
+                    m("h1.text-xl.font-bold.text-gray-900", "Kendo Admin"),
+                    Auth.isAuthenticated() && m("button.bg-red-500.hover:bg-red-600.text-white.py-2.px-4.rounded.transition-all", {
+                        onclick: Auth.logout
+                    }, "Logout")
+                ]),
+                m("main.flex-grow.p-4.md:p-8", vnode.children)
+            ])
+        };
+
+        // Login View
+        const Login = {
+            username: "",
+            password: "",
+            error: "",
+            loading: false,
+
+            oninit: () => {
+                if (Auth.isAuthenticated()) {
+                    m.route.set('/federates'); // Redirect if already logged in
+                }
+            },
+
+            login: (e) => {
+                e.preventDefault();
+                Login.loading = true;
+                Login.error = "";
+                Auth.login(Login.username, Login.password)
+                    .catch(err => {
+                        Login.error = "Invalid username or password.";
+                    })
+                    .finally(() => {
+                        Login.loading = false;
+                        m.redraw();
+                    });
+            },
+
+            view: () => m(".flex.items-center.justify-center.h-full",
+                m("form.bg-white.p-8.rounded-lg.shadow-lg.w-full.max-w-sm", { onsubmit: Login.login }, [
+                    m("h2.text-2xl.font-bold.mb-6.text-center", "Admin Login"),
+                    Login.error && m(".bg-red-100.border.border-red-400.text-red-700.px-4.py-3.rounded.relative.mb-4", Login.error),
+                    m(".mb-4", [
+                        m("label.block.text-gray-700.text-sm.font-bold.mb-2[for=username]", "Username"),
+                        m("input.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.leading-tight.focus:outline-none.focus:shadow-outline#username", {
+                            type: "text",
+                            placeholder: "admin_user",
+                            oninput: (e) => Login.username = e.target.value,
+                            value: Login.username
+                        })
+                    ]),
+                    m(".mb-6", [
+                        m("label.block.text-gray-700.text-sm.font-bold.mb-2[for=password]", "Password"),
+                        m("input.shadow.appearance-none.border.rounded.w-full.py-2.px-3.text-gray-700.mb-3.leading-tight.focus:outline-none.focus:shadow-outline#password", {
+                            type: "password",
+                            placeholder: "******************",
+                            oninput: (e) => Login.password = e.target.value,
+                            value: Login.password
+                        })
+                    ]),
+                    m("button.bg-blue-500.hover:bg-blue-700.text-white.font-bold.py-2.px-4.rounded.w-full.focus:outline-none.focus:shadow-outline.transition-all", {
+                        type: "submit",
+                        disabled: Login.loading
+                    }, Login.loading ? "Logging in..." : "Sign In")
+                ])
+            )
+        };
+
+        // Federates List View
+        const FederateList = {
+            federates: [],
+            error: "",
+            oninit: () => {
+                request({
+                    method: "GET",
+                    url: `${API_BASE_URL}/federates`
+                })
+                .then(result => {
+                    FederateList.federates = result.data;
+                })
+                .catch(err => {
+                    FederateList.error = "Failed to load federates. You may not have permission.";
+                });
+            },
+            view: () => m(".container.mx-auto", [
+                m(".flex.justify-between.items-center.mb-6", [
+                    m("h2.text-3xl.font-bold", "Federates"),
+                    m("a.bg-green-500.hover:bg-green-600.text-white.py-2.px-4.rounded.transition-all", { href: "#!/federates/new" }, "Create New")
+                ]),
+                FederateList.error && m(".text-red-500", FederateList.error),
+                m(".bg-white.shadow-md.rounded-lg.overflow-x-auto",
+                    m("table.min-w-full.divide-y.divide-gray-200", [
+                        m("thead.bg-gray-50", m("tr", [
+                            m("th.px-6.py-3.text-left.text-xs.font-medium.text-gray-500.uppercase.tracking-wider", "Name"),
+                            m("th.px-6.py-3.text-left.text-xs.font-medium.text-gray-500.uppercase.tracking-wider", "ID Number"),
+                            m("th.px-6.py-3.text-left.text-xs.font-medium.text-gray-500.uppercase.tracking-wider", "Status"),
+                        ])),
+                        m("tbody.bg-white.divide-y.divide-gray-200", FederateList.federates.map(f =>
+                            m("tr.hover:bg-gray-50", [
+                                m("td.px-6.py-4.whitespace-nowrap", `${f.first_name} ${f.last_name}`),
+                                m("td.px-6.py-4.whitespace-nowrap", f.id_number),
+                                m("td.px-6.py-4.whitespace-nowrap",
+                                    m("span.px-2.inline-flex.text-xs.leading-5.font-semibold.rounded-full", {
+                                        class: f.status === 'activo' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }, f.status)
+                                )
+                            ])
+                        ))
+                    ])
+                )
+            ])
+        };
+
+        // New Federate Form View
+        const FederateNew = {
+            first_name: "",
+            last_name: "",
+            id_number: "",
+            association_id: 1, // Hardcoded for simplicity, should be a dropdown
+            error: "",
+            success: "",
+            loading: false,
+
+            create: (e) => {
+                e.preventDefault();
+                FederateNew.loading = true;
+                FederateNew.error = "";
+                FederateNew.success = "";
+
+                const federateData = {
+                    first_name: FederateNew.first_name,
+                    last_name: FederateNew.last_name,
+                    id_number: FederateNew.id_number,
+                    association_id: parseInt(FederateNew.association_id, 10),
+                };
+
+                request({
+                    method: "POST",
+                    url: `${API_BASE_URL}/federates`,
+                    body: { federate: federateData }
+                })
+                .then(result => {
+                    FederateNew.success = `Federate created! Generated Password: ${result.generated_password}`;
+                    // Clear form
+                    FederateNew.first_name = "";
+                    FederateNew.last_name = "";
+                    FederateNew.id_number = "";
+                })
+                .catch(err => {
+                    FederateNew.error = "Creation failed. Please check the fields and try again.";
+                })
+                .finally(() => {
+                    FederateNew.loading = false;
+                    m.redraw();
+                });
+            },
+
+            view: () => m(".container.mx-auto.max-w-2xl", [
+                m("h2.text-3xl.font-bold.mb-6", "Create New Federate"),
+                m("form.bg-white.p-8.rounded-lg.shadow-lg", { onsubmit: FederateNew.create }, [
+                    FederateNew.error && m(".bg-red-100.border.border-red-400.text-red-700.px-4.py-3.rounded.relative.mb-4", FederateNew.error),
+                    FederateNew.success && m(".bg-green-100.border.border-green-400.text-green-700.px-4.py-3.rounded.relative.mb-4", FederateNew.success),
+                    m(".grid.grid-cols-1.md:grid-cols-2.gap-6", [
+                        m("div", [
+                            m("label.block.text-gray-700.text-sm.font-bold.mb-2", "First Name"),
+                            m("input.w-full.p-2.border.rounded", { oninput: e => FederateNew.first_name = e.target.value, value: FederateNew.first_name, required: true })
+                        ]),
+                        m("div", [
+                            m("label.block.text-gray-700.text-sm.font-bold.mb-2", "Last Name"),
+                            m("input.w-full.p-2.border.rounded", { oninput: e => FederateNew.last_name = e.target.value, value: FederateNew.last_name, required: true })
+                        ]),
+                        m("div", [
+                            m("label.block.text-gray-700.text-sm.font-bold.mb-2", "ID Number (Username)"),
+                            m("input.w-full.p-2.border.rounded", { oninput: e => FederateNew.id_number = e.target.value, value: FederateNew.id_number, required: true })
+                        ]),
+                        m("div", [
+                            m("label.block.text-gray-700.text-sm.font-bold.mb-2", "Association ID"),
+                            m("input.w-full.p-2.border.rounded", { type: 'number', oninput: e => FederateNew.association_id = e.target.value, value: FederateNew.association_id, required: true })
+                        ]),
+                    ]),
+                    m(".mt-6.flex.justify-end.items-center", [
+                        m("a.text-gray-600.hover:text-gray-800.mr-4", { href: "#!/federates" }, "Cancel"),
+                        m("button.bg-blue-500.hover:bg-blue-700.text-white.font-bold.py-2.px-4.rounded.transition-all", {
+                            type: "submit",
+                            disabled: FederateNew.loading
+                        }, FederateNew.loading ? "Creating..." : "Create Federate")
+                    ])
+                ])
+            ])
+        };
+
+        // --- Routing ---
+        const root = document.body;
+
+        // Route guard to protect admin routes
+        const AdminRoute = (component) => ({
+            onmatch: () => {
+                if (Auth.isAdmin()) {
+                    return component;
+                } else {
+                    m.route.set('/login');
+                }
+            }
+        });
+
+        m.route(root, "/login", {
+            "/login": {
+                render: () => m(Layout, m(Login))
+            },
+            "/federates": {
+                render: () => m(Layout, m(AdminRoute(FederateList)))
+            },
+            "/federates/new": {
+                render: () => m(Layout, m(AdminRoute(FederateNew)))
+            }
+        });
+    </script>
+</body>
+</html>
