@@ -13,19 +13,29 @@ These instructions will get you a copy of the project up and running on your loc
 ### **Installation**
 
 1. **Clone the repository:**  
+```
    git clone https://github.com/xlittlerag/fak-management
+```
 
 2. **Install dependencies:**
+```
    mix deps.get
+```
 
 3. **Set up the database:**
+```
    mix ecto.setup
+```
 
 4. **Run the tests:**
+```
    mix test
+```
 
 5. **Start the server:**
+```
    mix phx.server
+```
 
    By default, the app will be running at http://localhost:4000.
 
