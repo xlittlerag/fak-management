@@ -1,51 +1,26 @@
-# Dependency directories
-deps/
-_build/
-lib/.compile.elixir
-*.beam
+# The directory Mix will write compiled artifacts to.
+/_build/
+
+# If you run "mix test --cover", coverage assets end up here.
+/cover/
+
+# The directory Mix downloads your dependencies sources to.
+/deps/
+
+# Where third-party dependencies like ExDoc output generated docs.
+/doc/
+
+# If the VM crashes, it generates a dump, let's ignore it too.
+erl_crash.dump
+
+# Also ignore archive artifacts (built via "mix archive.build").
 *.ez
 
-# Phoenix generated files
-priv/static/assets/*
-priv/static/robots.txt
-priv/static/cache_manifest.json
-priv/static/.gitignore
+# Temporary files, for example, from tests.
+/tmp/
 
-# Configuration files
-config/dev.exs
-config/test.exs
-config/prod.exs
-config/runtime.exs
+/db/
 
-# Elixir
-*.ez
-*.beam
-*.boot
-*.app
-*.app.src
-ebin/
-priv/
+/priv/static/assets
 
-# Database
-associates.db
-
-# Node.js / Svelte
-client/node_modules/
-client/.svelte-kit/
-client/.env
-client/.env.*
-client/npm-debug.log*
-client/yarn-debug.log*
-client/yarn-error.log*
-client/.pnpm-debug.log*
-client/.pnpm-store/
-client/dist/
-client/build/        # Svelte's compiled output directory (static/build is served, but build/ might be created by some tools)
-client/public/build/ # If Svelte outputs directly to public/build (though we're using static/build)
-client/static/build/
-
-# IDE and OS specific files
-.idea/        # IntelliJ IDEA
-.vscode/      # VS Code
-.DS_Store     # macOS
-Thumbs.db     # Windows
+.formatter.exs

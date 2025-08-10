@@ -63,4 +63,12 @@ defmodule ApiWeb.Router do
       end
     end
   end
+
+  # --- Frontend Fallback ---
+  # It will only match GET requests that have not been matched by any of the API routes above.
+  scope "/", ApiWeb do
+    pipe_through [:fetch_session]
+
+    get "/*path", SpaController, :index
+  end
 end

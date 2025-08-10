@@ -19,8 +19,7 @@ config :api, ApiWeb.Endpoint,
     formats: [json: ApiWeb.ErrorJSON],
     layout: false
   ],
-  pubsub_server: Api.PubSub,
-  live_view: [signing_salt: "xULzwkwF"]
+  pubsub_server: Api.PubSub
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -29,6 +28,12 @@ config :logger, :console,
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
+
+config :esbuild,
+  version: "0.25.5",
+  default: [
+    args: ~w(assets/index.js --bundle --minify --target=es2017 --outdir=priv/static/assets)
+  ]
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
