@@ -30,5 +30,16 @@ defmodule Api.AccountsTest do
     test "create_user/1 with invalid data returns error changeset" do
       assert {:error, %Ecto.Changeset{}} = Accounts.register_user(%{})
     end
+
+    test "create_user/1 with duplicated username returns error changeset" do
+      valid_attrs = %{
+        username: "testuser",
+        password: "valid_password",
+        role: "federate"
+      }
+
+      assert {:ok, %User{}} = Accounts.register_user(valid_attrs)
+      assert {:error, %Ecto.Changeset{}} = Accounts.register_user(%{})
+    end
   end
 end
