@@ -17,18 +17,8 @@ config :api, ApiWeb.Endpoint,
   secret_key_base: "3l8YM0pbZ4g+FJEzXM1tZycoX3jVcG61luFN3zoe2wikuzitNycaBjrtwCqodNxH",
   server: false
 
-# In test we don't send emails
-config :api, Api.Mailer, adapter: Swoosh.Adapters.Test
-
-# Disable swoosh api client as it is only required for production adapters
-config :swoosh, :api_client, false
-
 # Print only warnings and errors during test
 config :logger, level: :warning
 
 # Initialize plugs at runtime for faster test compilation
 config :phoenix, :plug_init_mode, :runtime
-
-# Enable helpful, but potentially expensive runtime checks
-config :phoenix_live_view,
-  enable_expensive_runtime_checks: true

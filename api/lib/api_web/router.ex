@@ -63,16 +63,4 @@ defmodule ApiWeb.Router do
       end
     end
   end
-
-  # Dev routes can remain as they are useful for development.
-  if Application.compile_env(:api, :dev_routes) do
-    import Phoenix.LiveDashboard.Router
-
-    scope "/dev" do
-      # Note: The dashboard requires a browser, but it's a dev-only tool.
-      pipe_through [:fetch_session, :protect_from_forgery]
-      live_dashboard "/dashboard", metrics: ApiWeb.Telemetry
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-  end
 end

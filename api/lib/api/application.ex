@@ -8,15 +8,10 @@ defmodule Api.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      ApiWeb.Telemetry,
       Api.Repo,
-      {Ecto.Migrator,
-        repos: Application.fetch_env!(:api, :ecto_repos),
-        skip: skip_migrations?()},
+      {Ecto.Migrator, repos: Application.fetch_env!(:api, :ecto_repos), skip: skip_migrations?()},
       {DNSCluster, query: Application.get_env(:api, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Api.PubSub},
-      # Start the Finch HTTP client for sending emails
-      {Finch, name: Api.Finch},
       # Start a worker by calling: Api.Worker.start_link(arg)
       # {Api.Worker, arg},
       # Start to serve requests, typically the last entry
