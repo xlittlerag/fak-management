@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+  binaryTargets = ["native"]
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  ADMIN_GENERAL
+  ADMIN_ASOCIACION
+  BASICO
+}
+
+enum EstadoRegistro {
+  PENDIENTE_APROBACION
+  APROBADO
+  RECHAZADO
+}
+
+enum Disciplina {
+  KENDO
+  IAIDO
+}
+
+enum Genero {
+  MASCULINO
+  FEMENINO
+}
+
+enum Graduacion {
+  SIN_GRADUACION
+  KYU_3
+  KYU_2
+  KYU_1
+  DAN_1
+  DAN_2
+  DAN_3
+  DAN_4
+  DAN_5
+  DAN_6
+  DAN_7
+  DAN_8
+}
+
+enum EstadoSolicitud {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+
+model Asociacion {
+  id      Int       @id @default(autoincrement())
+  nombre  String
+  usuarios Usuario[]
+}
+
+model Usuario {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique
+  password          String
+  nombre            String
+  apellido          String
+  dni               String    @unique
+  fecha_nacimiento  DateTime
+  genero            Genero
+  rol               Rol       @default(BASICO)
+  estado_pago       Boolean   @default(false)
+  asociacion_id     Int
+  asociacion        Asociacion @relation(fields: [asociacion_id], references: [id])
+  estado_reg        EstadoRegistro @default(PENDIENTE_APROBACION)
+  grad_kendo        Graduacion @default(SIN_GRADUACION)
+  f_grad_kendo      DateTime?
+  grad_iaido        Graduacion @default(SIN_GRADUACION)
+  f_grad_iaido      DateTime?
+
+  certificados      CertificadoExterno[]
+  inscripciones     InscripcionEvento[]
+  historial_grad    HistorialGraduacion[]
+}
+
+model CertificadoExterno {
+  id              Int       @id @default(autoincrement())
+  usuario_id      Int
+  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
+  url_archivo     String
+  disciplina      Disciplina
+  grad_solicitada Graduacion
+  estado          EstadoSolicitud @default(PENDIENTE)
+}
+
+model Evento {
+  id              Int       @id @default(autoincrement())
+  tipo            String 
+  fecha_inicio    DateTime
+  fecha_fin       DateTime
+  datos_lugar     Json
+  config          Json
+  inscripciones   InscripcionEvento[]
+}
+
+model InscripcionEvento {
+  id              Int       @id @default(autoincrement())
+  usuario_id      Int
+  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
+  evento_id       Int
+  evento          Evento    @relation(fields: [evento_id], references: [id])
+  tipo_evento     String 
+  categoria_grad  String
+  estado_aprob    EstadoSolicitud @default(PENDIENTE)
+}
+
+model HistorialGraduacion {
+  id              Int       @id @default(autoincrement())
+  usuario_id      Int
+  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
+  disciplina      Disciplina
+  graduacion      Graduacion
+  fecha_obtencion DateTime
+  otorgado_por    String
+}
+
+model CuotaGlobal {
+  id                Int       @id @default(autoincrement())
+  monto_actual      Float
+  fecha_vencimiento DateTime
+}
