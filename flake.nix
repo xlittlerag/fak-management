@@ -1,5 +1,5 @@
 {
-  description = "Hardhat project development environment";
+  description = "Kendo Manager development environment";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -17,9 +17,18 @@
       in {
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
-            nodejs-slim_latest
+            nodejs_latest
             pnpm
+            openssl
+            prisma-engines
+            postgresql
           ];
+          shellHook = ''
+            zsh
+            export PRISMA_QUERY_ENGINE_LIBRARY=${pkgs.prisma-engines}/lib/libquery_engine.node
+            export PRISMA_QUERY_ENGINE_BINARY=${pkgs.prisma-engines}/bin/query-engine
+            export PRISMA_SCHEMA_ENGINE_BINARY=${pkgs.prisma-engines}/bin/schema-engine
+          '';
         };
       }
     );

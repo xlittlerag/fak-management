@@ -51,9 +51,10 @@ enum EstadoSolicitud {
 }
 
 model Asociacion {
-  id      Int       @id @default(autoincrement())
-  nombre  String
-  usuarios Usuario[]
+  id        Int       @id @default(autoincrement())
+  nombre    String
+  deleted_at DateTime?
+  usuarios  Usuario[]
 }
 
 model Usuario {

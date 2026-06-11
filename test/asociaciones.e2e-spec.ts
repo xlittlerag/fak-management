@@ -88,7 +88,7 @@ describe('Asociaciones (e2e)', () => {
   });
 
   describe('DELETE /asociaciones/:id', () => {
-    it('should delete (soft-delete if implemented, or hard delete for now) and return 200 if ADMIN_GENERAL', async () => {
+    it('should soft-delete and return 200 if ADMIN_GENERAL', async () => {
       const { token } = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
       const assoc = await prisma.asociacion.create({ data: { nombre: 'ABorrar' } });
 
@@ -98,10 +98,11 @@ describe('Asociaciones (e2e)', () => {
         .expect(200);
 
       const deleted = await prisma.asociacion.findUnique({ where: { id: assoc.id } });
-      // Depending on implementation, it might be null or have a deleted_at flag. 
-      // The spec says "Elimina lógicamente (soft-delete)". I'll need to update schema for soft-delete later if needed.
-      // For now, let's assume it's gone or we check a flag.
-      expect(deleted).toBeNull(); 
+      expect(deleted).not.toBeNull();
+      expect(deleted?.deleted_at).not.toBeNull();
+      
+      const all = await prisma.asociacion.findMany({ where: { deleted_at: null } });
+      expect(all.find(a => a.id === assoc.id)).toBeUndefined();
     });
   });
 });
