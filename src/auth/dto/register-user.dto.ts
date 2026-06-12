@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, IsInt, IsDateString, IsEnum } from 'class-validator';
-import { Genero } from '@prisma/client';
+import { IsEmail, IsNotEmpty, IsString, IsInt, IsDateString, IsEnum, IsOptional } from 'class-validator';
+import { Genero, Provincia } from '@prisma/client';
 
 export class RegisterUserDto {
   @IsString()
@@ -26,6 +26,25 @@ export class RegisterUserDto {
 
   @IsEnum(Genero)
   genero: Genero;
+
+  @IsString()
+  @IsNotEmpty()
+  calle_altura: string;
+
+  @IsString()
+  @IsOptional()
+  piso_depto?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  ciudad: string;
+
+  @IsEnum(Provincia)
+  provincia: Provincia;
+
+  @IsString()
+  @IsNotEmpty()
+  codigo_postal: string;
 
   @IsInt()
   asociacion_id: number;

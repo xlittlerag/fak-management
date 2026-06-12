@@ -63,6 +63,10 @@ export async function createTestUser(
       rol: overrides.rol || 'BASICO',
       asociacion_id: asociacionId,
       estado_reg: overrides.estado_reg || 'APROBADO',
+      calle_altura: overrides.calle_altura || 'Calle Falsa 123',
+      ciudad: overrides.ciudad || 'Ciudad Test',
+      provincia: overrides.provincia || 'BUENOS_AIRES',
+      codigo_postal: overrides.codigo_postal || '1234',
     },
   });
 

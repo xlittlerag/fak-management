@@ -9,9 +9,43 @@ export class UsuariosController {
   constructor(private readonly usuariosService: UsuariosService) {}
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
+  @Get()
+  findAll(@Request() req: any) {
+    return this.usuariosService.findAll(req.user);
+  }
+
+  @Get('perfil')
+  getPerfil(@Request() req: any) {
+    return this.usuariosService.findOne(req.user.id);
+  }
+
+  @Patch('perfil')
+  updatePerfil(@Request() req: any, @Body() dto: any) {
+    return this.usuariosService.updatePerfil(req.user.id, dto);
+  }
+
+  @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get('pendientes')
   findPendientes(@Request() req: any) {
     return this.usuariosService.findPendientes(req.user);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Patch(':id/rol')
+  updateRol(
+    @Param('id', ParseIntPipe) id: number,
+    @Body('rol') rol: Rol,
+  ) {
+    return this.usuariosService.updateRol(id, rol);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Patch(':id/graduacion')
+  updateGraduacion(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: any,
+  ) {
+    return this.usuariosService.updateGraduacion(id, dto);
   }
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)

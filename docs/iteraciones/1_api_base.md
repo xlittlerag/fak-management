@@ -85,20 +85,32 @@ de datos.
 ## 3. Endpoints de Aprobación de Usuarios
 
 Flujo donde los administradores gestionan a los inscriptos de sus respectivas
-asociaciones.
+| `POST` | `/auth/login`    | Valida DNI y contraseña, devuelve el JWT.         | `@Public()`     |
+| `POST` | `/auth/reset-password/request` | Crea una solicitud de blanqueo. | `@Public()` |
 
-| Método  | Endpoint                   | Descripción                          | Acceso (Guards)                     |
-| ------- | -------------------------- | ------------------------------------ | ----------------------------------- |
-| `GET`   | `/usuarios/pendientes`     | Lista usuarios esperando aprobación. | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
-| `PATCH` | `/usuarios/:id/aprobacion` | Aprueba o rechaza un registro.       | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
+| Método  | Endpoint                   | Descripción                                 | Acceso (Guards)                     |
+| ------- | -------------------------- | ------------------------------------------- | ----------------------------------- |
+| `GET`   | `/usuarios`                | Lista todos los usuarios (según rol).       | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
+| `GET`   | `/usuarios/pendientes`     | Lista registros y blanqueos pendientes.     | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
+| `PATCH` | `/usuarios/:id/aprobacion` | Aprueba o rechaza registro/blanqueo.        | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
+| `PATCH` | `/usuarios/:id/rol`        | Cambia el rol de un usuario.                | `ADMIN_GENERAL`                     |
+| `PATCH` | `/usuarios/:id/graduacion` | Asigna graduaciones a un usuario.           | `ADMIN_GENERAL`                     |
+
+**Reglas de Negocio - Blanqueo:**
+- Si un usuario tiene `estado_blanqueo === 'APROBADO'`, el endpoint de login debe aceptar cualquier contraseña, actualizarla en la DB y resetear el estado de blanqueo.
+
+
+**Reglas de Negocio - Gestión Global (`ADMIN_GENERAL`):**
+- El Administrador General puede ver la lista completa de usuarios del sistema para auditoría y gestión.
+- Puede cambiar el rol de cualquier usuario (ej. de `BASICO` a `ADMIN_ASOCIACION`).
+- Puede asignar y actualizar las graduaciones de Kendo e Iaido de cualquier usuario.
 
 **Reglas de Negocio - Listado (`GET`):**
 
 - Si el usuario que hace la petición es `ADMIN_ASOCIACION`, la consulta a la
-  base de datos debe filtrar automáticamente y devolver **solo** los usuarios
-  con `estado_registro === 'PENDIENTE_APROBACION'` cuyo `asociacion_id` coincida
-  con la asociación del administrador.
-- Si el usuario es `ADMIN_GENERAL`, puede ver los pendientes de todo el país.
+  base de datos filtrará automáticamente y devolverá **solo** los usuarios
+  cuyo `asociacion_id` coincida con la asociación del administrador.
+- Si el usuario es `ADMIN_GENERAL`, puede ver a todos los usuarios del país.
 
 **Reglas de Negocio - Aprobación (`PATCH`):**
 

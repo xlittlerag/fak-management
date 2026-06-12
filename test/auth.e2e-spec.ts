@@ -35,6 +35,10 @@ describe('Auth (e2e)', () => {
         fecha_nacimiento: '1995-05-15',
         genero: 'MASCULINO',
         asociacion_id: assoc.id,
+        calle_altura: 'Av. Siempre Viva 742',
+        ciudad: 'Springfield',
+        provincia: 'BUENOS_AIRES',
+        codigo_postal: '1234',
       };
 
       await request(app.getHttpServer())
@@ -62,6 +66,10 @@ describe('Auth (e2e)', () => {
         fecha_nacimiento: '1995-05-15',
         genero: 'MASCULINO',
         asociacion_id: assoc.id,
+        calle_altura: 'Av. Siempre Viva 742',
+        ciudad: 'Springfield',
+        provincia: 'BUENOS_AIRES',
+        codigo_postal: '1234',
       };
 
       await request(app.getHttpServer())
@@ -75,14 +83,15 @@ describe('Auth (e2e)', () => {
     it('should return 401 for invalid credentials', async () => {
       await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'nonexistent@example.com', password: 'wrong' })
+        .send({ dni: 'nonexistent', password: 'wrong' })
         .expect(401);
-    });
+      });
 
-    it('should return 403 if user is PENDIENTE_APROBACION', async () => {
+      it('should return 403 if user is PENDIENTE_APROBACION', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      await createTestUser(prisma, jwt, { 
+      const user = await createTestUser(prisma, jwt, { 
         email: 'pending@example.com', 
+        dni: 'P123',
         password: 'Password123!',
         estado_reg: 'PENDIENTE_APROBACION',
         asociacion_id: assoc.id 
@@ -90,17 +99,18 @@ describe('Auth (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'pending@example.com', password: 'Password123!' })
+        .send({ dni: 'P123', password: 'Password123!' })
         .expect(403);
+
 
       expect(response.body.message).toContain('aprobación');
     });
 
     it('should return 200 and a JWT if user is APROBADO', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      // createTestUser hashes the password using bcrypt
-      await createTestUser(prisma, jwt, { 
+      const user = await createTestUser(prisma, jwt, { 
         email: 'approved@example.com', 
+        dni: 'A123',
         password: 'Password123!',
         estado_reg: 'APROBADO',
         asociacion_id: assoc.id 
@@ -108,13 +118,13 @@ describe('Auth (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .post('/auth/login')
-        .send({ email: 'approved@example.com', password: 'Password123!' })
+        .send({ dni: 'A123', password: 'Password123!' })
         .expect(201); // Or 200, spec says 200/201
 
       expect(response.body).toHaveProperty('access_token');
       
       const decoded = jwt.decode(response.body.access_token) as any;
-      expect(decoded.email).toBe('approved@example.com');
+      expect(decoded.sub).toBe(user.user.id);
     });
   });
 });

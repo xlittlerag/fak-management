@@ -50,6 +50,33 @@ enum EstadoSolicitud {
   RECHAZADO
 }
 
+enum Provincia {
+  BUENOS_AIRES
+  CABA
+  CATAMARCA
+  CHACO
+  CHUBUT
+  CORDOBA
+  CORRIENTES
+  ENTRE_RIOS
+  FORMOSA
+  JUJUY
+  LA_PAMPA
+  LA_RIOJA
+  MENDOZA
+  MISIONES
+  NEUQUEN
+  RIO_NEGRO
+  SALTA
+  SAN_JUAN
+  SAN_LUIS
+  SANTA_CRUZ
+  SANTA_FE
+  SANTIAGO_DEL_ESTERO
+  TIERRA_DEL_FUEGO
+  TUCUMAN
+}
+
 model Asociacion {
   id        Int       @id @default(autoincrement())
   nombre    String
@@ -66,11 +93,20 @@ model Usuario {
   dni               String    @unique
   fecha_nacimiento  DateTime
   genero            Genero
+  
+  // Dirección
+  calle_altura      String
+  piso_depto        String?
+  ciudad            String
+  provincia         Provincia
+  codigo_postal     String
+
   rol               Rol       @default(BASICO)
   estado_pago       Boolean   @default(false)
   asociacion_id     Int
   asociacion        Asociacion @relation(fields: [asociacion_id], references: [id])
   estado_reg        EstadoRegistro @default(PENDIENTE_APROBACION)
+  estado_blanqueo   EstadoSolicitud @default(APROBADO)
   grad_kendo        Graduacion @default(SIN_GRADUACION)
   f_grad_kendo      DateTime?
   grad_iaido        Graduacion @default(SIN_GRADUACION)

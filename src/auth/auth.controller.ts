@@ -16,8 +16,14 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @HttpCode(HttpStatus.CREATED) // Spec says 200/201, keeping it flexible or specific as per tests
+  @HttpCode(HttpStatus.CREATED)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Public()
+  @Post('reset-password/request')
+  async requestReset(@Body('dni') dni: string) {
+    return this.authService.requestReset(dni);
   }
 }

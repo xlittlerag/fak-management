@@ -102,4 +102,42 @@ describe('Aprobaciones (e2e)', () => {
       expect(updated?.estado_reg).toBe('APROBADO');
     });
   });
+
+  describe('Gestion Global (ADMIN_GENERAL)', () => {
+    it('GET /usuarios should return all users', async () => {
+      const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      await createTestUser(prisma, jwt, { email: 'u1@ex.com' });
+      await createTestUser(prisma, jwt, { email: 'u2@ex.com' });
+
+      const response = await request(app.getHttpServer())
+        .get('/usuarios')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+
+      // 3 users: the admin and the 2 created
+      expect(response.body.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('PATCH /usuarios/:id/rol should update user role', async () => {
+      const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const targetUser = await createTestUser(prisma, jwt, { email: 'target@ex.com', rol: 'BASICO' });
+
+      await request(app.getHttpServer())
+        .patch(`/usuarios/${targetUser.user.id}/rol`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ rol: 'ADMIN_ASOCIACION' })
+        .expect(200);
+
+      const updated = await prisma.usuario.findUnique({ where: { id: targetUser.user.id } });
+      expect(updated?.rol).toBe('ADMIN_ASOCIACION');
+    });
+
+    it('should return 403 if non-admin tries to list all users', async () => {
+      const user = await createTestUser(prisma, jwt, { rol: 'BASICO' });
+      await request(app.getHttpServer())
+        .get('/usuarios')
+        .set('Authorization', `Bearer ${user.token}`)
+        .expect(403);
+    });
+  });
 });
