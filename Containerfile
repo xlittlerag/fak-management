@@ -1,12 +1,13 @@
 # Etapa 1: Build
-FROM node:22-alpine AS builder
+FROM node:lts-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
 RUN npm install -g pnpm
 
-# Install dependencies
+# Install dependencies (using pnpm-workspace logic)
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY frontend/package.json ./frontend/package.json
 RUN pnpm install --frozen-lockfile
 
 # Copy source and build
@@ -16,7 +17,7 @@ RUN pnpm run build
 RUN pnpm exec prisma generate
 
 # Etapa 2: Runtime
-FROM node:22-alpine
+FROM node:lts-alpine
 WORKDIR /app
 
 # Install only production dependencies

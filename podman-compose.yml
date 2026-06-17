@@ -1,6 +1,6 @@
 services:
   kendo-db:
-    image: postgres:17-alpine
+    image: docker.io/library/postgres:18-alpine
     restart: always
     environment:
       POSTGRES_USER: kendo_user
