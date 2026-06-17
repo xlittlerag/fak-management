@@ -46,3 +46,23 @@ pnpm run dev
 ## 🛠️ Tecnologías
 - **Backend:** NestJS, Prisma, JWT, Bcrypt.
 - **Frontend:** Preact, Tailwind CSS v4, Axios, Preact-ISO.
+
+---
+## 🏠 Despliegue en Producción (Home Server)
+
+La aplicación puede ser desplegada de forma unificada utilizando Podman y contenedores.
+
+### 1. Despliegue con Podman
+Utilice el archivo `podman-compose.yml` incluido para orquestar la base de datos y la aplicación:
+
+```bash
+# Construir y levantar servicios en segundo plano
+podman-compose up -d --build
+```
+
+### 2. Gestión
+- **Verificar logs:** `podman-compose logs -f kendo-app`
+- **Detener servicios:** `podman-compose down`
+
+> **Nota:** Recuerde actualizar las variables de entorno en el archivo `podman-compose.yml` (`JWT_SECRET` y contraseñas de base de datos) antes del despliegue final.
+
