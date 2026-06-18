@@ -59,3 +59,6 @@ export enum Graduacion {
 - **RBAC:** Control de acceso mediante decoradores `@Roles()` y un `RolesGuard` global.
 - **Bypass:** Decorador `@Public()` para liberar endpoints de autenticación y registro.
 - **Localización:** Mensajes de error y UI en español formal (Argentina) basado en "Usted".
+
+### Nota sobre Asociaciones:
+- La Federación Argentina de Kendo utiliza el ID `0` y está excluida de las vistas de gestión de asociaciones.
