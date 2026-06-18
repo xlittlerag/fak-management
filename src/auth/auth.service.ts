@@ -38,13 +38,25 @@ export class AuthService {
 
     return this.prisma.usuario.create({
       data: {
-        ...dto,
+        email: dto.email,
         password: hashedPassword,
+        nombre: dto.nombre,
+        apellido: dto.apellido,
+        dni: dto.dni,
         fecha_nacimiento: new Date(dto.fecha_nacimiento),
+        sexo: dto.sexo,
+        calle_altura: dto.calle_altura,
+        piso_depto: dto.piso_depto,
+        ciudad: dto.ciudad,
+        provincia: dto.provincia,
+        codigo_postal: dto.codigo_postal,
+        asociacion_id: dto.asociacion_id,
+        dojo_id: dto.dojo_id,
         rol: 'BASICO',
         estado_reg: 'PENDIENTE_APROBACION',
         grad_kendo: 'SIN_GRADUACION',
         grad_iaido: 'SIN_GRADUACION',
+        grad_jodo: 'SIN_GRADUACION',
         estado_pago: false,
       },
     });
