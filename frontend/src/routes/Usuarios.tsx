@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { GRADUACIONES } from '../constants';
+import { Modal } from '../components/Modal';
 
 interface User {
   id: number;
@@ -70,14 +72,7 @@ export default function Usuarios() {
   return (
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
       <table class="w-full text-left border-collapse text-xs">
-        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
-          <tr>
-            <th class="px-4 py-2">Usuario</th>
-            <th class="px-4 py-2">Dojo</th>
-            <th class="px-4 py-2">K/I/J</th>
-            <th class="px-4 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
+        {/* ... table header ... */}
         <tbody class="divide-y divide-slate-200">
           {users.filter(u => u.rol !== 'ADMIN_GENERAL').map(user => (
             <tr key={user.id} class="hover:bg-slate-50">
@@ -87,19 +82,36 @@ export default function Usuarios() {
                 K: {user.grad_kendo}<br/>I: {user.grad_iaido}<br/>J: {user.grad_jodo}
               </td>
               <td class="px-4 py-2 text-right">
-                {editingGrad === user.id ? (
-                  <div class="space-y-1 bg-white p-2 border rounded shadow-md absolute z-10">
-                    {/* Modal content would go here, simplified to inline for now */}
-                    <button onClick={() => handleSaveGrad(user.id)} class="text-blue-600 font-bold">Guardar</button>
-                  </div>
-                ) : (
-                  <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar</button>
-                )}
+                <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>
               </td>
             </tr>
           ))}
         </tbody>
       </table>
+
+      <Modal isOpen={editingGrad !== null} onClose={() => setEditingGrad(null)} title="Editar Graduaciones">
+        <div class="space-y-4">
+          {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
+            <div key={disc}>
+              <label class="block text-sm font-medium text-slate-700 capitalize">{disc}</label>
+              <select 
+                value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
+                onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
+                class="w-full text-sm border p-1 rounded"
+              >
+                {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+              <input 
+                type="date" 
+                value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
+                onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
+                class="w-full text-sm border p-1 rounded mt-1"
+              />
+            </div>
+          ))}
+          <button onClick={() => editingGrad && handleSaveGrad(editingGrad)} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
+        </div>
+      </Modal>
     </div>
   );
 }
