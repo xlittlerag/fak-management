@@ -14,8 +14,14 @@ export class DojosController {
   }
 
   @Roles(Rol.ADMIN_GENERAL)
-  @Post()
-  create(@Body() dto: CreateDojoDto) {
-    return this.dojosService.create(dto);
+  @Patch(':id')
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateDojoDto) {
+    return this.dojosService.update(id, dto);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Delete(':id')
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.dojosService.remove(id);
   }
 }

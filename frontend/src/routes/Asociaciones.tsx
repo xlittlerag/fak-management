@@ -17,6 +17,8 @@ export default function Asociaciones() {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [newDojoNombre, setNewDojoNombre] = useState('');
+  const [editingDojoId, setEditingDojoId] = useState<number | null>(null);
+  const [editingDojoNombre, setEditingDojoNombre] = useState('');
 
   useEffect(() => {
     fetchAsociaciones();
@@ -45,6 +47,26 @@ export default function Asociaciones() {
       fetchAsociaciones();
     } catch (err) {
       alert('Error al crear dojo');
+    }
+  };
+
+  const handleUpdateDojo = async (id: number) => {
+    try {
+      await api.patch(`/dojos/${id}`, { nombre: editingDojoNombre });
+      setEditingDojoId(null);
+      fetchAsociaciones();
+    } catch (err) {
+      alert('Error al actualizar dojo');
+    }
+  };
+
+  const handleDeleteDojo = async (id: number) => {
+    if (!confirm('¿Seguro?')) return;
+    try {
+      await api.delete(`/dojos/${id}`);
+      fetchAsociaciones();
+    } catch (err) {
+      alert('Error al eliminar dojo');
     }
   };
 
@@ -81,9 +103,26 @@ export default function Asociaciones() {
                     <td colSpan={3} class="px-6 py-4">
                       <div class="ml-8 border-l-2 border-slate-200 pl-4 space-y-4">
                         <h5 class="text-xs font-bold text-slate-500 uppercase">Dojos vinculados</h5>
-                        <ul class="space-y-1">
+                        <ul class="space-y-2">
                           {a.dojos?.map(d => (
-                            <li key={d.id} class="text-sm text-slate-700">{d.nombre}</li>
+                            <li key={d.id} class="flex items-center justify-between text-sm text-slate-700 bg-white p-2 rounded border">
+                              {editingDojoId === d.id ? (
+                                <input 
+                                  value={editingDojoNombre}
+                                  onInput={(e: any) => setEditingDojoNombre(e.target.value)}
+                                  class="text-sm px-1 border rounded"
+                                />
+                              ) : <span>{d.nombre}</span>}
+                              
+                              <div class="flex gap-2">
+                                {editingDojoId === d.id ? (
+                                  <button onClick={() => handleUpdateDojo(d.id)} class="text-blue-600 hover:underline text-xs font-bold">Guardar</button>
+                                ) : (
+                                  <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-slate-600 hover:underline text-xs">Editar</button>
+                                )}
+                                <button onClick={() => handleDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs">Eliminar</button>
+                              </div>
+                            </li>
                           ))}
                         </ul>
                         <div class="flex gap-2">
