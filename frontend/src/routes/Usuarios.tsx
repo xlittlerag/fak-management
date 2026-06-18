@@ -136,28 +136,44 @@ export default function Usuarios() {
 
       {editingUser !== null && (
         <Modal isOpen={true} onClose={() => setEditingUser(null)} title="Editar Graduaciones">
-          <div class="space-y-4">
+          <div class="space-y-6">
             {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
-              <div key={disc}>
-                <label class="block text-sm font-medium text-slate-700 capitalize">{disc}</label>
-                <select 
-                  value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
-                  onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
-                  class="w-full text-sm border p-1 rounded"
-                >
-                  {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-                </select>
-                <input 
-                  type="date" 
-                  value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
-                  onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
-                  class="w-full text-sm border p-1 rounded mt-1"
-                />
+              <div key={disc} class="bg-slate-50 p-4 rounded-lg border border-slate-100">
+                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{disc}</label>
+                <div class="grid grid-cols-1 gap-3">
+                  <select 
+                    value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
+                    onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
+                    class="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2"
+                  >
+                    {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+                  </select>
+                  <input 
+                    type="date" 
+                    value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
+                    onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
+                    class="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2"
+                  />
+                </div>
               </div>
             ))}
-            <button onClick={handleSaveGrad} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
+            <div class="flex gap-3 pt-2">
+              <button 
+                onClick={() => setEditingUser(null)} 
+                class="w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={handleSaveGrad} 
+                class="w-full bg-slate-900 text-white py-2 rounded-md font-medium hover:bg-slate-800 transition-colors"
+              >
+                Guardar
+              </button>
+            </div>
           </div>
         </Modal>
+
       )}
     </div>
   );
