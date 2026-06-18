@@ -8,7 +8,7 @@ RUN npm install -g pnpm
 # Install dependencies (using pnpm-workspace logic)
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source and build
 COPY . .
@@ -22,7 +22,7 @@ WORKDIR /app
 
 # Install only production dependencies
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --prod --frozen-lockfile
+RUN npm install -g pnpm && pnpm install --prod --no-frozen-lockfile
 
 # Copy build artifacts and runtime necessities
 COPY --from=builder /app/dist ./dist

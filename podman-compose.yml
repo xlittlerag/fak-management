@@ -6,21 +6,20 @@ services:
       POSTGRES_USER: kendo_user
       POSTGRES_PASSWORD: secure_password
       POSTGRES_DB: kendo_db
-    volumes:
-      - kendo_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   kendo-app:
-    build: .
+    image: localhost/kendo-app:latest
+    build: 
+      context: .
     restart: always
     ports:
       - "3000:3000"
     environment:
-      DATABASE_URL: "postgresql://kendo_user:secure_password@kendo-db:5432/kendo_db?schema=public"
+      DATABASE_URL: "postgresql://kendo_user:secure_password@localhost:5432/kendo_db?schema=public"
       JWT_SECRET: "cambiar_por_clave_segura"
       PORT: 3000
     depends_on:
       - kendo-db
     command: ["sh", "-c", "npx prisma db push && node dist/main.js"]
-
-volumes:
-  kendo_db_data:
