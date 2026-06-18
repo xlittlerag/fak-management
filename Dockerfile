@@ -20,9 +20,12 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 COPY . .
 # Build Frontend
 RUN cd frontend && pnpm run build
+
+# Generate Prisma Client (Must happen before backend build)
+RUN pnpm exec prisma generate
+
 # Build Backend
 RUN pnpm run build
-RUN pnpm exec prisma generate
 
 # Etapa Final: Runtime
 FROM base
