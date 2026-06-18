@@ -59,9 +59,9 @@ async function main() {
       rol: 'ADMIN_GENERAL',
       asocId: asocFederacion.id,
       dojoId: dojoCentral.id,
-      gradKendo: 'DAN_7',
-      gradIaido: 'DAN_5',
-      gradJodo: 'DAN_3'
+      gradKendo: 'SIN_GRADUACION',
+      gradIaido: 'SIN_GRADUACION',
+      gradJodo: 'SIN_GRADUACION'
     },
     {
       email: 'matias@yoshinkan.com.ar',
@@ -72,7 +72,7 @@ async function main() {
       asocId: asociacionYoshinkan.id,
       dojoId: dojoMarDelPlata.id,
       gradKendo: 'DAN_4',
-      gradIaido: 'DAN_2',
+      gradIaido: 'DAN_3',
       gradJodo: 'SIN_GRADUACION'
     },
     {
@@ -84,8 +84,8 @@ async function main() {
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKenYuKan.id,
       gradKendo: 'DAN_2',
-      gradIaido: 'KYU_1',
-      gradJodo: 'KYU_2'
+      gradIaido: 'SIN_GRADUACION',
+      gradJodo: 'SIN_GRADUACION'
     },
     {
       email: 'santiago@shinsenkai.com.ar',
@@ -95,7 +95,7 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKaizen.id,
-      gradKendo: 'SIN_GRADUACION',
+      gradKendo: 'DAN_5',
       gradIaido: 'SIN_GRADUACION',
       gradJodo: 'SIN_GRADUACION'
     },
@@ -107,8 +107,8 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionYoshinkan.id,
       dojoId: dojoLaPlata.id,
-      gradKendo: 'SIN_GRADUACION',
-      gradIaido: 'SIN_GRADUACION',
+      gradKendo: 'DAN_4',
+      gradIaido: 'DAN_2',
       gradJodo: 'SIN_GRADUACION'
     }
   ];

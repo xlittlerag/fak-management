@@ -14,8 +14,9 @@ export class DojosService {
   }
 
   create(dto: CreateDojoDto) {
+    const { id, ...dataToCreate } = dto as any;
     return this.prisma.dojo.create({
-      data: dto,
+      data: dataToCreate,
     });
   }
 
