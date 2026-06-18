@@ -11,60 +11,42 @@ async function main() {
 
   const password = await bcrypt.hash('Admin123!', 10);
 
-  // 1. Crear Asociaciones
-  const asocFederacion = await prisma.asociacion.upsert({
-    where: { id: 0 },
-    update: {},
-    create: { id: 0, nombre: 'Federación Argentina de Kendo' },
+  // 1. Crear Asociaciones (Federación será ID 1)
+  const asocFederacion = await prisma.asociacion.create({
+    data: { nombre: 'Federación Argentina de Kendo' },
   });
 
-  const asociacionYoshinkan = await prisma.asociacion.upsert({
-    where: { id: 1 },
-    update: {},
-    create: { id: 1, nombre: 'Yoshinkan' },
+  const asociacionYoshinkan = await prisma.asociacion.create({
+    data: { nombre: 'Yoshinkan' },
   });
 
-  const asociacionShinSenKai = await prisma.asociacion.upsert({
-    where: { id: 2 },
-    update: {},
-    create: { id: 2, nombre: 'ShinSenKai' },
+  const asociacionShinSenKai = await prisma.asociacion.create({
+    data: { nombre: 'ShinSenKai' },
   });
 
   // 2. Crear Dojos
-  const dojoCentral = await prisma.dojo.upsert({
-    where: { id: 0 },
-    update: {},
-    create: { id: 0, nombre: 'Oficina Central', asociacion_id: asocFederacion.id },
+  const dojoCentral = await prisma.dojo.create({
+    data: { nombre: 'Oficina Central', asociacion_id: asocFederacion.id },
   });
 
-  const dojoMarDelPlata = await prisma.dojo.upsert({
-    where: { id: 1 },
-    update: {},
-    create: { id: 1, nombre: 'Yoshinkan Mar del Plata', asociacion_id: asociacionYoshinkan.id },
+  const dojoMarDelPlata = await prisma.dojo.create({
+    data: { nombre: 'Yoshinkan Mar del Plata', asociacion_id: asociacionYoshinkan.id },
   });
 
-  const dojoKenYuKan = await prisma.dojo.upsert({
-    where: { id: 2 },
-    update: {},
-    create: { id: 2, nombre: 'Ken Yu Kan', asociacion_id: asociacionShinSenKai.id },
+  const dojoKenYuKan = await prisma.dojo.create({
+    data: { nombre: 'Ken Yu Kan', asociacion_id: asociacionShinSenKai.id },
   });
 
-  const dojoMoron = await prisma.dojo.upsert({
-    where: { id: 3 },
-    update: {},
-    create: { id: 3, nombre: 'Yoshinkan Moron', asociacion_id: asociacionYoshinkan.id },
+  const dojoMoron = await prisma.dojo.create({
+    data: { nombre: 'Yoshinkan Moron', asociacion_id: asociacionYoshinkan.id },
   });
 
-  const dojoLaPlata = await prisma.dojo.upsert({
-    where: { id: 4 },
-    update: {},
-    create: { id: 4, nombre: 'Yoshinkan La Plata', asociacion_id: asociacionYoshinkan.id },
+  const dojoLaPlata = await prisma.dojo.create({
+    data: { nombre: 'Yoshinkan La Plata', asociacion_id: asociacionYoshinkan.id },
   });
 
-  const dojoKaizen = await prisma.dojo.upsert({
-    where: { id: 5 },
-    update: {},
-    create: { id: 5, nombre: 'Kaizen', asociacion_id: asociacionShinSenKai.id },
+  const dojoKaizen = await prisma.dojo.create({
+    data: { nombre: 'Kaizen', asociacion_id: asociacionShinSenKai.id },
   });
 
   // 3. Crear Usuarios
@@ -132,10 +114,8 @@ async function main() {
   ];
 
   for (const u of users) {
-    await prisma.usuario.upsert({
-      where: { dni: u.dni },
-      update: {},
-      create: {
+    await prisma.usuario.create({
+      data: {
         email: u.email,
         dni: u.dni,
         password,
@@ -158,7 +138,7 @@ async function main() {
     });
   }
 
-  console.log('✅ Base de datos sembrada correctamente con Dojos, Oficina Central, graduaciones y usuarios adicionales.');
+  console.log('✅ Base de datos sembrada correctamente.');
   await pool.end();
 }
 
