@@ -22,9 +22,10 @@ enum EstadoRegistro {
 enum Disciplina {
   KENDO
   IAIDO
+  JODO
 }
 
-enum Genero {
+enum Sexo {
   MASCULINO
   FEMENINO
 }
@@ -81,7 +82,16 @@ model Asociacion {
   id        Int       @id @default(autoincrement())
   nombre    String
   deleted_at DateTime?
+  dojos     Dojo[]
   usuarios  Usuario[]
+}
+
+model Dojo {
+  id            Int        @id @default(autoincrement())
+  nombre        String
+  asociacion_id Int
+  asociacion    Asociacion @relation(fields: [asociacion_id], references: [id])
+  usuarios      Usuario[]
 }
 
 model Usuario {
@@ -92,7 +102,7 @@ model Usuario {
   apellido          String
   dni               String    @unique
   fecha_nacimiento  DateTime
-  genero            Genero
+  sexo              Sexo
   
   // Dirección
   calle_altura      String
@@ -103,14 +113,21 @@ model Usuario {
 
   rol               Rol       @default(BASICO)
   estado_pago       Boolean   @default(false)
+  
   asociacion_id     Int
   asociacion        Asociacion @relation(fields: [asociacion_id], references: [id])
+  dojo_id           Int?
+  dojo              Dojo?     @relation(fields: [dojo_id], references: [id])
+  
   estado_reg        EstadoRegistro @default(PENDIENTE_APROBACION)
   estado_blanqueo   EstadoSolicitud @default(APROBADO)
+  
   grad_kendo        Graduacion @default(SIN_GRADUACION)
   f_grad_kendo      DateTime?
   grad_iaido        Graduacion @default(SIN_GRADUACION)
   f_grad_iaido      DateTime?
+  grad_jodo         Graduacion @default(SIN_GRADUACION)
+  f_grad_jodo       DateTime?
 
   certificados      CertificadoExterno[]
   inscripciones     InscripcionEvento[]

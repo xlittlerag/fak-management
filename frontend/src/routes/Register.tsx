@@ -18,7 +18,7 @@ export default function Register() {
     password: '',
     dni: '',
     fecha_nacimiento: '',
-    genero: 'MASCULINO',
+    sexo: 'MASCULINO',
     asociacion_id: '',
     calle_altura: '',
     piso_depto: '',
@@ -104,8 +104,8 @@ export default function Register() {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Género</label>
-              <select name="genero" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+              <select name="sexo" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="MASCULINO">Masculino</option>
                 <option value="FEMENINO">Femenino</option>
               </select>

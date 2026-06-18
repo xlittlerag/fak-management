@@ -1,5 +1,5 @@
 import { IsString, IsOptional, IsDateString, IsEnum, MinLength, IsEmail } from 'class-validator';
-import { Genero, Provincia } from '@prisma/client';
+import { Sexo, Provincia } from '@prisma/client';
 
 export class UpdatePerfilDto {
   @IsString()
@@ -18,9 +18,9 @@ export class UpdatePerfilDto {
   @IsOptional()
   fecha_nacimiento?: string;
 
-  @IsEnum(Genero)
+  @IsEnum(Sexo)
   @IsOptional()
-  genero?: Genero;
+  sexo?: Sexo;
 
   @IsString()
   @IsOptional()

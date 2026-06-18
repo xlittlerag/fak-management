@@ -15,11 +15,12 @@ El diseño contempla la gestión de practicantes, asociaciones, pagos y eventos.
 ### Modelo de Usuario
 - **Identificación:** DNI (Único, no editable, credencial de login).
 - **Contacto:** Email (Editable).
-- **Personal:** Nombre, Apellido, Fecha de nacimiento, Género.
+- **Personal:** Nombre, Apellido, Fecha de nacimiento, Sexo (Masculino / Femenino).
 - **Dirección:** Calle/Altura, Piso/Depto, Ciudad, Código Postal, Provincia (Enum).
 - **Seguridad:** Password (Bcrypt), Estado de blanqueo (Enum).
 - **Estado:** Rol (Admin General, Admin Asociación, Básico), Estado de Registro (Pendiente, Aprobado, Rechazado).
-- **Deportivo:** Graduaciones independientes para Kendo e Iaido.
+- **Deportivo:** Graduaciones independientes para Kendo, Iaido y Jodo.
+- **Asociación/Dojo:** Pertenece a una Asociación y a un Dojo específico.
 
 ---
 
@@ -38,15 +39,15 @@ export enum EstadoRegistro {
   RECHAZADO = "RECHAZADO",
 }
 
-export enum Provincia {
-  BUENOS_AIRES, CABA, CATAMARCA, CHACO, CHUBUT, CORDOBA, CORRIENTES, 
-  ENTRE_RIOS, FORMOSA, JUJUY, LA_PAMPA, LA_RIOJA, MENDOZA, MISIONES, 
-  NEUQUEN, RIO_NEGRO, SALTA, SAN_JUAN, SAN_LUIS, SANTA_CRUZ, SANTA_FE, 
-  SANTIAGO_DEL_ESTERO, TIERRA_DEL_FUEGO, TUCUMAN
+export enum Disciplina {
+  KENDO = "KENDO",
+  IAIDO = "IAIDO",
+  JODO = "JODO",
 }
 
-export enum Graduacion {
-  SIN_GRADUACION, 3_KYU, 2_KYU, 1_KYU, 1_DAN, 2_DAN, 3_DAN, 4_DAN, 5_DAN, 6_DAN, 7_DAN, 8_DAN
+export enum Sexo {
+  MASCULINO = "MASCULINO",
+  FEMENINO = "FEMENINO",
 }
 ```
 
