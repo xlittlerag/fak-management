@@ -19,7 +19,7 @@ export class UsuariosService {
 
     return this.prisma.usuario.findMany({
       where,
-      include: { asociacion: true },
+      include: { asociacion: true, dojo: true },
     });
   }
 
@@ -31,7 +31,7 @@ export class UsuariosService {
 
     return this.prisma.usuario.findMany({
       where,
-      include: { asociacion: true },
+      include: { asociacion: true, dojo: true },
     });
   }
 
