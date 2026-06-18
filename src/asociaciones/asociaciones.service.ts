@@ -9,7 +9,10 @@ export class AsociacionesService {
 
   findAll() {
     return this.prisma.asociacion.findMany({
-      where: { deleted_at: null },
+      where: { 
+        deleted_at: null,
+        id: { not: 0 } 
+      },
     });
   }
 

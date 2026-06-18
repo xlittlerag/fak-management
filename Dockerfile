@@ -24,10 +24,6 @@ COPY . .
 # Build Frontend
 RUN cd frontend && pnpm run build
 
-# Generate Prisma Client (Must happen before backend build)
-# We provide a dummy DATABASE_URL because Prisma 7 config requires it to be defined during execution
-RUN DATABASE_URL="postgresql://kendo_user:secure_password@localhost:5432/kendo_db?schema=public" pnpm exec prisma generate
-
 # Build Backend
 RUN pnpm run build
 
@@ -40,4 +36,4 @@ COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
-CMD [ "node", "dist/main.js" ]
+CMD [ "sh", "-c", "./node_modules/.bin/prisma generate && node dist/main.js" ]

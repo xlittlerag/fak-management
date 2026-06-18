@@ -12,22 +12,22 @@ async function main() {
   const password = await bcrypt.hash('Admin123!', 10);
 
   // 1. Crear Asociaciones
-  const asociacionA = await prisma.asociacion.upsert({
-    where: { id: 1 },
+  await prisma.asociacion.upsert({
+    where: { id: 0 },
     update: {},
-    create: { id: 1, nombre: 'Federación Argentina de Kendo' },
+    create: { id: 0, nombre: 'Federación Argentina de Kendo' },
   });
 
   const asociacionB = await prisma.asociacion.upsert({
-    where: { id: 2 },
+    where: { id: 1 },
     update: {},
-    create: { id: 2, nombre: 'Yoshinkan' },
+    create: { id: 1, nombre: 'Yoshinkan' },
   });
 
   const asociacionC = await prisma.asociacion.upsert({
-    where: { id: 3 },
+    where: { id: 2 },
     update: {},
-    create: { id: 3, nombre: 'ShinSenKai' },
+    create: { id: 2, nombre: 'ShinSenKai' },
   });
 
   // 2. Crear Usuarios (Administradores y de prueba)
@@ -38,7 +38,7 @@ async function main() {
       nombre: 'Admin',
       apellido: 'General',
       rol: 'ADMIN_GENERAL',
-      asocId: asociacionA.id
+      asocId: 0 // Admin general asignado a la federación
     },
     {
       email: 'matias@yoshinkan.com.ar',

@@ -94,7 +94,7 @@ export default function Asociaciones() {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200">
-            {asociaciones.map(a => (
+            {asociaciones.filter(a => a.id !== 0).map(a => (
               <tr key={a.id} class="hover:bg-slate-50 transition-colors">
                 <td class="px-6 py-4 font-mono text-sm text-slate-500">{a.id}</td>
                 <td class="px-6 py-4">

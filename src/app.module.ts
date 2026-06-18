@@ -17,7 +17,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'frontend', 'dist'),
-      exclude: ['/api*'],
+      exclude: ['/api/{*rest}'],
     }),
     PrismaModule,
     AuthModule,

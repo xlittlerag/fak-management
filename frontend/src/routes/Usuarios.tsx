@@ -45,29 +45,28 @@ export default function Usuarios() {
     }
   };
 
-  const handlePromote = async (id: number) => {
+  const handleUpdateRol = async (id: number, rol: string) => {
     try {
-      await api.patch(`/usuarios/${id}/rol`, { rol: 'ADMIN_ASOCIACION' });
-      alert('Usuario promocionado a Administrador de Asociación');
+      await api.patch(`/usuarios/${id}/rol`, { rol });
+      alert('Rol actualizado correctamente');
       fetchUsers();
     } catch (err) {
-      alert('Error al promocionar usuario');
+      alert('Error al actualizar el rol');
     }
   };
 
   const startEditGrad = (user: User) => {
     setEditingGrad(user.id);
     setGradForm({
-      grad_kendo: user.grad_kendo,
+      grad_kendo: user.grad_kendo || 'SIN_GRADUACION',
       f_grad_kendo: user.f_grad_kendo ? user.f_grad_kendo.split('T')[0] : '',
-      grad_iaido: user.grad_iaido,
+      grad_iaido: user.grad_iaido || 'SIN_GRADUACION',
       f_grad_iaido: user.f_grad_iaido ? user.f_grad_iaido.split('T')[0] : '',
     });
   };
 
   const handleSaveGrad = async (id: number) => {
     try {
-      // Only send values that are not empty to avoid overwriting existing data with empty strings/dates
       const payload: any = {};
       if (gradForm.grad_kendo) payload.grad_kendo = gradForm.grad_kendo;
       if (gradForm.f_grad_kendo) payload.f_grad_kendo = gradForm.f_grad_kendo;
@@ -100,7 +99,7 @@ export default function Usuarios() {
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-200">
-          {users.map(user => (
+          {users.filter(u => u.rol !== 'ADMIN_GENERAL').map(user => (
             <tr key={user.id} class="hover:bg-slate-50 transition-colors">
               <td class="px-6 py-4">
                 <div class="font-medium text-slate-900">{user.nombre} {user.apellido}</div>
@@ -176,8 +175,12 @@ export default function Usuarios() {
                       {isAdminGeneral && (
                         <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline text-xs">Graduación</button>
                       )}
-                      {isAdminGeneral && user.rol === 'BASICO' && user.estado_reg === 'APROBADO' && (
-                        <button onClick={() => handlePromote(user.id)} class="text-indigo-600 hover:underline text-xs">Hacer Admin</button>
+                      {isAdminGeneral && user.estado_reg === 'APROBADO' && (
+                        user.rol === 'BASICO' ? (
+                          <button onClick={() => handleUpdateRol(user.id, 'ADMIN_ASOCIACION')} class="text-indigo-600 hover:underline text-xs">Hacer Admin</button>
+                        ) : (
+                          <button onClick={() => handleUpdateRol(user.id, 'BASICO')} class="text-amber-600 hover:underline text-xs">Quitar Admin</button>
+                        )
                       )}
                     </>
                   )}
