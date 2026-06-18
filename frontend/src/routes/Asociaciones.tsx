@@ -65,8 +65,9 @@ export default function Asociaciones() {
     try {
       await api.delete(`/dojos/${id}`);
       fetchAsociaciones();
-    } catch (err) {
-      alert('Error al eliminar dojo');
+    } catch (err: any) {
+      const errorMessage = err.response?.data?.message || 'Error al eliminar dojo';
+      alert(errorMessage);
     }
   };
 
@@ -92,49 +93,52 @@ export default function Asociaciones() {
                   <td class="px-6 py-4 text-right">
                     <button 
                       onClick={() => setExpanded(expanded === a.id ? null : a.id)}
-                      class="text-blue-600 hover:underline text-xs font-medium"
+                      class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-medium transition-colors"
                     >
                       {expanded === a.id ? 'Ocultar Dojos' : 'Gestionar Dojos'}
                     </button>
                   </td>
                 </tr>
                 {expanded === a.id && (
-                  <tr class="bg-slate-50">
+                  <tr class="bg-slate-50/50">
                     <td colSpan={3} class="px-6 py-4">
-                      <div class="ml-8 border-l-2 border-slate-200 pl-4 space-y-4">
-                        <h5 class="text-xs font-bold text-slate-500 uppercase">Dojos vinculados</h5>
-                        <ul class="space-y-2">
-                          {a.dojos?.map(d => (
-                            <li key={d.id} class="flex items-center justify-between text-sm text-slate-700 bg-white p-2 rounded border">
-                              {editingDojoId === d.id ? (
-                                <input 
-                                  value={editingDojoNombre}
-                                  onInput={(e: any) => setEditingDojoNombre(e.target.value)}
-                                  class="text-sm px-1 border rounded"
-                                />
-                              ) : <span>{d.nombre}</span>}
-                              
-                              <div class="flex gap-2">
+                      <div class="space-y-4">
+                        <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
+                            <h5 class="text-xs font-bold text-slate-500 uppercase mb-3">Dojos vinculados</h5>
+                            <ul class="space-y-2">
+                            {a.dojos?.map(d => (
+                                <li key={d.id} class="flex items-center justify-between text-sm text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
                                 {editingDojoId === d.id ? (
-                                  <button onClick={() => handleUpdateDojo(d.id)} class="text-blue-600 hover:underline text-xs font-bold">Guardar</button>
-                                ) : (
-                                  <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-slate-600 hover:underline text-xs">Editar</button>
-                                )}
-                                <button onClick={() => handleDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs">Eliminar</button>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                        <div class="flex gap-2">
+                                    <input 
+                                    value={editingDojoNombre}
+                                    onInput={(e: any) => setEditingDojoNombre(e.target.value)}
+                                    class="text-sm px-2 py-1 border border-slate-300 rounded flex-1 mr-2"
+                                    />
+                                ) : <span class="font-medium">{d.nombre}</span>}
+                                
+                                <div class="flex gap-2">
+                                    {editingDojoId === d.id ? (
+                                    <button onClick={() => handleUpdateDojo(d.id)} class="text-blue-600 hover:underline text-xs font-bold px-2 py-1 bg-blue-50 rounded">Guardar</button>
+                                    ) : (
+                                    <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-slate-600 hover:underline text-xs px-2 py-1 bg-slate-100 rounded">Editar</button>
+                                    )}
+                                    <button onClick={() => handleDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs px-2 py-1 bg-red-50 rounded">Eliminar</button>
+                                </div>
+                                </li>
+                            ))}
+                            </ul>
+                        </div>
+                        
+                        <div class="flex gap-2 items-center bg-white p-3 rounded-lg border border-slate-200">
                           <input 
-                            placeholder="Nuevo dojo..."
+                            placeholder="Nombre del nuevo dojo..."
                             value={newDojoNombre}
                             onInput={(e: any) => setNewDojoNombre(e.target.value)}
-                            class="text-sm px-2 py-1 border border-slate-300 rounded"
+                            class="text-sm px-3 py-1.5 border border-slate-300 rounded flex-1"
                           />
                           <button 
                             onClick={() => handleCreateDojo(a.id)}
-                            class="px-3 py-1 bg-slate-900 text-white rounded text-xs"
+                            class="px-4 py-1.5 bg-slate-900 text-white rounded text-xs font-bold hover:bg-slate-800"
                           >
                             Añadir Dojo
                           </button>
