@@ -16,6 +16,7 @@ export default function Asociaciones() {
   const [asociaciones, setAsociaciones] = useState<Asociacion[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<number | null>(null);
+  const [newDojoNombre, setNewDojoNombre] = useState('');
 
   useEffect(() => {
     fetchAsociaciones();
@@ -24,7 +25,6 @@ export default function Asociaciones() {
   const fetchAsociaciones = async () => {
     try {
       const res = await api.get('/asociaciones');
-      // For simplicity in this iteration, we fetch dojos separately for each association
       const assocData = await Promise.all(res.data.map(async (a: Asociacion) => {
         const dojosRes = await api.get(`/dojos/asociacion/${a.id}`);
         return { ...a, dojos: dojosRes.data };
@@ -34,6 +34,17 @@ export default function Asociaciones() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreateDojo = async (asociacion_id: number) => {
+    if (!newDojoNombre.trim()) return;
+    try {
+      await api.post('/dojos', { nombre: newDojoNombre, asociacion_id });
+      setNewDojoNombre('');
+      fetchAsociaciones();
+    } catch (err) {
+      alert('Error al crear dojo');
     }
   };
 
@@ -68,13 +79,27 @@ export default function Asociaciones() {
                 {expanded === a.id && (
                   <tr class="bg-slate-50">
                     <td colSpan={3} class="px-6 py-4">
-                      <div class="ml-8 border-l-2 border-slate-200 pl-4 space-y-2">
+                      <div class="ml-8 border-l-2 border-slate-200 pl-4 space-y-4">
                         <h5 class="text-xs font-bold text-slate-500 uppercase">Dojos vinculados</h5>
                         <ul class="space-y-1">
                           {a.dojos?.map(d => (
                             <li key={d.id} class="text-sm text-slate-700">{d.nombre}</li>
                           ))}
                         </ul>
+                        <div class="flex gap-2">
+                          <input 
+                            placeholder="Nuevo dojo..."
+                            value={newDojoNombre}
+                            onInput={(e: any) => setNewDojoNombre(e.target.value)}
+                            class="text-sm px-2 py-1 border border-slate-300 rounded"
+                          />
+                          <button 
+                            onClick={() => handleCreateDojo(a.id)}
+                            class="px-3 py-1 bg-slate-900 text-white rounded text-xs"
+                          >
+                            Añadir Dojo
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>
