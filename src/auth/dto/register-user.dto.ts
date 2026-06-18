@@ -48,4 +48,8 @@ export class RegisterUserDto {
 
   @IsInt()
   asociacion_id: number;
+
+  @IsInt()
+  @IsOptional()
+  dojo_id?: number;
 }
