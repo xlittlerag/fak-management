@@ -28,8 +28,9 @@ describe('Asociaciones (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get('/asociaciones')
+        .get('/api/asociaciones')
         .expect(200);
+
 
       expect(response.body).toHaveLength(2);
       expect(response.body[0]).toHaveProperty('nombre');
@@ -39,7 +40,7 @@ describe('Asociaciones (e2e)', () => {
   describe('POST /asociaciones', () => {
     it('should return 401 if no token provided', async () => {
       await request(app.getHttpServer())
-        .post('/asociaciones')
+        .post('/api/asociaciones')
         .send({ nombre: 'Nueva' })
         .expect(401);
     });
@@ -48,7 +49,7 @@ describe('Asociaciones (e2e)', () => {
       const { token } = await createTestUser(prisma, jwt, { rol: 'BASICO' });
 
       await request(app.getHttpServer())
-        .post('/asociaciones')
+        .post('/api/asociaciones')
         .set('Authorization', `Bearer ${token}`)
         .send({ nombre: 'Nueva' })
         .expect(403);
@@ -58,7 +59,7 @@ describe('Asociaciones (e2e)', () => {
       const { token } = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
 
       const response = await request(app.getHttpServer())
-        .post('/asociaciones')
+        .post('/api/asociaciones')
         .set('Authorization', `Bearer ${token}`)
         .send({ nombre: 'Asociación Akitsu' })
         .expect(201);
@@ -78,7 +79,7 @@ describe('Asociaciones (e2e)', () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Antiguo' } });
 
       const response = await request(app.getHttpServer())
-        .patch(`/asociaciones/${assoc.id}`)
+        .patch(`/api/asociaciones/${assoc.id}`)
         .set('Authorization', `Bearer ${token}`)
         .send({ nombre: 'Nuevo Nombre' })
         .expect(200);
@@ -93,7 +94,7 @@ describe('Asociaciones (e2e)', () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'ABorrar' } });
 
       await request(app.getHttpServer())
-        .delete(`/asociaciones/${assoc.id}`)
+        .delete(`/api/asociaciones/${assoc.id}`)
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 

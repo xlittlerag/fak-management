@@ -35,7 +35,7 @@ describe('Admin Features (e2e)', () => {
       await createTestUser(prisma, jwt, { email: 'memberB@test.com', asociacion_id: assocB.id });
 
       const response = await request(app.getHttpServer())
-        .get('/usuarios')
+        .get('/api/usuarios')
         .set('Authorization', `Bearer ${adminA.token}`)
         .expect(200);
 
@@ -58,7 +58,7 @@ describe('Admin Features (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .patch(`/usuarios/${user.user.id}/graduacion`)
+        .patch(`/api/usuarios/${user.user.id}/graduacion`)
         .set('Authorization', `Bearer ${admin.token}`)
         .send(gradData)
         .expect(200);
@@ -74,7 +74,7 @@ describe('Admin Features (e2e)', () => {
       const user = await createTestUser(prisma, jwt, { email: 'user@test.com' });
 
       await request(app.getHttpServer())
-        .patch(`/usuarios/${user.user.id}/graduacion`)
+        .patch(`/api/usuarios/${user.user.id}/graduacion`)
         .set('Authorization', `Bearer ${adminAsoc.token}`)
         .send({ grad_kendo: '1_DAN' })
         .expect(403);

@@ -46,7 +46,7 @@ describe('Aprobaciones (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get('/usuarios/pendientes')
+        .get('/api/usuarios/pendientes')
         .set('Authorization', `Bearer ${adminA.token}`)
         .expect(200);
 
@@ -64,7 +64,7 @@ describe('Aprobaciones (e2e)', () => {
       await createTestUser(prisma, jwt, { email: 'p2@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocB.id });
 
       const response = await request(app.getHttpServer())
-        .get('/usuarios/pendientes')
+        .get('/api/usuarios/pendientes')
         .set('Authorization', `Bearer ${adminGeneral.token}`)
         .expect(200);
 
@@ -81,7 +81,7 @@ describe('Aprobaciones (e2e)', () => {
       const userB = await createTestUser(prisma, jwt, { email: 'userB@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocB.id });
 
       await request(app.getHttpServer())
-        .patch(`/usuarios/${userB.user.id}/aprobacion`)
+        .patch(`/api/usuarios/${userB.user.id}/aprobacion`)
         .set('Authorization', `Bearer ${adminA.token}`)
         .send({ accion: 'APROBAR' })
         .expect(403);
@@ -93,7 +93,7 @@ describe('Aprobaciones (e2e)', () => {
       const userA = await createTestUser(prisma, jwt, { email: 'userA@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocA.id });
 
       await request(app.getHttpServer())
-        .patch(`/usuarios/${userA.user.id}/aprobacion`)
+        .patch(`/api/usuarios/${userA.user.id}/aprobacion`)
         .set('Authorization', `Bearer ${adminA.token}`)
         .send({ accion: 'APROBAR' })
         .expect(200);
@@ -110,7 +110,7 @@ describe('Aprobaciones (e2e)', () => {
       await createTestUser(prisma, jwt, { email: 'u2@ex.com' });
 
       const response = await request(app.getHttpServer())
-        .get('/usuarios')
+        .get('/api/usuarios')
         .set('Authorization', `Bearer ${admin.token}`)
         .expect(200);
 
@@ -123,7 +123,7 @@ describe('Aprobaciones (e2e)', () => {
       const targetUser = await createTestUser(prisma, jwt, { email: 'target@ex.com', rol: 'BASICO' });
 
       await request(app.getHttpServer())
-        .patch(`/usuarios/${targetUser.user.id}/rol`)
+        .patch(`/api/usuarios/${targetUser.user.id}/rol`)
         .set('Authorization', `Bearer ${admin.token}`)
         .send({ rol: 'ADMIN_ASOCIACION' })
         .expect(200);
@@ -135,7 +135,7 @@ describe('Aprobaciones (e2e)', () => {
     it('should return 403 if non-admin tries to list all users', async () => {
       const user = await createTestUser(prisma, jwt, { rol: 'BASICO' });
       await request(app.getHttpServer())
-        .get('/usuarios')
+        .get('/api/usuarios')
         .set('Authorization', `Bearer ${user.token}`)
         .expect(403);
     });
