@@ -19,6 +19,7 @@ describe('Auth (e2e)', () => {
   });
 
   afterAll(async () => {
+    await cleanupDb(prisma);
     await app.close();
   });
 
@@ -44,7 +45,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send(registerDto)
         .expect(201);
 
@@ -77,7 +78,7 @@ describe('Auth (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .post('/auth/register')
+        .post('/api/auth/register')
         .send(registerDto)
         .expect(409);
     });
@@ -86,7 +87,7 @@ describe('Auth (e2e)', () => {
   describe('POST /auth/login', () => {
     it('should return 401 for invalid credentials', async () => {
       await request(app.getHttpServer())
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({ dni: 'nonexistent', password: 'wrong' })
         .expect(401);
       });
@@ -102,7 +103,7 @@ describe('Auth (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({ dni: 'P123', password: 'Password123!' })
         .expect(403);
 
@@ -121,7 +122,7 @@ describe('Auth (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({ dni: 'A123', password: 'Password123!' })
         .expect(201); // Or 200, spec says 200/201
 

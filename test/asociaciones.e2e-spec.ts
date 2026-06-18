@@ -18,6 +18,7 @@ describe('Asociaciones (e2e)', () => {
   });
 
   afterAll(async () => {
+    await cleanupDb(prisma);
     await app.close();
   });
 

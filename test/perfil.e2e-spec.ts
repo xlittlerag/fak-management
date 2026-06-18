@@ -18,6 +18,7 @@ describe('Perfil (e2e)', () => {
   });
 
   afterAll(async () => {
+    await cleanupDb(prisma);
     await app.close();
   });
 
@@ -29,7 +30,7 @@ describe('Perfil (e2e)', () => {
       });
 
       const response = await request(app.getHttpServer())
-        .get('/usuarios/perfil')
+        .get('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
@@ -53,7 +54,7 @@ describe('Perfil (e2e)', () => {
       };
 
       await request(app.getHttpServer())
-        .patch('/usuarios/perfil')
+        .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
         .send(updateDto)
         .expect(200);
@@ -68,14 +69,14 @@ describe('Perfil (e2e)', () => {
       const { user, token } = await createTestUser(prisma, jwt, { password: 'OldPassword123!' });
 
       await request(app.getHttpServer())
-        .patch('/usuarios/perfil')
+        .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
         .send({ password: 'NewPassword123!' })
         .expect(200);
 
       // Verify login works with new password
       await request(app.getHttpServer())
-        .post('/auth/login')
+        .post('/api/auth/login')
         .send({ dni: user.dni, password: 'NewPassword123!' })
         .expect(201);
     });
@@ -88,7 +89,7 @@ describe('Perfil (e2e)', () => {
       });
 
       await request(app.getHttpServer())
-        .patch('/usuarios/perfil')
+        .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
         .send({ dojo_id: newDojo.id })
         .expect(200);
