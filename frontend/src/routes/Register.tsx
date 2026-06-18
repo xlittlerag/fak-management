@@ -8,9 +8,15 @@ interface Asociacion {
   nombre: string;
 }
 
+interface Dojo {
+  id: number;
+  nombre: string;
+}
+
 export default function Register() {
   const { route } = useLocation();
   const [asociaciones, setAsociaciones] = useState<Asociacion[]>([]);
+  const [dojos, setDojos] = useState<Dojo[]>([]);
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -20,6 +26,7 @@ export default function Register() {
     fecha_nacimiento: '',
     sexo: 'MASCULINO',
     asociacion_id: '',
+    dojo_id: '',
     calle_altura: '',
     piso_depto: '',
     ciudad: '',
@@ -35,6 +42,21 @@ export default function Register() {
       .catch(() => setError('Error crítico: No se pudieron cargar las asociaciones.'));
   }, []);
 
+  // Fetch dojos when association changes
+  useEffect(() => {
+    if (formData.asociacion_id) {
+      api.get(`/dojos/asociacion/${formData.asociacion_id}`)
+        .then(res => {
+          setDojos(res.data);
+          setFormData(prev => ({ ...prev, dojo_id: '' })); // Reset dojo
+        })
+        .catch(() => setError('Error al cargar dojos.'));
+    } else {
+      setDojos([]);
+      setFormData(prev => ({ ...prev, dojo_id: '' }));
+    }
+  }, [formData.asociacion_id]);
+
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
@@ -44,6 +66,7 @@ export default function Register() {
       await api.post('/auth/register', {
         ...formData,
         asociacion_id: parseInt(formData.asociacion_id),
+        dojo_id: formData.dojo_id ? parseInt(formData.dojo_id) : null,
       });
       route('/login?registered=true');
     } catch (err: any) {
@@ -111,11 +134,23 @@ export default function Register() {
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Asociación / Dojo</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Asociación</label>
               <select name="asociacion_id" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="">Seleccionar...</option>
                 {asociaciones.filter(a => a.id !== 0).map(a => (
                   <option key={a.id} value={a.id}>{a.nombre}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Dojo</label>
+              <select name="dojo_id" required={dojos.length > 0} disabled={!formData.asociacion_id || dojos.length === 0} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                <option value="">Seleccionar...</option>
+                {dojos.map(d => (
+                  <option key={d.id} value={d.id}>{d.nombre}</option>
                 ))}
               </select>
             </div>
