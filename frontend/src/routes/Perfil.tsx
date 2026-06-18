@@ -9,7 +9,7 @@ export default function Perfil() {
     email: '',
     dni: '',
     fecha_nacimiento: '',
-    genero: 'MASCULINO',
+    sexo: 'MASCULINO',
     calle_altura: '',
     piso_depto: '',
     ciudad: '',
@@ -20,6 +20,8 @@ export default function Perfil() {
     f_grad_kendo: '',
     grad_iaido: '',
     f_grad_iaido: '',
+    grad_jodo: '',
+    f_grad_jodo: '',
   });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -57,7 +59,7 @@ export default function Perfil() {
       apellido: formData.apellido,
       email: formData.email,
       fecha_nacimiento: formData.fecha_nacimiento,
-      genero: formData.genero,
+      sexo: formData.sexo,
       calle_altura: formData.calle_altura,
       piso_depto: formData.piso_depto,
       ciudad: formData.ciudad,
@@ -133,8 +135,8 @@ export default function Perfil() {
               <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Género</label>
-              <select name="genero" value={formData.genero} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
+              <select name="sexo" value={formData.sexo} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="MASCULINO">Masculino</option>
                 <option value="FEMENINO">Femenino</option>
               </select>
@@ -203,7 +205,7 @@ export default function Perfil() {
       {/* Graduaciones Display */}
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
         <h3 class="text-xl font-bold mb-6 text-slate-800">Sus Graduaciones</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
             <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Kendo</div>
             <div class="text-2xl font-black text-slate-900">{getGradLabel(formData.grad_kendo)}</div>
@@ -218,10 +220,14 @@ export default function Perfil() {
               <div class="text-sm text-slate-500 mt-2 italic">Obtenida el {new Date(formData.f_grad_iaido).toLocaleDateString()}</div>
             )}
           </div>
+          <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
+            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Jodo</div>
+            <div class="text-2xl font-black text-slate-900">{getGradLabel(formData.grad_jodo)}</div>
+            {formData.f_grad_jodo && (
+              <div class="text-sm text-slate-500 mt-2 italic">Obtenida el {new Date(formData.f_grad_jodo).toLocaleDateString()}</div>
+            )}
+          </div>
         </div>
-        <p class="mt-6 text-xs text-slate-400 italic">
-          * Para actualizar sus graduaciones, por favor póngase en contacto con el Administrador General o cargue su certificado externo (disponible en la próxima fase).
-        </p>
       </div>
     </div>
   );
