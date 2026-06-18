@@ -11,11 +11,14 @@ async function main() {
 
   const password = await bcrypt.hash('Admin123!', 10);
 
-  // 1. Crear Asociaciones (Federación será ID 1)
-  const asocFederacion = await prisma.asociacion.create({
-    data: { nombre: 'Federación Argentina de Kendo' },
+  // 0. Crear Admin General (Auth)
+  await prisma.adminGeneral.upsert({
+    where: { dni: '00000000' },
+    update: { password },
+    create: { dni: '00000000', password },
   });
 
+  // 1. Crear Asociaciones
   const asociacionYoshinkan = await prisma.asociacion.create({
     data: { nombre: 'Yoshinkan' },
   });
@@ -25,10 +28,6 @@ async function main() {
   });
 
   // 2. Crear Dojos
-  const dojoCentral = await prisma.dojo.create({
-    data: { nombre: 'Oficina Central', asociacion_id: asocFederacion.id },
-  });
-
   const dojoMarDelPlata = await prisma.dojo.create({
     data: { nombre: 'Yoshinkan Mar del Plata', asociacion_id: asociacionYoshinkan.id },
   });
@@ -52,18 +51,6 @@ async function main() {
   // 3. Crear Usuarios
   const users = [
     {
-      email: 'admin@kendo.com',
-      dni: '00000000',
-      nombre: 'Admin',
-      apellido: 'General',
-      rol: 'ADMIN_GENERAL',
-      asocId: asocFederacion.id,
-      dojoId: dojoCentral.id,
-      gradKendo: 'SIN_GRADUACION',
-      gradIaido: 'SIN_GRADUACION',
-      gradJodo: 'SIN_GRADUACION'
-    },
-    {
       email: 'matias@yoshinkan.com.ar',
       dni: '11111111',
       nombre: 'Matias',
@@ -72,7 +59,7 @@ async function main() {
       asocId: asociacionYoshinkan.id,
       dojoId: dojoMarDelPlata.id,
       gradKendo: 'DAN_4',
-      gradIaido: 'DAN_3',
+      gradIaido: 'DAN_2',
       gradJodo: 'SIN_GRADUACION'
     },
     {
@@ -84,8 +71,8 @@ async function main() {
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKenYuKan.id,
       gradKendo: 'DAN_2',
-      gradIaido: 'SIN_GRADUACION',
-      gradJodo: 'SIN_GRADUACION'
+      gradIaido: 'KYU_1',
+      gradJodo: 'KYU_2'
     },
     {
       email: 'santiago@shinsenkai.com.ar',
@@ -95,7 +82,7 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKaizen.id,
-      gradKendo: 'DAN_5',
+      gradKendo: 'SIN_GRADUACION',
       gradIaido: 'SIN_GRADUACION',
       gradJodo: 'SIN_GRADUACION'
     },
@@ -107,8 +94,8 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionYoshinkan.id,
       dojoId: dojoLaPlata.id,
-      gradKendo: 'DAN_4',
-      gradIaido: 'DAN_2',
+      gradKendo: 'SIN_GRADUACION',
+      gradIaido: 'SIN_GRADUACION',
       gradJodo: 'SIN_GRADUACION'
     }
   ];
