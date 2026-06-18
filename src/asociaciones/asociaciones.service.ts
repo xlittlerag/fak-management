@@ -11,7 +11,6 @@ export class AsociacionesService {
     return this.prisma.asociacion.findMany({
       where: { 
         deleted_at: null,
-        id: { not: 1 } 
       },
     });
   }

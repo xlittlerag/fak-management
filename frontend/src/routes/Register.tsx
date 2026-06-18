@@ -137,7 +137,7 @@ export default function Register() {
               <label class="block text-sm font-medium text-slate-700 mb-1">Asociación</label>
               <select name="asociacion_id" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="">Seleccionar...</option>
-                {asociaciones.filter(a => a.id !== 1).map(a => (
+                {asociaciones.map(a => (
                   <option key={a.id} value={a.id}>{a.nombre}</option>
                 ))}
               </select>
