@@ -2,84 +2,28 @@
 
 ## 🛠️ Stack Tecnológico
 
-- **Backend:** NestJS (v10+), TypeScript, Prisma ORM o TypeORM (Relacional).
-- **Frontend:** React/Next.js/Vite (a definir en la iteración 2), TypeScript,
-  Tailwind CSS.
-- **Base de Datos:** PostgreSQL (Recomendado por su soporte nativo de tipos ENUM
-  y consistencia relacional para auditoría).
+- **Backend:** NestJS (v11+), TypeScript, Prisma ORM.
+- **Frontend:** Preact, Vite, TypeScript, Tailwind CSS v4.
+- **Base de Datos:** PostgreSQL.
 
 ---
 
 ## 🗄️ Esquema de Base de Datos Unificado
 
-Este diseño lógico contempla campos que no usarás en la Iteración 1 (como los
-flags de pago o las tablas de eventos), pero que **deben existir desde el día
-uno** para evitar refactorizaciones costosas.
+El diseño contempla la gestión de practicantes, asociaciones, pagos y eventos.
 
-```
-+-------------------+             +-------------------+
-|    Asociacion     |             |   CuotaGlobal     |
-+-------------------+             +-------------------+
-| id (PK)           |             | id (PK)           |
-| nombre            |             | monto_actual      |
-+-------------------+             | fecha_vencimiento |
-          |                       +-------------------+
-          | 1
-          |
-          | N
-+-------------------+             +-------------------+
-|      Usuario      |             | CertificadoExter. |
-+-------------------+             +-------------------+
-| id (PK)           |             | id (PK)           |
-| email (Unique)    | 1         N | usuario_id (FK)   |
-| password          |-------------| url_archivo       |
-| nombre            |             | disciplina (ENUM) |
-| apellido          |             | grad_solicitada   |
-| dni (Unique)      |             | estado (ENUM)     |
-| fecha_nacimiento  |             +-------------------+
-| genero (ENUM)     |
-| rol (ENUM)        |             +-------------------+
-| estado_pago (BOOL)|             | InscripcionEvento |
-| asociacion_id(FK) |             +-------------------+
-| estado_reg (ENUM) |             | id (PK)           |
-| grad_kendo (ENUM) | 1         N | usuario_id (FK)   |
-| f_grad_kendo      |-------------| evento_id (FK)    |
-| grad_iaido (ENUM) |             | tipo_evento (ENUM)|
-| f_grad_iaido      |             | categoria/grad    |
-+-------------------+             | estado_aprob(ENUM)|
-          |                       +-------------------+
-          | 1                               | N
-          |                                 |
-          | N                               | 1
-+-------------------+                       |
-|  HistorialGraduc. |                       |
-+-------------------+                       |
-| id (PK)           |                       |
-| usuario_id (FK)   |                       |
-| disciplina (ENUM) |                       |
-| graduacion (ENUM) |                       |
-| fecha_obtencion   |                       |
-| otorgado_por      |                       |
-+-------------------+                       |
-                                            |
-                                  +-------------------+
-                                  |      Evento       |
-                                  +-------------------+
-                                  | id (PK)           |
-                                  | tipo (ENUM)       |
-                                  | fecha_inicio      |
-                                  | fecha_fin         |
-                                  | datos_lugar (JSON)|
-                                  | config (JSON)     |
-                                  +-------------------+
-```
+### Modelo de Usuario
+- **Identificación:** DNI (Único, no editable, credencial de login).
+- **Contacto:** Email (Editable).
+- **Personal:** Nombre, Apellido, Fecha de nacimiento, Género.
+- **Dirección:** Calle/Altura, Piso/Depto, Ciudad, Código Postal, Provincia (Enum).
+- **Seguridad:** Password (Bcrypt), Estado de blanqueo (Enum).
+- **Estado:** Rol (Admin General, Admin Asociación, Básico), Estado de Registro (Pendiente, Aprobado, Rechazado).
+- **Deportivo:** Graduaciones independientes para Kendo e Iaido.
 
 ---
 
 ## 📋 Diccionario de Tipos y Enums (TypeScript / DB)
-
-Para garantizar la consistencia en el backend (NestJS) y el frontend, se definen
-los siguientes enums globales:
 
 ```typescript
 export enum Rol {
@@ -94,48 +38,24 @@ export enum EstadoRegistro {
   RECHAZADO = "RECHAZADO",
 }
 
-export enum Disciplina {
-  KENDO = "KENDO",
-  IAIDO = "IAIDO",
-}
-
-export enum Genero {
-  MASCULINO = "MASCULINO",
-  FEMENINO = "FEMENINO",
+export enum Provincia {
+  BUENOS_AIRES, CABA, CATAMARCA, CHACO, CHUBUT, CORDOBA, CORRIENTES, 
+  ENTRE_RIOS, FORMOSA, JUJUY, LA_PAMPA, LA_RIOJA, MENDOZA, MISIONES, 
+  NEUQUEN, RIO_NEGRO, SALTA, SAN_JUAN, SAN_LUIS, SANTA_CRUZ, SANTA_FE, 
+  SANTIAGO_DEL_ESTERO, TIERRA_DEL_FUEGO, TUCUMAN
 }
 
 export enum Graduacion {
-  SIN_GRADUACION = "SIN_GRADUACION",
-  KYU_3 = "3_KYU",
-  KYU_2 = "2_KYU",
-  KYU_1 = "1_KYU",
-  DAN_1 = "1_DAN",
-  DAN_2 = "2_DAN",
-  DAN_3 = "3_DAN",
-  DAN_4 = "4_DAN",
-  DAN_5 = "5_DAN",
-  DAN_6 = "6_DAN",
-  DAN_7 = "7_DAN",
-  DAN_8 = "8_DAN",
-}
-
-export enum EstadoSolicitud {
-  PENDIENTE = "PENDIENTE",
-  APROBADO = "APROBADO",
-  RECHAZADO = "RECHAZADO",
+  SIN_GRADUACION, 3_KYU, 2_KYU, 1_KYU, 1_DAN, 2_DAN, 3_DAN, 4_DAN, 5_DAN, 6_DAN, 7_DAN, 8_DAN
 }
 ```
 
 ---
 
-## 🔒 Estrategia de Autenticación y Autorización Global
+## 🔒 Estrategia de Autenticación y Autorización
 
-- **Autenticación:** Se utilizará **JWT (JSON Web Tokens)** transportados
-  preferentemente en cookies HTTP-only (para mitigar ataques XSS) o en el header
-  `Authorization: Bearer`.
-- **Estrategia en NestJS:**
-- Un `JwtAuthGuard` global para proteger las rutas por defecto.
-- Un decorador personalizado `@Public()` para liberar endpoints específicos
-  (como login y registro).
-- Un `RolesGuard` combinado con un decorador `@Roles(Rol.ADMIN_GENERAL)` para el
-  control de acceso basado en roles (RBAC).
+- **Autenticación:** JWT (JSON Web Tokens).
+- **Login:** Basado en DNI y Contraseña. El Administrador General utiliza el DNI especial `00000000`.
+- **RBAC:** Control de acceso mediante decoradores `@Roles()` y un `RolesGuard` global.
+- **Bypass:** Decorador `@Public()` para liberar endpoints de autenticación y registro.
+- **Localización:** Mensajes de error y UI en español formal (Argentina) basado en "Usted".
