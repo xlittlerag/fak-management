@@ -17,7 +17,10 @@ export class DojosController {
   @Roles(Rol.ADMIN_GENERAL)
   @Post()
   create(@Body() dto: CreateDojoDto) {
-    return this.dojosService.create(dto);
+    return this.dojosService.create({
+      ...dto,
+      asociacion_id: Number(dto.asociacion_id),
+    });
   }
 
   @Roles(Rol.ADMIN_GENERAL)
