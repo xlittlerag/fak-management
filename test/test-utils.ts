@@ -59,7 +59,7 @@ export async function createTestUser(
       apellido: overrides.apellido || 'User',
       dni: overrides.dni || `DNI-${Date.now()}`,
       fecha_nacimiento: new Date('1990-01-01'),
-      genero: 'MASCULINO',
+      sexo: overrides.sexo || 'MASCULINO',
       rol: overrides.rol || 'BASICO',
       asociacion_id: asociacionId,
       estado_reg: overrides.estado_reg || 'APROBADO',

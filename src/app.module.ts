@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { AsociacionesModule } from './asociaciones/asociaciones.module';
+import { DojosModule } from './dojos/dojos.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';

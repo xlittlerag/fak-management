@@ -49,7 +49,7 @@ describe('Perfil (e2e)', () => {
       const updateDto = {
         nombre: 'Updated',
         apellido: 'Modified',
-        genero: 'FEMENINO'
+        sexo: 'FEMENINO'
       };
 
       await request(app.getHttpServer())
@@ -61,7 +61,7 @@ describe('Perfil (e2e)', () => {
       const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
       expect(updated?.nombre).toBe('Updated');
       expect(updated?.apellido).toBe('Modified');
-      expect(updated?.genero).toBe('FEMENINO');
+      expect(updated?.sexo).toBe('FEMENINO');
     });
 
     it('should update password if provided', async () => {
