@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { GRADUACIONES } from '../constants';
 import { Modal } from '../components/Modal';
 
@@ -21,6 +22,7 @@ interface User {
 }
 
 export default function Usuarios() {
+  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -45,6 +47,16 @@ export default function Usuarios() {
     }
   };
 
+  const handleUpdateRol = async (id: number, rol: string) => {
+    try {
+      await api.patch(`/usuarios/${id}/rol`, { rol });
+      alert('Rol actualizado correctamente');
+      fetchUsers();
+    } catch (err) {
+      alert('Error al actualizar el rol');
+    }
+  };
+
   const startEditGrad = (user: User) => {
     setGradForm({
       grad_kendo: user.grad_kendo || 'SIN_GRADUACION',
@@ -64,7 +76,7 @@ export default function Usuarios() {
       setEditingUser(null);
       fetchUsers();
     } catch (err) {
-      alert('Error');
+      alert('Error al actualizar graduación');
     }
   };
 
@@ -73,6 +85,8 @@ export default function Usuarios() {
   };
 
   if (loading) return <div>Cargando...</div>;
+
+  const isAdminGeneral = currentUser?.rol === 'ADMIN_GENERAL';
 
   return (
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
@@ -94,7 +108,16 @@ export default function Usuarios() {
                 K: {getGradLabel(user.grad_kendo)}<br/>I: {getGradLabel(user.grad_iaido)}<br/>J: {getGradLabel(user.grad_jodo)}
               </td>
               <td class="px-4 py-2 text-right">
-                <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>
+                <div class="flex flex-col items-end gap-2">
+                  <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>
+                  {isAdminGeneral && user.estado_reg === 'APROBADO' && (
+                    user.rol === 'BASICO' ? (
+                      <button onClick={() => handleUpdateRol(user.id, 'ADMIN_ASOCIACION')} class="text-indigo-600 hover:underline font-bold">Hacer Admin</button>
+                    ) : (
+                      <button onClick={() => handleUpdateRol(user.id, 'BASICO')} class="text-amber-600 hover:underline font-bold">Quitar Admin</button>
+                    )
+                  )}
+                </div>
               </td>
             </tr>
           ))}
