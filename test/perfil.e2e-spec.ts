@@ -79,5 +79,22 @@ describe('Perfil (e2e)', () => {
         .send({ dni: user.dni, password: 'NewPassword123!' })
         .expect(201);
     });
+
+    it('should update dojo_id if provided', async () => {
+      const { user, token } = await createTestUser(prisma, jwt, { nombre: 'Original' });
+      // Create a second dojo to switch to
+      const newDojo = await prisma.dojo.create({ 
+        data: { nombre: 'New Dojo', asociacion_id: user.asociacion_id } 
+      });
+
+      await request(app.getHttpServer())
+        .patch('/usuarios/perfil')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ dojo_id: newDojo.id })
+        .expect(200);
+
+      const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
+      expect(updated?.dojo_id).toBe(newDojo.id);
+    });
   });
 });
