@@ -72,7 +72,14 @@ export default function Usuarios() {
   return (
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
       <table class="w-full text-left border-collapse text-xs">
-        {/* ... table header ... */}
+        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+          <tr>
+            <th class="px-4 py-2">Usuario</th>
+            <th class="px-4 py-2">Dojo</th>
+            <th class="px-4 py-2">K/I/J</th>
+            <th class="px-4 py-2 text-right">Acciones</th>
+          </tr>
+        </thead>
         <tbody class="divide-y divide-slate-200">
           {users.filter(u => u.rol !== 'ADMIN_GENERAL').map(user => (
             <tr key={user.id} class="hover:bg-slate-50">
