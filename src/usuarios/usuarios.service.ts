@@ -75,9 +75,16 @@ export class UsuariosService {
     
     const mapGrad = (g: string) => {
       if (!g || g === 'SIN_GRADUACION') return 'SIN_GRADUACION' as Graduacion;
+      
+      // Handle the case where the input might be 'DAN_4' or 'KYU_3'
+      // and needs to match the Prisma Enum format like 'DAN_4', 'KYU_3'.
+      // If the incoming data format is '4_DAN', '3_KYU', reverse it.
       if (g.includes('_')) {
         const parts = g.split('_');
-        return `${parts[1]}_${parts[0]}` as Graduacion;
+        // Check if the first part is a number, indicating '4_DAN' or '3_KYU'
+        if (!isNaN(Number(parts[0]))) {
+          return `${parts[1]}_${parts[0]}` as Graduacion;
+        }
       }
       return g as Graduacion;
     };
