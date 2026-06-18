@@ -2,20 +2,18 @@ services:
   kendo-db:
     image: docker.io/library/postgres:18-alpine
     restart: always
+    network_mode: host
     environment:
       POSTGRES_USER: kendo_user
       POSTGRES_PASSWORD: secure_password
       POSTGRES_DB: kendo_db
-    ports:
-      - "5432:5432"
+    volumes:
+      - kendo_db_data:/var/lib/postgresql/data
 
   kendo-app:
-    image: localhost/kendo-app:latest
-    build: 
-      context: .
+    build: .
     restart: always
-    ports:
-      - "3000:3000"
+    network_mode: host
     environment:
       DATABASE_URL: "postgresql://kendo_user:secure_password@localhost:5432/kendo_db?schema=public"
       JWT_SECRET: "cambiar_por_clave_segura"
@@ -23,3 +21,6 @@ services:
     depends_on:
       - kendo-db
     command: ["sh", "-c", "npx prisma db push && node dist/main.js"]
+
+volumes:
+  kendo_db_data:

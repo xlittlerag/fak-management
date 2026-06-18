@@ -2,8 +2,8 @@
 FROM node:lts-alpine AS builder
 WORKDIR /app
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm and configure it to approve build scripts automatically
+RUN npm install -g pnpm && pnpm config set --global approve-builds true
 
 # Install dependencies (using pnpm-workspace logic)
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
@@ -19,12 +19,11 @@ RUN pnpm exec prisma generate
 # Etapa 2: Runtime
 FROM node:lts-alpine
 WORKDIR /app
-
-# Install only production dependencies
+# Allow scripts for production dependencies too
+RUN npm install -g pnpm && pnpm config set --global approve-builds true
 COPY package.json pnpm-lock.yaml ./
-RUN npm install -g pnpm && pnpm install --prod --no-frozen-lockfile
+RUN pnpm install --prod --no-frozen-lockfile
 
-# Copy build artifacts and runtime necessities
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/frontend/dist ./frontend/dist
 COPY --from=builder /app/prisma ./prisma
