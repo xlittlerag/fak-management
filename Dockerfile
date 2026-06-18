@@ -5,24 +5,28 @@ ENV PATH="$PNPM_HOME/bin:$PATH"
 RUN corepack enable
 WORKDIR /app
 
+# Instalar herramientas de compilación necesarias para bcrypt/native modules y openssl para prisma
+RUN apt-get update && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 # Etapa Prod-Deps: Instalar dependencias de producción
 FROM base AS prod-deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile --config.approve-builds=true
 
 # Etapa Build: Compilar Frontend y Backend
 FROM base AS build
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile --config.approve-builds=true
 
 COPY . .
 # Build Frontend
 RUN cd frontend && pnpm run build
 
 # Generate Prisma Client (Must happen before backend build)
-RUN pnpm exec prisma generate
+# We provide a dummy DATABASE_URL because Prisma 7 config requires it to be defined during execution
+RUN DATABASE_URL="postgresql://kendo_user:secure_password@localhost:5432/kendo_db?schema=public" pnpm exec prisma generate
 
 # Build Backend
 RUN pnpm run build

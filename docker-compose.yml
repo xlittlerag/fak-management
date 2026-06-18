@@ -20,7 +20,7 @@ services:
       PORT: 3000
     depends_on:
       - kendo-db
-    command: ["sh", "-c", "npx prisma db push && node dist/main.js"]
+    command: ["sh", "-c", "./node_modules/.bin/prisma db push && node dist/main.js"]
 
 volumes:
   kendo_db_data:
