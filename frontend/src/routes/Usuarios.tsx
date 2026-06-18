@@ -23,7 +23,7 @@ interface User {
 export default function Usuarios() {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingGrad, setEditingGrad] = useState<number | null>(null);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
   const [gradForm, setGradForm] = useState({
     grad_kendo: '', f_grad_kendo: '',
     grad_iaido: '', f_grad_iaido: '',
@@ -46,7 +46,7 @@ export default function Usuarios() {
   };
 
   const startEditGrad = (user: User) => {
-    setEditingGrad(user.id);
+    // Sincronización directa en el evento: Solución 1
     setGradForm({
       grad_kendo: user.grad_kendo || 'SIN_GRADUACION',
       f_grad_kendo: user.f_grad_kendo ? user.f_grad_kendo.split('T')[0] : '',
@@ -55,12 +55,14 @@ export default function Usuarios() {
       grad_jodo: user.grad_jodo || 'SIN_GRADUACION',
       f_grad_jodo: user.f_grad_jodo ? user.f_grad_jodo.split('T')[0] : '',
     });
+    setEditingUser(user);
   };
 
-  const handleSaveGrad = async (id: number) => {
+  const handleSaveGrad = async () => {
+    if (!editingUser) return;
     try {
-      await api.patch(`/usuarios/${id}/graduacion`, gradForm);
-      setEditingGrad(null);
+      await api.patch(`/usuarios/${editingUser.id}/graduacion`, gradForm);
+      setEditingUser(null);
       fetchUsers();
     } catch (err) {
       alert('Error');
@@ -96,7 +98,7 @@ export default function Usuarios() {
         </tbody>
       </table>
 
-      <Modal isOpen={editingGrad !== null} onClose={() => setEditingGrad(null)} title="Editar Graduaciones">
+      <Modal isOpen={editingUser !== null} onClose={() => setEditingUser(null)} title="Editar Graduaciones">
         <div class="space-y-4">
           {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
             <div key={disc}>
@@ -116,7 +118,7 @@ export default function Usuarios() {
               />
             </div>
           ))}
-          <button onClick={() => editingGrad && handleSaveGrad(editingGrad)} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
+          <button onClick={handleSaveGrad} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
         </div>
       </Modal>
     </div>
