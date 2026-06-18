@@ -57,7 +57,6 @@ export default function Usuarios() {
     setEditingUser(user);
   };
 
-
   const handleSaveGrad = async () => {
     if (!editingUser) return;
     try {
@@ -67,6 +66,10 @@ export default function Usuarios() {
     } catch (err) {
       alert('Error');
     }
+  };
+
+  const getGradLabel = (val: string) => {
+    return GRADUACIONES.find(g => g.value === val)?.label || val;
   };
 
   if (loading) return <div>Cargando...</div>;
@@ -88,7 +91,7 @@ export default function Usuarios() {
               <td class="px-4 py-2 font-medium">{user.nombre} {user.apellido}<div class="text-[10px] text-slate-400">{user.dni}</div></td>
               <td class="px-4 py-2 text-slate-600">{user.dojo?.nombre || '-'}</td>
               <td class="px-4 py-2 font-mono text-[10px]">
-                K: {user.grad_kendo}<br/>I: {user.grad_iaido}<br/>J: {user.grad_jodo}
+                K: {getGradLabel(user.grad_kendo)}<br/>I: {getGradLabel(user.grad_iaido)}<br/>J: {getGradLabel(user.grad_jodo)}
               </td>
               <td class="px-4 py-2 text-right">
                 <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>
