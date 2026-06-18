@@ -1,34 +1,36 @@
-# Etapa 1: Build
-FROM node:lts-alpine AS builder
+# Etapa Base
+FROM node:24-slim AS base
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME/bin:$PATH"
+RUN corepack enable
 WORKDIR /app
 
-# Habilitar corepack y preparar pnpm (sin problemas de PATH)
-RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm config set --global approve-builds true
-
-# Instalar dependencias
+# Etapa Prod-Deps: Instalar dependencias de producción
+FROM base AS prod-deps
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
-RUN pnpm install --no-frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
-# Copy source and build
+# Etapa Build: Compilar Frontend y Backend
+FROM base AS build
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY frontend/package.json ./frontend/package.json
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+
 COPY . .
+# Build Frontend
 RUN cd frontend && pnpm run build
+# Build Backend
 RUN pnpm run build
 RUN pnpm exec prisma generate
 
-# Etapa 2: Runtime
-FROM node:lts-alpine
-WORKDIR /app
-# Habilitar corepack para la etapa de runtime
-RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm config set --global approve-builds true
-
-COPY package.json pnpm-lock.yaml ./
-RUN pnpm install --prod --no-frozen-lockfile
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/frontend/dist ./frontend/dist
-COPY --from=builder /app/prisma ./prisma
-COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+# Etapa Final: Runtime
+FROM base
+COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=build /app/dist /app/dist
+COPY --from=build /app/frontend/dist ./frontend/dist
+COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+CMD [ "node", "dist/main.js" ]
