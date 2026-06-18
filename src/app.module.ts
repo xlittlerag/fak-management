@@ -22,6 +22,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     PrismaModule,
     AuthModule,
     AsociacionesModule,
+    DojosModule,
     UsuariosModule,
   ],
   controllers: [AppController],
