@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
-import { useAuth } from '../context/AuthContext';
 
 interface User {
   id: number;
@@ -20,7 +19,6 @@ interface User {
 }
 
 export default function Usuarios() {
-  const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [editingGrad, setEditingGrad] = useState<number | null>(null);
