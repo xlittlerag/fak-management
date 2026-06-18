@@ -96,6 +96,7 @@ export default function Usuarios() {
             <th class="px-4 py-2">Usuario</th>
             <th class="px-4 py-2">Dojo</th>
             <th class="px-4 py-2">K/I/J</th>
+            <th class="px-4 py-2">Rol</th>
             <th class="px-4 py-2 text-right">Acciones</th>
           </tr>
         </thead>
@@ -106,6 +107,15 @@ export default function Usuarios() {
               <td class="px-4 py-2 text-slate-600">{user.dojo?.nombre || '-'}</td>
               <td class="px-4 py-2 font-mono text-[10px]">
                 K: {getGradLabel(user.grad_kendo)}<br/>I: {getGradLabel(user.grad_iaido)}<br/>J: {getGradLabel(user.grad_jodo)}
+              </td>
+              <td class="px-4 py-2">
+                <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tighter ${
+                  user.rol === 'ADMIN_GENERAL' ? 'bg-purple-100 text-purple-700' :
+                  user.rol === 'ADMIN_ASOCIACION' ? 'bg-indigo-100 text-indigo-700' :
+                  'bg-slate-100 text-slate-700'
+                }`}>
+                  {user.rol.replace('_', ' ')}
+                </span>
               </td>
               <td class="px-4 py-2 text-right">
                 <div class="flex flex-col items-end gap-2">
