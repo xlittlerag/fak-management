@@ -1,6 +1,7 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch, Delete } from '@nestjs/common';
 import { DojosService } from './dojos.service';
 import { CreateDojoDto } from './dto/create-dojo.dto';
+import { UpdateDojoDto } from './dto/update-dojo.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 
