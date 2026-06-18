@@ -116,8 +116,8 @@ model Usuario {
   
   asociacion_id     Int
   asociacion        Asociacion @relation(fields: [asociacion_id], references: [id])
-  dojo_id           Int?
-  dojo              Dojo?     @relation(fields: [dojo_id], references: [id])
+  dojo_id           Int
+  dojo              Dojo      @relation(fields: [dojo_id], references: [id])
   
   estado_reg        EstadoRegistro @default(PENDIENTE_APROBACION)
   estado_blanqueo   EstadoSolicitud @default(APROBADO)

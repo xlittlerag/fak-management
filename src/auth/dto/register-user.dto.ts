@@ -50,6 +50,5 @@ export class RegisterUserDto {
   asociacion_id: number;
 
   @IsInt()
-  @IsOptional()
-  dojo_id?: number;
+  dojo_id: number;
 }

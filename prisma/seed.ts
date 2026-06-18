@@ -12,25 +12,44 @@ async function main() {
   const password = await bcrypt.hash('Admin123!', 10);
 
   // 1. Crear Asociaciones
-  await prisma.asociacion.upsert({
+  const asocFederacion = await prisma.asociacion.upsert({
     where: { id: 0 },
     update: {},
     create: { id: 0, nombre: 'Federación Argentina de Kendo' },
   });
 
-  const asociacionB = await prisma.asociacion.upsert({
+  const asociacionYoshinkan = await prisma.asociacion.upsert({
     where: { id: 1 },
     update: {},
     create: { id: 1, nombre: 'Yoshinkan' },
   });
 
-  const asociacionC = await prisma.asociacion.upsert({
+  const asociacionShinSenKai = await prisma.asociacion.upsert({
     where: { id: 2 },
     update: {},
     create: { id: 2, nombre: 'ShinSenKai' },
   });
 
-  // 2. Crear Usuarios (Administradores y de prueba)
+  // 2. Crear Dojos
+  const dojoCentral = await prisma.dojo.upsert({
+    where: { id: 0 },
+    update: {},
+    create: { id: 0, nombre: 'Oficina Central', asociacion_id: asocFederacion.id },
+  });
+
+  const dojoMarDelPlata = await prisma.dojo.upsert({
+    where: { id: 1 },
+    update: {},
+    create: { id: 1, nombre: 'Yoshinkan Mar del Plata', asociacion_id: asociacionYoshinkan.id },
+  });
+
+  const dojoKenYuKan = await prisma.dojo.upsert({
+    where: { id: 2 },
+    update: {},
+    create: { id: 2, nombre: 'Ken Yu Kan', asociacion_id: asociacionShinSenKai.id },
+  });
+
+  // 3. Crear Usuarios
   const users = [
     {
       email: 'admin@kendo.com',
@@ -38,7 +57,8 @@ async function main() {
       nombre: 'Admin',
       apellido: 'General',
       rol: 'ADMIN_GENERAL',
-      asocId: 0 // Admin general asignado a la federación
+      asocId: asocFederacion.id,
+      dojoId: dojoCentral.id
     },
     {
       email: 'matias@yoshinkan.com.ar',
@@ -46,7 +66,8 @@ async function main() {
       nombre: 'Matias',
       apellido: 'Lanfranconi',
       rol: 'ADMIN_ASOCIACION',
-      asocId: asociacionB.id
+      asocId: asociacionYoshinkan.id,
+      dojoId: dojoMarDelPlata.id
     },
     {
       email: 'juan@shinsenkai.com.ar',
@@ -54,7 +75,8 @@ async function main() {
       nombre: 'Juan',
       apellido: 'Grin',
       rol: 'ADMIN_ASOCIACION',
-      asocId: asociacionC.id
+      asocId: asociacionShinSenKai.id,
+      dojoId: dojoKenYuKan.id
     }
   ];
 
@@ -77,11 +99,12 @@ async function main() {
         rol: u.rol as any,
         estado_reg: 'APROBADO',
         asociacion_id: u.asocId,
+        dojo_id: u.dojoId,
       },
     });
   }
 
-  console.log('✅ Base de datos sembrada correctamente.');
+  console.log('✅ Base de datos sembrada correctamente con Dojos y Oficina Central.');
   await pool.end();
 }
 

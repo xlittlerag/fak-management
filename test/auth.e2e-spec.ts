@@ -25,6 +25,7 @@ describe('Auth (e2e)', () => {
   describe('POST /auth/register', () => {
     it('should create a user with PENDIENTE_APROBACION and BASICO role', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test Assoc' } });
+      const dojo = await prisma.dojo.create({ data: { nombre: 'Test Dojo', asociacion_id: assoc.id } });
 
       const registerDto = {
         nombre: 'Juan',
@@ -35,6 +36,7 @@ describe('Auth (e2e)', () => {
         fecha_nacimiento: '1995-05-15',
         sexo: 'MASCULINO',
         asociacion_id: assoc.id,
+        dojo_id: dojo.id,
         calle_altura: 'Av. Siempre Viva 742',
         ciudad: 'Springfield',
         provincia: 'BUENOS_AIRES',
@@ -55,7 +57,8 @@ describe('Auth (e2e)', () => {
 
     it('should return 409 if email or DNI already exists', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test Assoc' } });
-      await createTestUser(prisma, jwt, { email: 'dup@example.com', dni: 'D123', asociacion_id: assoc.id });
+      const dojo = await prisma.dojo.create({ data: { nombre: 'Test Dojo', asociacion_id: assoc.id } });
+      await createTestUser(prisma, jwt, { email: 'dup@example.com', dni: 'D123', asociacion_id: assoc.id, dojo_id: dojo.id });
 
       const registerDto = {
         nombre: 'Dup',
@@ -66,6 +69,7 @@ describe('Auth (e2e)', () => {
         fecha_nacimiento: '1995-05-15',
         sexo: 'MASCULINO',
         asociacion_id: assoc.id,
+        dojo_id: dojo.id,
         calle_altura: 'Av. Siempre Viva 742',
         ciudad: 'Springfield',
         provincia: 'BUENOS_AIRES',

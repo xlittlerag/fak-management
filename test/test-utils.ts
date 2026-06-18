@@ -25,15 +25,17 @@ export async function createTestApp(): Promise<{
 }
 
 export async function cleanupDb(prisma: PrismaService) {
-  // In reverse order of dependencies
+  // In reverse order of dependencies to satisfy FK constraints
   await prisma.historialGraduacion.deleteMany();
   await prisma.inscripcionEvento.deleteMany();
   await prisma.certificadoExterno.deleteMany();
   await prisma.usuario.deleteMany();
-  await prisma.asociacion.deleteMany();
+  await prisma.dojo.deleteMany();
   await prisma.evento.deleteMany();
+  await prisma.asociacion.deleteMany();
   await prisma.cuotaGlobal.deleteMany();
 }
+
 
 export async function createTestUser(
   prisma: PrismaService,
@@ -42,13 +44,22 @@ export async function createTestUser(
 ) {
   const password = await bcrypt.hash(overrides.password || 'Password123!', 10);
   
-  // Ensure we have an association
+  // Ensure we have an association and dojo
   let asociacionId = overrides.asociacion_id;
+  let dojoId = overrides.dojo_id;
+  
   if (!asociacionId) {
     const assoc = await prisma.asociacion.create({
       data: { nombre: 'Test Association' },
     });
     asociacionId = assoc.id;
+  }
+  
+  if (!dojoId) {
+    const dojo = await prisma.dojo.create({
+      data: { nombre: 'Test Dojo', asociacion_id: asociacionId },
+    });
+    dojoId = dojo.id;
   }
 
   const user = await prisma.usuario.create({
@@ -62,6 +73,7 @@ export async function createTestUser(
       sexo: overrides.sexo || 'MASCULINO',
       rol: overrides.rol || 'BASICO',
       asociacion_id: asociacionId,
+      dojo_id: dojoId,
       estado_reg: overrides.estado_reg || 'APROBADO',
       calle_altura: overrides.calle_altura || 'Calle Falsa 123',
       ciudad: overrides.ciudad || 'Ciudad Test',
