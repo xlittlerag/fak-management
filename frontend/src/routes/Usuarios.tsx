@@ -135,8 +135,9 @@ export default function Usuarios() {
       </table>
 
       {editingUser !== null && (
-        <Modal isOpen={true} onClose={() => setEditingUser(null)} title="Editar Graduaciones">
+        <Modal isOpen={true} onClose={() => setEditingUser(null)} title={`Editar graduaciones: ${editingUser.nombre} ${editingUser.apellido}`}>
           <div class="space-y-6">
+
             {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
               <div key={disc} class="bg-slate-50 p-4 rounded-lg border border-slate-100">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{disc}</label>
