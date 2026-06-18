@@ -46,7 +46,6 @@ export default function Usuarios() {
   };
 
   const startEditGrad = (user: User) => {
-    // Sincronización directa en el evento: Solución 1
     setGradForm({
       grad_kendo: user.grad_kendo || 'SIN_GRADUACION',
       f_grad_kendo: user.f_grad_kendo ? user.f_grad_kendo.split('T')[0] : '',
@@ -57,6 +56,7 @@ export default function Usuarios() {
     });
     setEditingUser(user);
   };
+
 
   const handleSaveGrad = async () => {
     if (!editingUser) return;
@@ -98,29 +98,31 @@ export default function Usuarios() {
         </tbody>
       </table>
 
-      <Modal isOpen={editingUser !== null} onClose={() => setEditingUser(null)} title="Editar Graduaciones">
-        <div class="space-y-4">
-          {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
-            <div key={disc}>
-              <label class="block text-sm font-medium text-slate-700 capitalize">{disc}</label>
-              <select 
-                value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
-                onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
-                class="w-full text-sm border p-1 rounded"
-              >
-                {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-              </select>
-              <input 
-                type="date" 
-                value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
-                onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
-                class="w-full text-sm border p-1 rounded mt-1"
-              />
-            </div>
-          ))}
-          <button onClick={handleSaveGrad} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
-        </div>
-      </Modal>
+      {editingUser !== null && (
+        <Modal isOpen={true} onClose={() => setEditingUser(null)} title="Editar Graduaciones">
+          <div class="space-y-4">
+            {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
+              <div key={disc}>
+                <label class="block text-sm font-medium text-slate-700 capitalize">{disc}</label>
+                <select 
+                  value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
+                  onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
+                  class="w-full text-sm border p-1 rounded"
+                >
+                  {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+                </select>
+                <input 
+                  type="date" 
+                  value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
+                  onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
+                  class="w-full text-sm border p-1 rounded mt-1"
+                />
+              </div>
+            ))}
+            <button onClick={handleSaveGrad} class="w-full bg-slate-900 text-white py-2 rounded">Guardar</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
