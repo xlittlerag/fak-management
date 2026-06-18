@@ -2,10 +2,10 @@
 FROM node:lts-alpine AS builder
 WORKDIR /app
 
-# Install pnpm and configure it to approve build scripts automatically
-RUN npm install -g pnpm && pnpm config set --global approve-builds true
+# Habilitar corepack y preparar pnpm (sin problemas de PATH)
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm config set --global approve-builds true
 
-# Install dependencies (using pnpm-workspace logic)
+# Instalar dependencias
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
 RUN pnpm install --no-frozen-lockfile
@@ -19,8 +19,9 @@ RUN pnpm exec prisma generate
 # Etapa 2: Runtime
 FROM node:lts-alpine
 WORKDIR /app
-# Allow scripts for production dependencies too
-RUN npm install -g pnpm && pnpm config set --global approve-builds true
+# Habilitar corepack para la etapa de runtime
+RUN corepack enable && corepack prepare pnpm@latest --activate && pnpm config set --global approve-builds true
+
 COPY package.json pnpm-lock.yaml ./
 RUN pnpm install --prod --no-frozen-lockfile
 
