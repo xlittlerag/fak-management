@@ -135,7 +135,12 @@ export default function Usuarios() {
       </table>
 
       {editingUser !== null && (
-        <Modal isOpen={true} onClose={() => setEditingUser(null)} title={`Editar graduaciones: ${editingUser.nombre} ${editingUser.apellido}`}>
+        <Modal 
+          isOpen={true} 
+          onClose={() => setEditingUser(null)} 
+          title="Editar graduaciones"
+          subtitle={`${editingUser.nombre} ${editingUser.apellido}`}
+        >
           <div class="space-y-6">
 
             {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
