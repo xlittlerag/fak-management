@@ -86,6 +86,8 @@ export class UsuariosService {
     if (dto.f_grad_kendo !== undefined) data.f_grad_kendo = dto.f_grad_kendo ? new Date(dto.f_grad_kendo) : null;
     if (dto.grad_iaido !== undefined) data.grad_iaido = mapGrad(dto.grad_iaido);
     if (dto.f_grad_iaido !== undefined) data.f_grad_iaido = dto.f_grad_iaido ? new Date(dto.f_grad_iaido) : null;
+    if (dto.grad_jodo !== undefined) data.grad_jodo = mapGrad(dto.grad_jodo);
+    if (dto.f_grad_jodo !== undefined) data.f_grad_jodo = dto.f_grad_jodo ? new Date(dto.f_grad_jodo) : null;
 
     return this.prisma.usuario.update({
       where: { id },

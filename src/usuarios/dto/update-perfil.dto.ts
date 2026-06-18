@@ -42,6 +42,10 @@ export class UpdatePerfilDto {
   @IsOptional()
   codigo_postal?: string;
 
+  @IsInt()
+  @IsOptional()
+  dojo_id?: number;
+
   @IsString()
   @IsOptional()
   @MinLength(6)
