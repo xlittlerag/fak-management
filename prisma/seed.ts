@@ -69,7 +69,7 @@ async function main() {
         nombre: u.nombre,
         apellido: u.apellido,
         fecha_nacimiento: new Date('1990-01-01'),
-        genero: 'MASCULINO',
+        sexo: 'MASCULINO',
         calle_altura: 'Calle Falsa 123',
         ciudad: 'Ciudad Test',
         provincia: 'BUENOS_AIRES',
