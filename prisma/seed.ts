@@ -18,7 +18,12 @@ async function main() {
     create: { dni: '00000000', password },
   });
 
-  // 1. Crear Asociaciones
+  // 1. Limpiar datos existentes (orden inverso de FK)
+  await prisma.usuario.deleteMany({});
+  await prisma.dojo.deleteMany({});
+  await prisma.asociacion.deleteMany({});
+
+  // 2. Crear Asociaciones
   const asociacionYoshinkan = await prisma.asociacion.create({
     data: { nombre: 'Yoshinkan' },
   });
@@ -27,7 +32,7 @@ async function main() {
     data: { nombre: 'ShinSenKai' },
   });
 
-  // 2. Crear Dojos
+  // 3. Crear Dojos
   const dojoMarDelPlata = await prisma.dojo.create({
     data: { nombre: 'Yoshinkan Mar del Plata', asociacion_id: asociacionYoshinkan.id },
   });
@@ -48,7 +53,7 @@ async function main() {
     data: { nombre: 'Kaizen', asociacion_id: asociacionShinSenKai.id },
   });
 
-  // 3. Crear Usuarios
+  // 4. Crear Usuarios
   const users = [
     {
       email: 'matias@yoshinkan.com.ar',
@@ -71,8 +76,8 @@ async function main() {
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKenYuKan.id,
       gradKendo: 'DAN_2',
-      gradIaido: 'KYU_1',
-      gradJodo: 'KYU_2'
+      gradIaido: 'SIN_GRADUACION',
+      gradJodo: 'SIN_GRADUACION'
     },
     {
       email: 'santiago@shinsenkai.com.ar',
@@ -82,7 +87,7 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionShinSenKai.id,
       dojoId: dojoKaizen.id,
-      gradKendo: 'SIN_GRADUACION',
+      gradKendo: 'DAN_5',
       gradIaido: 'SIN_GRADUACION',
       gradJodo: 'SIN_GRADUACION'
     },
@@ -94,8 +99,8 @@ async function main() {
       rol: 'ADMIN_ASOCIACION',
       asocId: asociacionYoshinkan.id,
       dojoId: dojoLaPlata.id,
-      gradKendo: 'SIN_GRADUACION',
-      gradIaido: 'SIN_GRADUACION',
+      gradKendo: 'DAN_4',
+      gradIaido: 'DAN_2',
       gradJodo: 'SIN_GRADUACION'
     }
   ];
