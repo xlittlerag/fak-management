@@ -3,7 +3,7 @@ services:
     image: docker.io/library/postgres:18-alpine
     restart: always
     ports:
-      - "3000:3000"
+      - "5432:5432"
     environment:
       POSTGRES_USER: kendo_user
       POSTGRES_PASSWORD: secure_password
@@ -17,13 +17,19 @@ services:
       retries: 5
 
   kendo-app:
-    build: .
+    build:
+      context: .
+      args:
+        VITE_MERCADO_PAGO_PUBLIC_KEY: "${VITE_MERCADO_PAGO_PUBLIC_KEY}"
     restart: always
-    network_mode: "service:kendo-db"
+    ports:
+      - "3000:3000"
     environment:
-      DATABASE_URL: "postgresql://kendo_user:secure_password@127.0.0.1:5432/kendo_db?schema=public"
-      JWT_SECRET: "cambiar_por_clave_segura"
+      DATABASE_URL: "postgresql://kendo_user:secure_password@kendo-db:5432/kendo_db?schema=public"
+      JWT_SECRET: "${JWT_SECRET}"
       PORT: 3000
+      APP_URL: "${APP_URL}"
+      MERCADO_PAGO_ACCESS_TOKEN: "${MERCADO_PAGO_ACCESS_TOKEN}"
     depends_on:
       kendo-db:
         condition: service_healthy

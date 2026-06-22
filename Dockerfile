@@ -19,6 +19,8 @@ RUN DATABASE_URL="postgresql://localhost:5432" pnpm exec prisma generate
 
 # Etapa Build: Compilar Frontend y Backend
 FROM base AS build
+ARG VITE_MERCADO_PAGO_PUBLIC_KEY
+ENV VITE_MERCADO_PAGO_PUBLIC_KEY=$VITE_MERCADO_PAGO_PUBLIC_KEY
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
