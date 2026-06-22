@@ -3,6 +3,7 @@ services:
     image: docker.io/library/postgres:18-alpine
     restart: always
     ports:
+      - "3000:3000"
       - "5432:5432"
     environment:
       POSTGRES_USER: kendo_user
@@ -22,10 +23,9 @@ services:
       args:
         VITE_MERCADO_PAGO_PUBLIC_KEY: "${VITE_MERCADO_PAGO_PUBLIC_KEY}"
     restart: always
-    ports:
-      - "3000:3000"
+    network_mode: "service:kendo-db"
     environment:
-      DATABASE_URL: "postgresql://kendo_user:secure_password@kendo-db:5432/kendo_db?schema=public"
+      DATABASE_URL: "postgresql://kendo_user:secure_password@127.0.0.1:5432/kendo_db?schema=public"
       JWT_SECRET: "${JWT_SECRET}"
       PORT: 3000
       APP_URL: "${APP_URL}"
