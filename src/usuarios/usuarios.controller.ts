@@ -19,6 +19,11 @@ export class UsuariosController {
     return this.usuariosService.findOne(req.user.id);
   }
 
+  @Get('cuota')
+  getCuota(@Request() req: any) {
+    return this.usuariosService.getCuota(req.user.id);
+  }
+
   @Patch('perfil')
   updatePerfil(@Request() req: any, @Body() dto: any) {
     return this.usuariosService.updatePerfil(req.user.id, dto);

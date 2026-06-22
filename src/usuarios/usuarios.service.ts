@@ -1,12 +1,16 @@
 import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { FeeConfigService } from '../pagos/fee-config.service';
 import { EstadoRegistro, Rol, Graduacion } from '@prisma/client';
 import { AprobacionAccion, UpdateAprobacionDto } from './dto/update-aprobacion.dto';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsuariosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly feeConfigService: FeeConfigService,
+  ) {}
 
   async findPendientes(user: any) {
     const where: any = {
@@ -115,13 +119,33 @@ export class UsuariosService {
       throw new ForbiddenException('Usted no tiene permisos para aprobar usuarios de otra asociación');
     }
 
-    const newEstado = dto.accion === AprobacionAccion.APROBAR 
-      ? EstadoRegistro.APROBADO 
+    const newEstado = dto.accion === AprobacionAccion.APROBAR
+      ? EstadoRegistro.APROBADO
       : EstadoRegistro.RECHAZADO;
 
     return this.prisma.usuario.update({
       where: { id },
       data: { estado_reg: newEstado },
     });
+  }
+
+  async getCuota(userId: number) {
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+      select: {
+        estado_pago: true,
+      },
+    });
+
+    const fee = await this.feeConfigService.getFeeConfig();
+    const today = new Date();
+    const estaVencida = fee ? new Date(fee.fecha_vencimiento) < today : false;
+
+    return {
+      monto_actual: fee?.monto_actual ?? null,
+      fecha_vencimiento: fee?.fecha_vencimiento ?? null,
+      usuario_tiene_pago: user?.estado_pago ?? false,
+      esta_vencida: estaVencida,
+    };
   }
 }

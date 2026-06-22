@@ -10,6 +10,8 @@ import { AuthModule } from './auth/auth.module';
 import { AsociacionesModule } from './asociaciones/asociaciones.module';
 import { DojosModule } from './dojos/dojos.module';
 import { UsuariosModule } from './usuarios/usuarios.module';
+import { PagosModule } from './pagos/pagos.module';
+import { PagosAdminModule } from './pagos/pagos-admin.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -25,6 +27,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
     AsociacionesModule,
     DojosModule,
     UsuariosModule,
+    PagosModule,
+    PagosAdminModule,
   ],
   controllers: [AppController],
   providers: [

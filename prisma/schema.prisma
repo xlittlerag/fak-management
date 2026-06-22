@@ -78,6 +78,12 @@ enum Provincia {
   TUCUMAN
 }
 
+model AdminGeneral {
+  id       Int    @id @default(autoincrement())
+  dni      String @unique
+  password String
+}
+
 model Asociacion {
   id        Int       @id @default(autoincrement())
   nombre    String
@@ -179,4 +185,6 @@ model CuotaGlobal {
   id                Int       @id @default(autoincrement())
   monto_actual      Float
   fecha_vencimiento DateTime
+
+  @@map("cuotaglobal")
 }
