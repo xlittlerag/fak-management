@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 
 describe('Asociaciones (e2e)', () => {
   let app: INestApplication;
@@ -57,7 +57,7 @@ describe('Asociaciones (e2e)', () => {
     });
 
     it('should return 201 if user is ADMIN_GENERAL', async () => {
-      const { token } = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const { token } = await createAdminGeneral(prisma, jwt);
 
       const response = await request(app.getHttpServer())
         .post('/api/asociaciones')
@@ -76,7 +76,7 @@ describe('Asociaciones (e2e)', () => {
 
   describe('PATCH /asociaciones/:id', () => {
     it('should update name and return 200 if ADMIN_GENERAL', async () => {
-      const { token } = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const { token } = await createAdminGeneral(prisma, jwt);
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Antiguo' } });
 
       const response = await request(app.getHttpServer())
@@ -91,7 +91,7 @@ describe('Asociaciones (e2e)', () => {
 
   describe('DELETE /asociaciones/:id', () => {
     it('should soft-delete and return 200 if ADMIN_GENERAL', async () => {
-      const { token } = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const { token } = await createAdminGeneral(prisma, jwt);
       const assoc = await prisma.asociacion.create({ data: { nombre: 'ABorrar' } });
 
       await request(app.getHttpServer())

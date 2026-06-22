@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 
 describe('Admin Features (e2e)', () => {
   let app: INestApplication;
@@ -46,9 +46,102 @@ describe('Admin Features (e2e)', () => {
     });
   });
 
+  describe('Configuración de Cuota (PATCH/GET /admin/fee)', () => {
+    it('debería crear configuración inicial de cuota federativa', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 15000.00,
+          fecha_vencimiento: '2026-12-31T23:59:59Z',
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('monto_actual', 15000.00);
+      expect(response.body).toHaveProperty('fecha_vencimiento');
+    });
+
+    it('debería actualizar monto y fecha de vencimiento', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      // First create
+      await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 15000.00,
+          fecha_vencimiento: '2026-12-31T23:59:59Z',
+        })
+        .expect(200);
+
+      // Then update
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 16000.00,
+          fecha_vencimiento: '2026-12-31T23:59:59Z',
+        })
+        .expect(200);
+
+      expect(response.body.monto_actual).toBe(16000.00);
+    });
+
+    it('debería rechazar configuración sin fecha de vencimiento', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 15000.00,
+        })
+        .expect(400);
+    });
+
+    it('debería permitir consultar configuración actual', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      // Seed first
+      await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 15000.00,
+          fecha_vencimiento: '2026-12-31T23:59:59Z',
+        })
+        .expect(200);
+
+      const response = await request(app.getHttpServer())
+        .get('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('monto_actual');
+      expect(response.body).toHaveProperty('fecha_vencimiento');
+    });
+
+    it('debería retornar mensajes de error en español formal', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          monto_actual: 15000.00,
+        })
+        .expect(400);
+
+      expect(response.body.message).toContain('fecha de vencimiento');
+      expect(response.body.message).toMatch(/la|La/);
+    });
+  });
+
   describe('Asignación de Graduación (PATCH /usuarios/:id/graduacion)', () => {
     it('ADMIN_GENERAL should assign graduations', async () => {
-      const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const admin = await createAdminGeneral(prisma, jwt);
       const user = await createTestUser(prisma, jwt, { email: 'user@test.com' });
 
       const gradData = {

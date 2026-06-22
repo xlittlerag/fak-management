@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 
 describe('Aprobaciones (e2e)', () => {
   let app: INestApplication;
@@ -59,7 +59,7 @@ describe('Aprobaciones (e2e)', () => {
       const assocA = await prisma.asociacion.create({ data: { nombre: 'Assoc A' } });
       const assocB = await prisma.asociacion.create({ data: { nombre: 'Assoc B' } });
 
-      const adminGeneral = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const adminGeneral = await createAdminGeneral(prisma, jwt);
 
       await createTestUser(prisma, jwt, { email: 'p1@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocA.id });
       await createTestUser(prisma, jwt, { email: 'p2@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocB.id });
@@ -106,7 +106,7 @@ describe('Aprobaciones (e2e)', () => {
 
   describe('Gestion Global (ADMIN_GENERAL)', () => {
     it('GET /usuarios should return all users', async () => {
-      const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const admin = await createAdminGeneral(prisma, jwt);
       await createTestUser(prisma, jwt, { email: 'u1@ex.com' });
       await createTestUser(prisma, jwt, { email: 'u2@ex.com' });
 
@@ -120,7 +120,7 @@ describe('Aprobaciones (e2e)', () => {
     });
 
     it('PATCH /usuarios/:id/rol should update user role', async () => {
-      const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
+      const admin = await createAdminGeneral(prisma, jwt);
       const targetUser = await createTestUser(prisma, jwt, { email: 'target@ex.com', rol: 'BASICO' });
 
       await request(app.getHttpServer())

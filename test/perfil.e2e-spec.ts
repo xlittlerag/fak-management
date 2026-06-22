@@ -4,6 +4,10 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { createTestApp, cleanupDb, createTestUser } from './test-utils';
 
+function formatDate(d: Date): string {
+  return d.toISOString().replace('Z', '').substring(0, 23) + 'Z';
+}
+
 describe('Perfil (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -96,6 +100,27 @@ describe('Perfil (e2e)', () => {
 
       const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
       expect(updated?.dojo_id).toBe(newDojo.id);
+    });
+  });
+
+  describe('GET /usuarios/cuota', () => {
+    it('debería retornar estado de cuota para usuario autenticado', async () => {
+      const { token } = await createTestUser(prisma, jwt);
+
+      await prisma.$queryRaw`
+        INSERT INTO cuotaglobal (monto_actual, fecha_vencimiento)
+        VALUES (15000.00, ${formatDate(new Date('2026-12-31T23:59:59Z'))})
+      `;
+
+      const response = await request(app.getHttpServer())
+        .get('/api/usuarios/cuota')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(response.body).toHaveProperty('monto_actual');
+      expect(response.body).toHaveProperty('fecha_vencimiento');
+      expect(response.body).toHaveProperty('usuario_tiene_pago');
+      expect(response.body).toHaveProperty('esta_vencida');
     });
   });
 });
