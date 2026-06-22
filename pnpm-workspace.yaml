@@ -6,3 +6,4 @@ allowBuilds:
   prisma: true
   bcrypt: true
   unrs-resolver: true
+  esbuild: set this to true or false
