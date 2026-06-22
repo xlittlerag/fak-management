@@ -119,7 +119,7 @@ export default function Usuarios() {
               </td>
               <td class="px-4 py-2 text-right">
                 <div class="flex flex-col items-end gap-2">
-                  <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>
+                  {isAdminGeneral && <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>}
                   {isAdminGeneral && user.estado_reg === 'APROBADO' && (
                     user.rol === 'BASICO' ? (
                       <button onClick={() => handleUpdateRol(user.id, 'ADMIN_ASOCIACION')} class="text-indigo-600 hover:underline font-bold">Hacer Admin</button>

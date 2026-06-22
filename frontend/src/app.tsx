@@ -4,6 +4,9 @@ import { useEffect } from 'preact/hooks';
 import Login from './routes/Login';
 import Register from './routes/Register';
 import Dashboard from './routes/Dashboard';
+import PagoExito from './routes/PagoExito';
+import PagoPendiente from './routes/PagoPendiente';
+import PagoError from './routes/PagoError';
 import NotFound from './routes/_404';
 
 function AppContent() {
@@ -21,6 +24,9 @@ function AppContent() {
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/pagos/exito" component={PagoExito} />
+      <Route path="/pagos/pending" component={PagoPendiente} />
+      <Route path="/pagos/error" component={PagoError} />
       <Route path="/dashboard/:rest*" component={Dashboard} />
       <Route default component={NotFound} />
     </Router>
