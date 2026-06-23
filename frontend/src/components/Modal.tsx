@@ -1,4 +1,4 @@
-export function Modal({ isOpen, onClose, title, subtitle, children }: { isOpen: boolean, onClose: () => void, title: string, subtitle?: string, children: any }) {
+export function Modal({ isOpen, onClose, title, subtitle, children }: { isOpen: boolean, onClose: () => void, title: string, subtitle?: string, children?: preact.ComponentChildren }) {
   if (!isOpen) return null;
   return (
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm p-4">

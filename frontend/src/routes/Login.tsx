@@ -4,14 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function Login() {
-  const { url } = useLocation();
+  const { url, route } = useLocation();
   const { login } = useAuth();
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check for registration success message
   const isRegistered = new URLSearchParams(url.split('?')[1]).get('registered') === 'true';
 
   const handleSubmit = async (e: Event) => {
@@ -19,14 +18,13 @@ export default function Login() {
     setError('');
     setLoading(true);
 
-    const loginDni = dni === '0' ? '00000000' : dni;
-
     try {
-      const res = await api.post('/auth/login', { dni: loginDni, password });
+      const res = await api.post('/auth/login', { dni, password });
       login(res.data.access_token);
+      route('/dashboard');
     } catch (err: any) {
       const msg = err.response?.data?.message || 'Credenciales incorrectas';
-      setError(msg);
+      setError(Array.isArray(msg) ? msg[0] : msg);
       setLoading(false);
     }
   };
@@ -39,7 +37,7 @@ export default function Login() {
     try {
       await api.post('/auth/reset-password/request', { dni });
       setError('Solicitud de blanqueo enviada. Aguarde la aprobación administrativa.');
-    } catch (err: any) {
+    } catch {
       setError('Error al solicitar el blanqueo.');
     }
   };
@@ -56,7 +54,7 @@ export default function Login() {
         )}
 
         {error && (
-          <div class={`mb-4 p-3 border rounded text-sm ${error.includes('denegado') ? 'bg-red-50 text-red-700 border-red-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+          <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded text-sm">
             {error}
           </div>
         )}
@@ -64,26 +62,26 @@ export default function Login() {
         <form onSubmit={handleSubmit} class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
-            <input 
-              type="text" 
+            <input
+              type="text"
               value={dni}
-              onInput={(e: any) => setDni(e.target.value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" 
+              onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
+              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
 
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               value={password}
-              onInput={(e: any) => setPassword(e.target.value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" 
+              onInput={(e: Event) => setPassword((e.target as HTMLInputElement).value)}
+              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             class="w-full mt-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
@@ -92,12 +90,18 @@ export default function Login() {
         </form>
 
         <div class="mt-4 text-center">
-          <button 
+          <button
             onClick={handleRequestReset}
             class="text-sm text-slate-500 hover:text-slate-900 underline"
           >
             ¿Olvidó su contraseña? Solicitar blanqueo
           </button>
+        </div>
+
+        <div class="mt-2 text-center">
+          <a href="/admin-login" class="text-sm text-slate-500 hover:text-slate-900 underline">
+            Acceso administrador
+          </a>
         </div>
 
         <p class="mt-6 text-center text-sm text-slate-600">

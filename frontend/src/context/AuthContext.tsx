@@ -20,12 +20,11 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: any }) => {
+export const AuthProvider = ({ children }: { children: preact.ComponentChildren }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Expose checkAuth to decide initial landing
   const checkAuth = () => !!localStorage.getItem('token');
 
   useEffect(() => {
@@ -36,9 +35,9 @@ export const AuthProvider = ({ children }: { children: any }) => {
         setToken(savedToken);
         setUser({
           ...decoded,
-          id: decoded.sub, // Mapping sub to id as per typical NestJS JWT payload
+          id: decoded.sub,
         });
-      } catch (e) {
+      } catch {
         localStorage.removeItem('token');
       }
     }
@@ -53,14 +52,12 @@ export const AuthProvider = ({ children }: { children: any }) => {
       ...decoded,
       id: decoded.sub,
     });
-    window.location.href = '/dashboard';
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
-    window.location.href = '/login';
   };
 
   return (

@@ -2,6 +2,7 @@ import { LocationProvider, Router, Route, useLocation } from 'preact-iso';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useEffect } from 'preact/hooks';
 import Login from './routes/Login';
+import AdminLogin from './routes/AdminLogin';
 import Register from './routes/Register';
 import Dashboard from './routes/Dashboard';
 import PagoExito from './routes/PagoExito';
@@ -23,6 +24,7 @@ function AppContent() {
     <Router>
       <Route path="/" component={Login} />
       <Route path="/login" component={Login} />
+      <Route path="/admin-login" component={AdminLogin} />
       <Route path="/register" component={Register} />
       <Route path="/pagos/exito" component={PagoExito} />
       <Route path="/pagos/pending" component={PagoPendiente} />

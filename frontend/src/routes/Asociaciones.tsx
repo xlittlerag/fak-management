@@ -15,6 +15,7 @@ interface Asociacion {
 export default function Asociaciones() {
   const [asociaciones, setAsociaciones] = useState<Asociacion[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [expanded, setExpanded] = useState<number | null>(null);
   const [newDojoNombre, setNewDojoNombre] = useState('');
   const [editingDojoId, setEditingDojoId] = useState<number | null>(null);
@@ -32,8 +33,9 @@ export default function Asociaciones() {
         return { ...a, dojos: dojosRes.data };
       }));
       setAsociaciones(assocData);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al cargar asociaciones';
+      setError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
     }
@@ -45,7 +47,7 @@ export default function Asociaciones() {
       await api.post('/dojos', { nombre: newDojoNombre, asociacion_id });
       setNewDojoNombre('');
       fetchAsociaciones();
-    } catch (err) {
+    } catch {
       alert('Error al crear dojo');
     }
   };
@@ -55,7 +57,7 @@ export default function Asociaciones() {
       await api.patch(`/dojos/${id}`, { nombre: editingDojoNombre });
       setEditingDojoId(null);
       fetchAsociaciones();
-    } catch (err) {
+    } catch {
       alert('Error al actualizar dojo');
     }
   };
@@ -66,12 +68,13 @@ export default function Asociaciones() {
       await api.delete(`/dojos/${id}`);
       fetchAsociaciones();
     } catch (err: any) {
-      const errorMessage = err.response?.data?.message || 'Error al eliminar dojo';
-      alert(errorMessage);
+      const msg = err.response?.data?.message || 'Error al eliminar dojo';
+      alert(Array.isArray(msg) ? msg[0] : msg);
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   return (
     <div class="space-y-6">
@@ -111,7 +114,7 @@ export default function Asociaciones() {
                                 {editingDojoId === d.id ? (
                                     <input 
                                     value={editingDojoNombre}
-                                    onInput={(e: any) => setEditingDojoNombre(e.target.value)}
+                                    onInput={(e: Event) => setEditingDojoNombre((e.target as HTMLInputElement).value)}
                                     class="text-sm px-2 py-1 border border-slate-300 rounded flex-1 mr-2"
                                     />
                                 ) : <span class="font-medium">{d.nombre}</span>}
@@ -133,7 +136,7 @@ export default function Asociaciones() {
                           <input 
                             placeholder="Nombre del nuevo dojo..."
                             value={newDojoNombre}
-                            onInput={(e: any) => setNewDojoNombre(e.target.value)}
+                            onInput={(e: Event) => setNewDojoNombre((e.target as HTMLInputElement).value)}
                             class="text-sm px-3 py-1.5 border border-slate-300 rounded flex-1"
                           />
                           <button 

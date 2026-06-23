@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 
 export default function CuotaAdmin() {
   const { user } = useAuth();
+  const { route } = useLocation();
   const [monto, setMonto] = useState('');
   const [fecha, setFecha] = useState('');
   const [loading, setLoading] = useState(true);
@@ -12,7 +14,7 @@ export default function CuotaAdmin() {
   const [success, setSuccess] = useState('');
 
   if (user?.rol !== 'ADMIN_GENERAL') {
-    window.location.href = '/dashboard';
+    route('/dashboard');
     return null;
   }
 
@@ -41,7 +43,8 @@ export default function CuotaAdmin() {
       });
       setSuccess('Configuración guardada correctamente.');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al guardar la configuración');
+      const msg = err.response?.data?.message || 'Error al guardar la configuración';
+      setError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setSaving(false);
     }
@@ -76,7 +79,7 @@ export default function CuotaAdmin() {
             min="0"
             required
             value={monto}
-            onInput={(e: any) => setMonto(e.currentTarget.value)}
+            onInput={(e: Event) => setMonto((e.currentTarget as HTMLInputElement).value)}
             class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
           />
         </div>
@@ -87,7 +90,7 @@ export default function CuotaAdmin() {
             type="date"
             required
             value={fecha}
-            onInput={(e: any) => setFecha(e.currentTarget.value)}
+            onInput={(e: Event) => setFecha((e.currentTarget as HTMLInputElement).value)}
             class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
           />
         </div>
