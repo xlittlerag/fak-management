@@ -13,6 +13,7 @@ interface UserPending {
 export default function Pendientes() {
   const [users, setUsers] = useState<UserPending[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -22,8 +23,9 @@ export default function Pendientes() {
     try {
       const res = await api.get('/usuarios/pendientes');
       setUsers(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al cargar pendientes';
+      setError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
     }
@@ -33,15 +35,17 @@ export default function Pendientes() {
     try {
       await api.patch(`/usuarios/${id}/aprobacion`, { accion });
       setUsers(users.filter(u => u.id !== id));
-    } catch (err) {
+    } catch {
       alert('Error al procesar la acción');
     }
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   return (
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="overflow-x-auto">
       <table class="w-full text-left border-collapse">
         <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm uppercase tracking-wider font-semibold">
           <tr>
@@ -84,6 +88,7 @@ export default function Pendientes() {
           )}
         </tbody>
       </table>
+      </div>
     </div>
   );
 }

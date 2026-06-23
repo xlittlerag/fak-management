@@ -35,6 +35,7 @@ export default function Register() {
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [passTouched, setPassTouched] = useState(false);
 
   useEffect(() => {
     api.get('/asociaciones')
@@ -70,15 +71,36 @@ export default function Register() {
       });
       route('/login?registered=true');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Error al registrar usuario');
+      const msg = err.response?.data?.message || 'Error al registrar usuario';
+      setError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: Event) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    setFormData({ ...formData, [target.name]: target.value });
   };
+
+  const strength = (() => {
+    const p = formData.password;
+    if (!p) return { level: 0, label: '', color: '', width: '0%' };
+    let score = 0;
+    if (p.length >= 6) score++;
+    if (p.length >= 10) score++;
+    if (/[a-z]/.test(p) && /[A-Z]/.test(p)) score++;
+    if (/\d/.test(p)) score++;
+    if (/[^a-zA-Z0-9]/.test(p)) score++;
+    const map = [
+      { label: 'Débil', color: 'bg-red-500', width: '20%' },
+      { label: 'Moderada', color: 'bg-orange-500', width: '40%' },
+      { label: 'Buena', color: 'bg-yellow-500', width: '60%' },
+      { label: 'Fuerte', color: 'bg-lime-500', width: '80%' },
+      { label: 'Muy fuerte', color: 'bg-green-500', width: '100%' },
+    ];
+    return { level: score, ...map[Math.min(score, 4)] };
+  })();
 
   return (
     <div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4">
@@ -110,7 +132,17 @@ export default function Register() {
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-              <input name="password" type="password" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <input name="password" type="password" required onChange={handleChange} onBlur={() => setPassTouched(true)} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              {passTouched && formData.password && (
+                <div class="mt-2">
+                  <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
+                    <div class={`h-full ${strength.color} rounded-full transition-all`} style={{ width: strength.width }} />
+                  </div>
+                  <p class={`text-xs mt-1 ${strength.level >= 3 ? 'text-green-600' : strength.level >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
+                    {strength.label}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
 
@@ -125,7 +157,7 @@ export default function Register() {
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Sexo</label>
               <select name="sexo" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
@@ -142,9 +174,6 @@ export default function Register() {
                 ))}
               </select>
             </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Dojo</label>
               <select name="dojo_id" required={dojos.length > 0} disabled={!formData.asociacion_id || dojos.length === 0} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">

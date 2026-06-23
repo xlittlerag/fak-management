@@ -21,27 +21,38 @@ interface User {
   dojo: { nombre: string };
 }
 
+interface GradForm {
+  grad_kendo: string; f_grad_kendo: string;
+  grad_iaido: string; f_grad_iaido: string;
+  grad_jodo: string; f_grad_jodo: string;
+}
+
 export default function Usuarios() {
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [gradForm, setGradForm] = useState({
+  const [page, setPage] = useState(0);
+  const [gradForm, setGradForm] = useState<GradForm>({
     grad_kendo: '', f_grad_kendo: '',
     grad_iaido: '', f_grad_iaido: '',
     grad_jodo: '', f_grad_jodo: '',
   });
 
+  const PAGE_SIZE = 50;
+
   useEffect(() => {
     fetchUsers();
-  }, []);
+  }, [page]);
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get('/usuarios');
+      const res = await api.get(`/usuarios?skip=${page * PAGE_SIZE}&take=${PAGE_SIZE}`);
       setUsers(res.data);
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Error al cargar usuarios';
+      setError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoading(false);
     }
@@ -52,7 +63,7 @@ export default function Usuarios() {
       await api.patch(`/usuarios/${id}/rol`, { rol });
       alert('Rol actualizado correctamente');
       fetchUsers();
-    } catch (err) {
+    } catch {
       alert('Error al actualizar el rol');
     }
   };
@@ -75,7 +86,7 @@ export default function Usuarios() {
       await api.patch(`/usuarios/${editingUser.id}/graduacion`, gradForm);
       setEditingUser(null);
       fetchUsers();
-    } catch (err) {
+    } catch {
       alert('Error al actualizar graduación');
     }
   };
@@ -84,94 +95,120 @@ export default function Usuarios() {
     return GRADUACIONES.find(g => g.value === val)?.label || val;
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   const isAdminGeneral = currentUser?.rol === 'ADMIN_GENERAL';
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-      <table class="w-full text-left border-collapse text-xs">
-        <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
-          <tr>
-            <th class="px-4 py-2">Usuario</th>
-            <th class="px-4 py-2">Dojo</th>
-            <th class="px-4 py-2">K/I/J</th>
-            <th class="px-4 py-2">Rol</th>
-            <th class="px-4 py-2 text-right">Acciones</th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-slate-200">
-          {users.filter(u => u.rol !== 'ADMIN_GENERAL').map(user => (
-            <tr key={user.id} class="hover:bg-slate-50">
-              <td class="px-4 py-2 font-medium">{user.nombre} {user.apellido}<div class="text-[10px] text-slate-400">{user.dni}</div></td>
-              <td class="px-4 py-2 text-slate-600">{user.dojo?.nombre || '-'}</td>
-              <td class="px-4 py-2 font-mono text-[10px]">
-                K: {getGradLabel(user.grad_kendo)}<br/>I: {getGradLabel(user.grad_iaido)}<br/>J: {getGradLabel(user.grad_jodo)}
-              </td>
-              <td class="px-4 py-2">
-                <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tighter ${
-                  user.rol === 'ADMIN_GENERAL' ? 'bg-purple-100 text-purple-700' :
-                  user.rol === 'ADMIN_ASOCIACION' ? 'bg-indigo-100 text-indigo-700' :
-                  'bg-slate-100 text-slate-700'
-                }`}>
-                  {user.rol.replace('_', ' ')}
-                </span>
-              </td>
-              <td class="px-4 py-2 text-right">
-                <div class="flex flex-col items-end gap-2">
-                  {isAdminGeneral && <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>}
-                  {isAdminGeneral && user.estado_reg === 'APROBADO' && (
-                    user.rol === 'BASICO' ? (
-                      <button onClick={() => handleUpdateRol(user.id, 'ADMIN_ASOCIACION')} class="text-indigo-600 hover:underline font-bold">Hacer Admin</button>
-                    ) : (
-                      <button onClick={() => handleUpdateRol(user.id, 'BASICO')} class="text-amber-600 hover:underline font-bold">Quitar Admin</button>
-                    )
-                  )}
-                </div>
-              </td>
+    <div class="space-y-4">
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        {users.length === 0 ? (
+          <div class="p-8 text-center text-slate-500">No se encontraron usuarios.</div>
+        ) : (
+        <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-xs">
+          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+            <tr>
+              <th class="px-4 py-2">Usuario</th>
+              <th class="px-4 py-2">Dojo</th>
+              <th class="px-4 py-2">K/I/J</th>
+              <th class="px-4 py-2">Rol</th>
+              <th class="px-4 py-2 text-right">Acciones</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody class="divide-y divide-slate-200">
+            {users.map(user => (
+              <tr key={user.id} class="hover:bg-slate-50">
+                <td class="px-4 py-2 font-medium">{user.nombre} {user.apellido}<div class="text-[10px] text-slate-400">{user.dni}</div></td>
+                <td class="px-4 py-2 text-slate-600">{user.dojo?.nombre || '-'}</td>
+                <td class="px-4 py-2 font-mono text-[10px]">
+                  K: {getGradLabel(user.grad_kendo)}<br/>I: {getGradLabel(user.grad_iaido)}<br/>J: {getGradLabel(user.grad_jodo)}
+                </td>
+                <td class="px-4 py-2">
+                  <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-tighter ${
+                    user.rol === 'ADMIN_GENERAL' ? 'bg-purple-100 text-purple-700' :
+                    user.rol === 'ADMIN_ASOCIACION' ? 'bg-indigo-100 text-indigo-700' :
+                    'bg-slate-100 text-slate-700'
+                  }`}>
+                    {user.rol.replace('_', ' ')}
+                  </span>
+                </td>
+                <td class="px-4 py-2 text-right">
+                  <div class="flex flex-col items-end gap-2">
+                    {isAdminGeneral && <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>}
+                    {isAdminGeneral && user.estado_reg === 'APROBADO' && (
+                      user.rol === 'BASICO' ? (
+                        <button onClick={() => handleUpdateRol(user.id, 'ADMIN_ASOCIACION')} class="text-indigo-600 hover:underline font-bold">Hacer Admin</button>
+                      ) : (
+                        <button onClick={() => handleUpdateRol(user.id, 'BASICO')} class="text-amber-600 hover:underline font-bold">Quitar Admin</button>
+                      )
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        </div>
+        )}
+      </div>
+
+      <div class="flex justify-between items-center text-sm text-slate-600">
+        <button
+          onClick={() => setPage(p => Math.max(0, p - 1))}
+          disabled={page === 0}
+          class="px-4 py-2 bg-white border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Página anterior
+        </button>
+        <span>Página {page + 1}</span>
+        <button
+          onClick={() => setPage(p => p + 1)}
+          disabled={users.length < PAGE_SIZE}
+          class="px-4 py-2 bg-white border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Página siguiente
+        </button>
+      </div>
 
       {editingUser !== null && (
-        <Modal 
-          isOpen={true} 
-          onClose={() => setEditingUser(null)} 
+        <Modal
+          isOpen={true}
+          onClose={() => setEditingUser(null)}
           title="Editar graduaciones"
           subtitle={`${editingUser.nombre} ${editingUser.apellido}`}
         >
           <div class="space-y-6">
-
             {(['kendo', 'iaido', 'jodo'] as const).map(disc => (
               <div key={disc} class="bg-slate-50 p-4 rounded-lg border border-slate-100">
                 <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">{disc}</label>
                 <div class="grid grid-cols-1 gap-3">
-                  <select 
-                    value={gradForm[`grad_${disc}` as keyof typeof gradForm]} 
-                    onChange={(e: any) => setGradForm({...gradForm, [`grad_${disc}`]: e.target.value})}
+                  <select
+                    value={gradForm[`grad_${disc}` as keyof GradForm]}
+                    onChange={(e: Event) => setGradForm({...gradForm, [`grad_${disc}`]: (e.target as HTMLSelectElement).value})}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2"
                   >
                     {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
                   </select>
-                  <input 
-                    type="date" 
-                    value={gradForm[`f_grad_${disc}` as keyof typeof gradForm]} 
-                    onInput={(e: any) => setGradForm({...gradForm, [`f_grad_${disc}`]: e.target.value})}
+                  <input
+                    type="date"
+                    value={gradForm[`f_grad_${disc}` as keyof GradForm]}
+                    onInput={(e: Event) => setGradForm({...gradForm, [`f_grad_${disc}`]: (e.target as HTMLInputElement).value})}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2"
                   />
                 </div>
               </div>
             ))}
             <div class="flex gap-3 pt-2">
-              <button 
-                onClick={() => setEditingUser(null)} 
+              <button
+                onClick={() => setEditingUser(null)}
                 class="w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors"
               >
                 Cancelar
               </button>
-              <button 
-                onClick={handleSaveGrad} 
+              <button
+                onClick={handleSaveGrad}
                 class="w-full bg-slate-900 text-white py-2 rounded-md font-medium hover:bg-slate-800 transition-colors"
               >
                 Guardar
@@ -179,7 +216,6 @@ export default function Usuarios() {
             </div>
           </div>
         </Modal>
-
       )}
     </div>
   );

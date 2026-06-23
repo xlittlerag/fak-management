@@ -26,6 +26,7 @@ export default function Perfil() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     fetchPerfil();
@@ -54,7 +55,7 @@ export default function Perfil() {
     setSaving(true);
     setMessage({ text: '', type: '' });
 
-    const updateData: any = {
+    const updateData: Record<string, string> = {
       nombre: formData.nombre,
       apellido: formData.apellido,
       email: formData.email,
@@ -82,8 +83,22 @@ export default function Perfil() {
     }
   };
 
-  const handleChange = (e: any) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  const handleChange = (e: Event) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    setFormData({ ...formData, [target.name]: target.value });
+  };
+
+  const handleBlur = (e: Event) => {
+    const target = e.target as HTMLInputElement | HTMLSelectElement;
+    setTouched({ ...touched, [target.name]: true });
+  };
+
+  const fieldError = (name: string): string => {
+    if (!touched[name]) return '';
+    const val = formData[name as keyof typeof formData];
+    if (!val || (typeof val === 'string' && val.trim() === '')) return 'Este campo es obligatorio';
+    if (name === 'email' && val && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) return 'Correo electrónico inválido';
+    return '';
   };
 
   if (loading) return <div>Cargando...</div>;
@@ -109,11 +124,13 @@ export default function Perfil() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-              <input name="nombre" value={formData.nombre} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <input name="nombre" value={formData.nombre} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('nombre') ? 'border-red-400' : 'border-slate-300'}`} />
+              {fieldError('nombre') && <span class="text-xs text-red-600 mt-1">{fieldError('nombre')}</span>}
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
-              <input name="apellido" value={formData.apellido} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <input name="apellido" value={formData.apellido} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('apellido') ? 'border-red-400' : 'border-slate-300'}`} />
+              {fieldError('apellido') && <span class="text-xs text-red-600 mt-1">{fieldError('apellido')}</span>}
             </div>
           </div>
 
@@ -124,7 +141,8 @@ export default function Perfil() {
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input name="email" value={formData.email} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <input name="email" value={formData.email} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('email') ? 'border-red-400' : 'border-slate-300'}`} />
+              {fieldError('email') && <span class="text-xs text-red-600 mt-1">{fieldError('email')}</span>}
             </div>
 
           </div>
@@ -148,7 +166,8 @@ export default function Perfil() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="md:col-span-2">
                 <label class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
-                <input name="calle_altura" value={formData.calle_altura} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <input name="calle_altura" value={formData.calle_altura} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('calle_altura') ? 'border-red-400' : 'border-slate-300'}`} />
+                {fieldError('calle_altura') && <span class="text-xs text-red-600 mt-1">{fieldError('calle_altura')}</span>}
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto</label>
@@ -158,7 +177,8 @@ export default function Perfil() {
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
-                <input name="ciudad" value={formData.ciudad} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <input name="ciudad" value={formData.ciudad} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('ciudad') ? 'border-red-400' : 'border-slate-300'}`} />
+                {fieldError('ciudad') && <span class="text-xs text-red-600 mt-1">{fieldError('ciudad')}</span>}
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
@@ -170,7 +190,8 @@ export default function Perfil() {
               </div>
               <div>
                 <label class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
-                <input name="codigo_postal" value={formData.codigo_postal} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+                <input name="codigo_postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono ${fieldError('codigo_postal') ? 'border-red-400' : 'border-slate-300'}`} />
+                {fieldError('codigo_postal') && <span class="text-xs text-red-600 mt-1">{fieldError('codigo_postal')}</span>}
               </div>
             </div>
           </div>
@@ -203,30 +224,35 @@ export default function Perfil() {
       </div>
 
       {/* Graduaciones Display */}
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h3 class="text-xl font-bold mb-6 text-slate-800">Sus Graduaciones</h3>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Kendo</div>
-            <div class="text-2xl font-black text-slate-900">{getGradLabel(formData.grad_kendo)}</div>
-            {formData.f_grad_kendo && (
-              <div class="text-sm text-slate-500 mt-2 italic">Obtenida el {new Date(formData.f_grad_kendo).toLocaleDateString()}</div>
-            )}
-          </div>
-          <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Iaido</div>
-            <div class="text-2xl font-black text-slate-900">{getGradLabel(formData.grad_iaido)}</div>
-            {formData.f_grad_iaido && (
-              <div class="text-sm text-slate-500 mt-2 italic">Obtenida el {new Date(formData.f_grad_iaido).toLocaleDateString()}</div>
-            )}
-          </div>
-          <div class="p-4 bg-slate-50 rounded-lg border border-slate-100">
-            <div class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-1">Jodo</div>
-            <div class="text-2xl font-black text-slate-900">{getGradLabel(formData.grad_jodo)}</div>
-            {formData.f_grad_jodo && (
-              <div class="text-sm text-slate-500 mt-2 italic">Obtenida el {new Date(formData.f_grad_jodo).toLocaleDateString()}</div>
-            )}
-          </div>
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-bold mb-4 text-slate-800">Sus Graduaciones</h3>
+        <div class="flex flex-wrap gap-3">
+          {formData.grad_kendo && formData.grad_kendo !== 'SIN_GRADUACION' && (
+            <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Kendo</span>
+              <span class="text-sm font-semibold text-amber-900">{getGradLabel(formData.grad_kendo)}</span>
+              {formData.f_grad_kendo && <span class="text-[10px] text-amber-600 italic">{new Date(formData.f_grad_kendo).toLocaleDateString()}</span>}
+            </div>
+          )}
+          {formData.grad_iaido && formData.grad_iaido !== 'SIN_GRADUACION' && (
+            <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-indigo-800 uppercase tracking-wider">Iaido</span>
+              <span class="text-sm font-semibold text-indigo-900">{getGradLabel(formData.grad_iaido)}</span>
+              {formData.f_grad_iaido && <span class="text-[10px] text-indigo-600 italic">{new Date(formData.f_grad_iaido).toLocaleDateString()}</span>}
+            </div>
+          )}
+          {formData.grad_jodo && formData.grad_jodo !== 'SIN_GRADUACION' && (
+            <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Jodo</span>
+              <span class="text-sm font-semibold text-emerald-900">{getGradLabel(formData.grad_jodo)}</span>
+              {formData.f_grad_jodo && <span class="text-[10px] text-emerald-600 italic">{new Date(formData.f_grad_jodo).toLocaleDateString()}</span>}
+            </div>
+          )}
+          {(!formData.grad_kendo || formData.grad_kendo === 'SIN_GRADUACION') &&
+           (!formData.grad_iaido || formData.grad_iaido === 'SIN_GRADUACION') &&
+           (!formData.grad_jodo || formData.grad_jodo === 'SIN_GRADUACION') && (
+            <p class="text-sm text-slate-400">Sin graduaciones registradas.</p>
+          )}
         </div>
       </div>
     </div>

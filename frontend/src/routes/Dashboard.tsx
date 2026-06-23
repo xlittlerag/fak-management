@@ -17,11 +17,12 @@ interface CuotaData {
 
 export default function Dashboard() {
   const { user, logout, loading } = useAuth();
-  const { path } = useLocation();
+  const { path, route } = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   if (loading) return null;
   if (!user) {
-    window.location.href = '/login';
+    route('/login');
     return null;
   }
 
@@ -50,10 +51,24 @@ export default function Dashboard() {
 
   return (
     <div class="flex h-screen bg-slate-50">
+      {sidebarOpen && (
+        <div
+          class="fixed inset-0 bg-black/50 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col">
+      <aside class={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
         <div class="p-6 border-b border-slate-800">
-          <h1 class="text-xl font-bold text-white">Kendo Manager</h1>
+          <div class="flex items-center justify-between">
+            <h1 class="text-xl font-bold text-white">Kendo Manager</h1>
+            <button onClick={() => setSidebarOpen(false)} class="lg:hidden text-slate-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+          </div>
           <p class="text-xs mt-1 text-slate-500 uppercase tracking-wider font-semibold">{user.rol.replace('_', ' ')}</p>
         </div>
         
@@ -62,6 +77,7 @@ export default function Dashboard() {
             <a 
               key={item.path}
               href={item.path} 
+              onClick={() => setSidebarOpen(false)}
               class={`block px-4 py-2 rounded transition-colors ${
                 path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
               }`}
@@ -72,8 +88,8 @@ export default function Dashboard() {
         </nav>
 
         <div class="p-4 border-t border-slate-800">
-          <button 
-            onClick={logout}
+          <button
+            onClick={() => { logout(); route('/login'); }}
             class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-950/30 rounded transition-colors"
           >
             Cerrar Sesión
@@ -82,15 +98,20 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main class="flex-1 overflow-y-auto">
-        <header class="bg-white border-b border-slate-200 px-8 py-4 flex justify-between items-center">
-          <h2 class="text-lg font-semibold text-slate-800">{pageTitle(path)}</h2>
-          <div class="text-sm text-slate-500">
+      <main class="flex-1 overflow-y-auto min-w-0">
+        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center gap-4">
+          <div class="flex items-center gap-3">
+            <button onClick={() => setSidebarOpen(true)} class="lg:hidden text-slate-600 hover:text-slate-900">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <h2 class="text-lg font-semibold text-slate-800">{pageTitle(path)}</h2>
+          </div>
+          <div class="text-sm text-slate-500 truncate">
             {user.email}
           </div>
         </header>
 
-        <div class="p-8">
+        <div class="p-4 sm:p-8">
           {path === '/dashboard' && <DashboardHome />}
           {path === '/dashboard/perfil' && <Perfil />}
           {path === '/dashboard/pendientes' && <Pendientes />}
@@ -129,7 +150,8 @@ function DashboardHome() {
         render: { container: '#mp-checkout-container', label: 'Pagar' },
       });
     } catch (err: any) {
-      setCheckoutError(err.response?.data?.message || 'Error al generar el pago');
+      const msg = err.response?.data?.message || 'Error al generar el pago';
+      setCheckoutError(Array.isArray(msg) ? msg[0] : msg);
     } finally {
       setLoadingPreference(false);
     }
