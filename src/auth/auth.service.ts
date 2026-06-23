@@ -62,9 +62,8 @@ export class AuthService {
     });
   }
 
-
   async login(dto: LoginDto) {
-    const user = await (this.prisma.usuario as any).findUnique({
+    const user = await this.prisma.usuario.findUnique({
       where: { dni: dto.dni },
       select: {
         id: true,
@@ -73,50 +72,19 @@ export class AuthService {
         rol: true,
         asociacion_id: true,
         estado_reg: true,
-        estado_pago: true,
-        estado_blanqueo: true,
       },
     });
 
     if (!user) {
-      const admin = await this.prisma.adminGeneral.findUnique({
-        where: { dni: dto.dni },
-      });
-      if (!admin || !(await bcrypt.compare(dto.password, admin.password))) {
-        throw new UnauthorizedException('Las credenciales ingresadas son incorrectas.');
-      }
-      const payload = {
-        sub: admin.id,
-        email: 'admin@kendo-manager',
-        rol: 'ADMIN_GENERAL' as const,
-        asociacion_id: 0,
-      };
-      return { access_token: this.jwtService.sign(payload) };
+      throw new UnauthorizedException('Las credenciales ingresadas son incorrectas.');
     }
 
-    // Solo validar contraseña, no resetear estado aquí
     if (!(await bcrypt.compare(dto.password, user.password))) {
       throw new UnauthorizedException('Las credenciales ingresadas son incorrectas.');
     }
 
-    // Auto-desactivar si la cuota está vencida y no se ha pagado
-    const feeConfig = await this.prisma.$queryRaw<Array<{ fecha_vencimiento: Date }>>`
-      SELECT fecha_vencimiento FROM cuotaglobal ORDER BY id DESC LIMIT 1
-    `;
-    const isFeeOverdue = feeConfig && feeConfig.length > 0 && new Date(feeConfig[0].fecha_vencimiento) < new Date();
-
-    if (isFeeOverdue && !user.estado_pago) {
-      await this.prisma.usuario.update({
-        where: { id: user.id },
-        data: { estado_reg: 'PENDIENTE_APROBACION' },
-      });
-    }
-
     if (user.estado_reg === EstadoRegistro.PENDIENTE_APROBACION) {
-      const isGenuinelyPending = !isFeeOverdue || user.estado_pago !== false;
-      if (isGenuinelyPending) {
-        throw new ForbiddenException('Su cuenta aún aguarda la aprobación de su dojo.');
-      }
+      throw new ForbiddenException('Su cuenta aún aguarda la aprobación de su asociación.');
     }
 
     const payload = {
@@ -129,5 +97,24 @@ export class AuthService {
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  async adminLogin(password: string) {
+    const admins = await this.prisma.adminGeneral.findMany();
+
+    for (const admin of admins) {
+      if (await bcrypt.compare(password, admin.password)) {
+        const payload = {
+          sub: admin.id,
+          email: 'admin@kendo-manager',
+          rol: 'ADMIN_GENERAL' as const,
+          asociacion_id: 0,
+        };
+
+        return { access_token: this.jwtService.sign(payload) };
+      }
+    }
+
+    throw new UnauthorizedException('Credenciales de administrador incorrectas.');
   }
 }

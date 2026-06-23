@@ -16,9 +16,16 @@ export class AuthController {
 
   @Public()
   @Post('login')
-  @HttpCode(HttpStatus.CREATED)
+  @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @Public()
+  @Post('admin-login')
+  @HttpCode(HttpStatus.OK)
+  adminLogin(@Body('password') password: string) {
+    return this.authService.adminLogin(password);
   }
 
   @Public()
