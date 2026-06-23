@@ -1,8 +1,9 @@
-import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { validationMessages } from '../src/utils/validation-messages';
 import * as bcrypt from 'bcrypt';
 
 export async function createTestApp(): Promise<{
@@ -16,7 +17,19 @@ export async function createTestApp(): Promise<{
 
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    transform: true,
+    forbidNonWhitelisted: true,
+    exceptionFactory: (errors) => {
+      const messages = errors.flatMap((e) =>
+        Object.values(e.constraints || {}).map(
+          (c) => validationMessages[c] || c,
+        ),
+      );
+      return new BadRequestException(messages);
+    },
+  }));
   await app.init();
 
   const prisma = app.get(PrismaService);

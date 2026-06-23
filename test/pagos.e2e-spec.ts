@@ -3,7 +3,7 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
-import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 import MercadoPago, { Payment } from 'mercadopago';
 
 describe('Pagos (e2e)', () => {
@@ -157,6 +157,56 @@ describe('Pagos (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('received');
+    });
+  });
+
+  describe('PATCH /admin/fee — validación de SetFeeDto', () => {
+    it('debería rechazar monto no numérico', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ monto_actual: 'no-un-numero', fecha_vencimiento: '2026-12-31' })
+        .expect(400);
+
+      expect(Array.isArray(response.body.message)).toBe(true);
+    });
+
+    it('debería rechazar monto negativo', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({ monto_actual: -100, fecha_vencimiento: '2026-12-31' })
+        .expect(400);
+
+      expect(response.body.message).toEqual(
+        expect.arrayContaining([expect.stringMatching(/negativo/)])
+      );
+    });
+
+    it('debería rechazar cuerpo vacío', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({})
+        .expect(400);
+
+      expect(Array.isArray(response.body.message)).toBe(true);
+    });
+
+    it('debería rechazar configuración por usuario BASICO', async () => {
+      const { token } = await createTestUser(prisma, jwt, { rol: 'BASICO' });
+
+      await request(app.getHttpServer())
+        .patch('/api/admin/fee')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ monto_actual: 15000, fecha_vencimiento: '2026-12-31' })
+        .expect(403);
     });
   });
 

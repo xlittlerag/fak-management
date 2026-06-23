@@ -84,12 +84,23 @@ export class UsuariosService {
         where: { id },
         data,
       });
-    } catch {
-      throw new ConflictException('No se pudo actualizar el perfil. Verifique los datos.');
+    } catch (err: any) {
+      if (err.code === 'P2025') {
+        throw new NotFoundException('Usuario no encontrado');
+      }
+      if (err.code === 'P2002') {
+        throw new ConflictException('El correo electrónico ya se encuentra en uso.');
+      }
+      throw err;
     }
   }
 
   async updateRol(id: number, rol: Rol) {
+    const user = await this.prisma.usuario.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
     return this.prisma.usuario.update({
       where: { id },
       data: { rol },
@@ -97,6 +108,11 @@ export class UsuariosService {
   }
 
   async updateGraduacion(id: number, dto: any) {
+    const user = await this.prisma.usuario.findUnique({ where: { id } });
+    if (!user) {
+      throw new NotFoundException('Usuario no encontrado');
+    }
+
     const data: any = {};
 
     if (dto.grad_kendo !== undefined) data.grad_kendo = mapGrad(dto.grad_kendo);

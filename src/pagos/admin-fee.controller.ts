@@ -1,7 +1,8 @@
-import { Controller, Get, Patch, Body, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch, Body } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 import { FeeConfigService } from './fee-config.service';
+import { SetFeeDto } from './dto/fee.dto';
 
 @Controller('admin')
 export class AdminFeeController {
@@ -9,20 +10,8 @@ export class AdminFeeController {
 
   @Patch('fee')
   @Roles(Rol.ADMIN_GENERAL)
-  async setFeeConfig(
-    @Body()
-    body: {
-      monto_actual: number;
-      fecha_vencimiento: string;
-    },
-  ) {
-    const { monto_actual, fecha_vencimiento } = body;
-
-    if (!fecha_vencimiento) {
-      throw new BadRequestException('La fecha de vencimiento es obligatoria');
-    }
-
-    return this.feeConfigService.upsertFeeConfig(monto_actual, fecha_vencimiento);
+  async setFeeConfig(@Body() dto: SetFeeDto) {
+    return this.feeConfigService.upsertFeeConfig(dto.monto_actual, dto.fecha_vencimiento);
   }
 
   @Get('fee')

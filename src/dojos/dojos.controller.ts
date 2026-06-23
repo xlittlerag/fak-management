@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { CreateDojoDto } from './dto/create-dojo.dto';
 import { UpdateDojoDto } from './dto/update-dojo.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
+import { Public } from '../auth/decorators/public.decorator';
 import { Rol } from '@prisma/client';
 
 @Controller('dojos')
@@ -13,6 +14,7 @@ export class DojosController {
     private readonly prisma: PrismaService,
   ) {}
 
+  @Public()
   @Get('asociacion/:asociacion_id')
   findAllByAsociacion(@Param('asociacion_id', ParseIntPipe) asociacion_id: number) {
     return this.dojosService.findAllByAsociacion(asociacion_id);

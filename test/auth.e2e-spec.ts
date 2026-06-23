@@ -2,7 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 import * as bcrypt from 'bcrypt';
 
 describe('Auth (e2e)', () => {
@@ -82,6 +82,21 @@ describe('Auth (e2e)', () => {
         .send(registerDto)
         .expect(409);
     });
+
+    it('should return 400 with Spanish validation errors for empty fields', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({})
+        .expect(400);
+
+      expect(Array.isArray(response.body.message)).toBe(true);
+      expect(response.body.message.length).toBeGreaterThan(0);
+      expect(response.body.message).toEqual(
+        expect.arrayContaining([
+          expect.stringMatching(/obligatorio/),
+        ])
+      );
+    });
   });
 
   describe('POST /auth/login', () => {
@@ -92,9 +107,9 @@ describe('Auth (e2e)', () => {
         .expect(401);
       });
 
-      it('should return 403 if user is PENDIENTE_APROBACION', async () => {
+    it('should return 403 if user is PENDIENTE_APROBACION', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { 
+      await createTestUser(prisma, jwt, { 
         email: 'pending@example.com', 
         dni: 'P123',
         password: 'Password123!',
@@ -107,8 +122,25 @@ describe('Auth (e2e)', () => {
         .send({ dni: 'P123', password: 'Password123!' })
         .expect(403);
 
-
       expect(response.body.message).toContain('aprobación');
+    });
+
+    it('should return 403 if user is RECHAZADO', async () => {
+      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
+      await createTestUser(prisma, jwt, { 
+        email: 'rejected@example.com', 
+        dni: 'R123',
+        password: 'Password123!',
+        estado_reg: 'RECHAZADO',
+        asociacion_id: assoc.id 
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ dni: 'R123', password: 'Password123!' })
+        .expect(403);
+
+      expect(response.body.message).toContain('rechazada');
     });
 
     it('should return 200 and a JWT if user is APROBADO', async () => {
@@ -130,6 +162,58 @@ describe('Auth (e2e)', () => {
       
       const decoded = jwt.decode(response.body.access_token) as any;
       expect(decoded.sub).toBe(user.user.id);
+    });
+  });
+
+  describe('POST /auth/admin-login', () => {
+    it('should return 200 and a JWT for valid admin password', async () => {
+      await createAdminGeneral(prisma, jwt);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/admin-login')
+        .send({ password: 'Admin123!' })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('access_token');
+      const decoded = jwt.decode(response.body.access_token) as any;
+      expect(decoded.rol).toBe('ADMIN_GENERAL');
+    });
+
+    it('should return 401 for invalid admin password', async () => {
+      await createAdminGeneral(prisma, jwt);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/admin-login')
+        .send({ password: 'wrong-password' })
+        .expect(401);
+    });
+
+    it('should return 401 when no admins exist', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/admin-login')
+        .send({ password: 'Admin123!' })
+        .expect(401);
+    });
+  });
+
+  describe('POST /auth/reset-password/request', () => {
+    it('should set estado_blanqueo to PENDIENTE for existing user', async () => {
+      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
+      const user = await createTestUser(prisma, jwt, { dni: 'RESET01', asociacion_id: assoc.id });
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/reset-password/request')
+        .send({ dni: 'RESET01' })
+        .expect(201);
+
+      expect(response.body.estado_blanqueo).toBe('PENDIENTE');
+    });
+
+    it('should return 404 for non-existent DNI', async () => {
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password/request')
+        .send({ dni: 'NONEXISTENT' })
+        .expect(404);
     });
   });
 });

@@ -102,6 +102,31 @@ describe('Aprobaciones (e2e)', () => {
       const updated = await prisma.usuario.findUnique({ where: { id: userA.user.id } });
       expect(updated?.estado_reg).toBe('APROBADO');
     });
+
+    it('should return 200 and change status to RECHAZADO', async () => {
+      const assocA = await prisma.asociacion.create({ data: { nombre: 'Assoc A' } });
+      const adminA = await createTestUser(prisma, jwt, { rol: 'ADMIN_ASOCIACION', asociacion_id: assocA.id });
+      const userA = await createTestUser(prisma, jwt, { email: 'reject@ex.com', estado_reg: 'PENDIENTE_APROBACION', asociacion_id: assocA.id });
+
+      await request(app.getHttpServer())
+        .patch(`/api/usuarios/${userA.user.id}/aprobacion`)
+        .set('Authorization', `Bearer ${adminA.token}`)
+        .send({ accion: 'RECHAZAR' })
+        .expect(200);
+
+      const updated = await prisma.usuario.findUnique({ where: { id: userA.user.id } });
+      expect(updated?.estado_reg).toBe('RECHAZADO');
+    });
+
+    it('should return 404 for non-existent user', async () => {
+      const { token } = await createAdminGeneral(prisma, jwt);
+
+      await request(app.getHttpServer())
+        .patch('/api/usuarios/99999/aprobacion')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ accion: 'APROBAR' })
+        .expect(404);
+    });
   });
 
   describe('Gestion Global (ADMIN_GENERAL)', () => {
@@ -117,6 +142,20 @@ describe('Aprobaciones (e2e)', () => {
 
       // 2 users created (admin is no longer a user record)
       expect(response.body.length).toBe(2);
+    });
+
+    it('GET /usuarios should support pagination with skip/take', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      for (let i = 0; i < 5; i++) {
+        await createTestUser(prisma, jwt, { email: `paginated${i}@ex.com`, dni: `PAG${i}` });
+      }
+
+      const response = await request(app.getHttpServer())
+        .get('/api/usuarios?skip=2&take=2')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+
+      expect(response.body).toHaveLength(2);
     });
 
     it('PATCH /usuarios/:id/rol should update user role', async () => {
@@ -138,6 +177,27 @@ describe('Aprobaciones (e2e)', () => {
       await request(app.getHttpServer())
         .get('/api/usuarios')
         .set('Authorization', `Bearer ${user.token}`)
+        .expect(403);
+    });
+
+    it('should return 403 if BASICO tries to list pending users', async () => {
+      const { token } = await createTestUser(prisma, jwt, { rol: 'BASICO' });
+
+      await request(app.getHttpServer())
+        .get('/api/usuarios/pendientes')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(403);
+    });
+
+    it('should return 403 if ADMIN_ASOCIACION tries to change roles', async () => {
+      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
+      const adminAsoc = await createTestUser(prisma, jwt, { rol: 'ADMIN_ASOCIACION', asociacion_id: assoc.id });
+      const target = await createTestUser(prisma, jwt, { email: 'target@ex.com', asociacion_id: assoc.id });
+
+      await request(app.getHttpServer())
+        .patch(`/api/usuarios/${target.user.id}/rol`)
+        .set('Authorization', `Bearer ${adminAsoc.token}`)
+        .send({ rol: 'ADMIN_ASOCIACION' })
         .expect(403);
     });
   });

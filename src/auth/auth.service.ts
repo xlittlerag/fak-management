@@ -87,6 +87,10 @@ export class AuthService {
       throw new ForbiddenException('Su cuenta aún aguarda la aprobación de su asociación.');
     }
 
+    if (user.estado_reg === EstadoRegistro.RECHAZADO) {
+      throw new ForbiddenException('Su cuenta ha sido rechazada. Contacte al administrador.');
+    }
+
     const payload = {
       sub: user.id,
       email: user.email,

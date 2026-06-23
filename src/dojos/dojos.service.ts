@@ -17,7 +17,12 @@ export class DojosService {
     return this.prisma.dojo.create({ data: dto });
   }
 
-  update(id: number, dto: UpdateDojoDto) {
+  async update(id: number, dto: UpdateDojoDto) {
+    const dojo = await this.prisma.dojo.findUnique({ where: { id } });
+    if (!dojo) {
+      throw new NotFoundException('Dojo no encontrado.');
+    }
+
     return this.prisma.dojo.update({
       where: { id },
       data: dto,

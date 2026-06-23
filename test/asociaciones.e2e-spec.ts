@@ -106,5 +106,27 @@ describe('Asociaciones (e2e)', () => {
       const all = await prisma.asociacion.findMany({ where: { deleted_at: null } });
       expect(all.find(a => a.id === assoc.id)).toBeUndefined();
     });
+
+    it('should return 400 when association has active dojos', async () => {
+      const { token } = await createAdminGeneral(prisma, jwt);
+      const assoc = await prisma.asociacion.create({ data: { nombre: 'Con Dojos' } });
+      await prisma.dojo.create({ data: { nombre: 'Dojo Activo', asociacion_id: assoc.id } });
+
+      await request(app.getHttpServer())
+        .delete(`/api/asociaciones/${assoc.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
+    });
+
+    it('should return 400 when association has registered users (via dojo guard)', async () => {
+      const { token } = await createAdminGeneral(prisma, jwt);
+      const assoc = await prisma.asociacion.create({ data: { nombre: 'Con Usuarios' } });
+      await createTestUser(prisma, jwt, { email: 'user@assoc.com', asociacion_id: assoc.id });
+
+      await request(app.getHttpServer())
+        .delete(`/api/asociaciones/${assoc.id}`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
+    });
   });
 });
