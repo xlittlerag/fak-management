@@ -1,12 +1,9 @@
-import { Controller, Get, Patch, Body, UseGuards, BadRequestException } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
+import { Controller, Get, Patch, Body, BadRequestException } from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 import { FeeConfigService } from './fee-config.service';
 
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
 export class AdminFeeController {
   constructor(private readonly feeConfigService: FeeConfigService) {}
 

@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import MercadoPago, { Preference, Payment } from 'mercadopago';
@@ -6,6 +6,8 @@ import MercadoPago, { Preference, Payment } from 'mercadopago';
 @Injectable()
 export class MercadoPagoService {
   private client: any;
+  private readonly processedPayments = new Set<string>();
+  private readonly logger = new Logger(MercadoPagoService.name);
 
   constructor(
     private prisma: PrismaService,
@@ -81,47 +83,69 @@ export class MercadoPagoService {
       return { processed: false };
     }
 
-    const payment = webhookData.data;
+    const paymentId = String(webhookData.data.id);
     const action = webhookData.action;
 
-    if (action === 'payment.created' || action === 'payment.updated') {
-      const status = payment.status;
-
-      if (status === 'approved') {
-        const reference = payment.external_reference;
-
-        if (reference && reference.startsWith('fee_user_')) {
-          const userIdMatch = reference.match(/fee_user_(\d+)_ts_\d+/);
-          if (userIdMatch) {
-            const userId = parseInt(userIdMatch[1]);
-
-            const user = await this.prisma.usuario.findUnique({
-              where: { id: userId },
-            });
-
-            if (user) {
-              await this.prisma.usuario.update({
-                where: { id: userId },
-                data: {
-                  estado_pago: true,
-                  estado_reg: 'APROBADO',
-                },
-              });
-
-              return {
-                processed: true,
-                userId,
-                statusUpdated: true,
-              };
-            }
-          }
-        }
-      }
+    if (action !== 'payment.created' && action !== 'payment.updated') {
+      return { processed: false };
     }
 
-    return {
-      processed: false,
-    };
+    if (this.processedPayments.has(paymentId)) {
+      this.logger.log(`Pago ${paymentId} ya fue procesado (idempotencia)`);
+      return { processed: true, idempotent: true };
+    }
+
+    try {
+      const paymentClient = new Payment(this.client);
+      const payment = await paymentClient.get({ id: paymentId });
+
+      if (payment.status !== 'approved') {
+        return { processed: false };
+      }
+
+      const reference = payment.external_reference;
+      if (!reference || !reference.startsWith('fee_user_')) {
+        return { processed: false };
+      }
+
+      const userIdMatch = reference.match(/fee_user_(\d+)_ts_\d+/);
+      if (!userIdMatch) {
+        return { processed: false };
+      }
+
+      const userId = parseInt(userIdMatch[1]);
+      const user = await this.prisma.usuario.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        return { processed: false };
+      }
+
+      if (user.estado_pago) {
+        this.processedPayments.add(paymentId);
+        return { processed: true, alreadyPaid: true };
+      }
+
+      await this.prisma.usuario.update({
+        where: { id: userId },
+        data: {
+          estado_pago: true,
+          estado_reg: 'APROBADO',
+        },
+      });
+
+      this.processedPayments.add(paymentId);
+
+      return {
+        processed: true,
+        userId,
+        statusUpdated: true,
+      };
+    } catch (error) {
+      this.logger.error(`Error al consultar pago ${paymentId}: ${error.message}`);
+      return { processed: false };
+    }
   }
 
   async getUserStatus(userId: number) {
