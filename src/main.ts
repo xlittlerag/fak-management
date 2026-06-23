@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { validationMessages } from './utils/validation-messages';
+import { GlobalExceptionFilter } from './common/http-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -10,11 +11,15 @@ async function bootstrap() {
     transform: true,
     forbidNonWhitelisted: true,
     exceptionFactory: (errors) => {
-      const constraint = Object.values(errors[0].constraints || {})[0];
-      const message = validationMessages[constraint] || constraint;
-      return new BadRequestException(message);
+      const messages = errors.flatMap((e) =>
+        Object.values(e.constraints || {}).map(
+          (c) => validationMessages[c] || c,
+        ),
+      );
+      return new BadRequestException(messages);
     }
   }));
+  app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
   app.enableCors();
   await app.listen(process.env.PORT ?? 3000);

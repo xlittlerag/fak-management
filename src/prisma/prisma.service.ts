@@ -11,14 +11,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit {
       connectionString: configService.get<string>('DATABASE_URL'),
     });
     const adapter = new PrismaPg(pool);
-    super({ 
+    super({
       adapter,
       omit: {
         usuario: {
           password: true,
         },
       },
-    } as any); // Cast as any if TS definitions aren't fully updated for omit yet
+    });
   }
 
   async onModuleInit() {
