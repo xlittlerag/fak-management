@@ -1,6 +1,7 @@
-import { Controller, Get, Patch, Param, Body, Request, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Request, ParseIntPipe, Query } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { UpdateAprobacionDto } from './dto/update-aprobacion.dto';
+import { UpdatePerfilDto } from './dto/update-perfil.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 
@@ -10,8 +11,12 @@ export class UsuariosController {
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get()
-  findAll(@Request() req: any) {
-    return this.usuariosService.findAll(req.user);
+  findAll(
+    @Request() req: any,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+  ) {
+    return this.usuariosService.findAll(req.user, { skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
   }
 
   @Get('perfil')
@@ -25,7 +30,7 @@ export class UsuariosController {
   }
 
   @Patch('perfil')
-  updatePerfil(@Request() req: any, @Body() dto: any) {
+  updatePerfil(@Request() req: any, @Body() dto: UpdatePerfilDto) {
     return this.usuariosService.updatePerfil(req.user.id, dto);
   }
 

@@ -96,6 +96,7 @@ model Dojo {
   id            Int        @id @default(autoincrement())
   nombre        String
   asociacion_id Int
+  deleted_at    DateTime?
   asociacion    Asociacion @relation(fields: [asociacion_id], references: [id])
   usuarios      Usuario[]
 }

@@ -9,15 +9,12 @@ export class DojosService {
 
   findAllByAsociacion(asociacion_id: number) {
     return this.prisma.dojo.findMany({
-      where: { asociacion_id },
+      where: { asociacion_id, deleted_at: null },
     });
   }
 
   create(dto: CreateDojoDto) {
-    const { id, ...dataToCreate } = dto as any;
-    return this.prisma.dojo.create({
-      data: dataToCreate,
-    });
+    return this.prisma.dojo.create({ data: dto });
   }
 
   update(id: number, dto: UpdateDojoDto) {
@@ -26,24 +23,25 @@ export class DojosService {
       data: dto,
     });
   }
-async remove(id: number) {
-  const dojo = await this.prisma.dojo.findUnique({
-    where: { id },
-    include: { usuarios: true },
-  });
 
-  if (dojo && dojo.usuarios && dojo.usuarios.length > 0) {
-    throw new BadRequestException('No se puede eliminar un dojo que tiene practicantes asignados.');
+  async remove(id: number) {
+    const dojo = await this.prisma.dojo.findUnique({
+      where: { id },
+      include: { usuarios: true },
+    });
+
+    if (!dojo) {
+      throw new NotFoundException('Dojo no encontrado.');
+    }
+
+    if (dojo.usuarios.length > 0) {
+      throw new BadRequestException('No se puede eliminar un dojo que tiene practicantes asignados.');
+    }
+
+    return this.prisma.dojo.update({
+      where: { id },
+      data: { deleted_at: new Date() },
+    });
   }
-
-  if (!dojo) {
-    throw new NotFoundException('Dojo no encontrado.');
-  }
-
-  return this.prisma.dojo.delete({
-    where: { id },
-  });
-}
-
 }
 

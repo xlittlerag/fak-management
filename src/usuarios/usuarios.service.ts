@@ -3,7 +3,27 @@ import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
 import { EstadoRegistro, Rol, Graduacion } from '@prisma/client';
 import { AprobacionAccion, UpdateAprobacionDto } from './dto/update-aprobacion.dto';
+import { UpdatePerfilDto } from './dto/update-perfil.dto';
 import * as bcrypt from 'bcrypt';
+
+const GraduacionInputMap: Record<string, Graduacion> = {
+  'SIN_GRADUACION': 'SIN_GRADUACION',
+  '3_KYU': 'KYU_3',
+  '2_KYU': 'KYU_2',
+  '1_KYU': 'KYU_1',
+  '1_DAN': 'DAN_1',
+  '2_DAN': 'DAN_2',
+  '3_DAN': 'DAN_3',
+  '4_DAN': 'DAN_4',
+  '5_DAN': 'DAN_5',
+  '6_DAN': 'DAN_6',
+  '7_DAN': 'DAN_7',
+  '8_DAN': 'DAN_8',
+};
+
+function mapGrad(g: string): Graduacion {
+  return GraduacionInputMap[g] ?? (g as Graduacion);
+}
 
 @Injectable()
 export class UsuariosService {
@@ -27,7 +47,7 @@ export class UsuariosService {
     });
   }
 
-  async findAll(user: any) {
+  async findAll(user: any, pagination?: { skip?: number; take?: number }) {
     const where: any = { estado_reg: EstadoRegistro.APROBADO };
     if (user.rol === Rol.ADMIN_ASOCIACION) {
       where.asociacion_id = user.asociacion_id;
@@ -36,6 +56,8 @@ export class UsuariosService {
     return this.prisma.usuario.findMany({
       where,
       include: { asociacion: true, dojo: true },
+      skip: pagination?.skip,
+      take: pagination?.take,
     });
   }
 
@@ -48,7 +70,7 @@ export class UsuariosService {
     return user;
   }
 
-  async updatePerfil(id: number, dto: any) {
+  async updatePerfil(id: number, dto: UpdatePerfilDto) {
     const data: any = { ...dto };
     if (data.password) {
       data.password = await bcrypt.hash(data.password, 10);
@@ -62,7 +84,7 @@ export class UsuariosService {
         where: { id },
         data,
       });
-    } catch (e) {
+    } catch {
       throw new ConflictException('No se pudo actualizar el perfil. Verifique los datos.');
     }
   }
@@ -76,22 +98,6 @@ export class UsuariosService {
 
   async updateGraduacion(id: number, dto: any) {
     const data: any = {};
-    
-    const mapGrad = (g: string) => {
-      if (!g || g === 'SIN_GRADUACION') return 'SIN_GRADUACION' as Graduacion;
-      
-      // Handle the case where the input might be 'DAN_4' or 'KYU_3'
-      // and needs to match the Prisma Enum format like 'DAN_4', 'KYU_3'.
-      // If the incoming data format is '4_DAN', '3_KYU', reverse it.
-      if (g.includes('_')) {
-        const parts = g.split('_');
-        // Check if the first part is a number, indicating '4_DAN' or '3_KYU'
-        if (!isNaN(Number(parts[0]))) {
-          return `${parts[1]}_${parts[0]}` as Graduacion;
-        }
-      }
-      return g as Graduacion;
-    };
 
     if (dto.grad_kendo !== undefined) data.grad_kendo = mapGrad(dto.grad_kendo);
     if (dto.f_grad_kendo !== undefined) data.f_grad_kendo = dto.f_grad_kendo ? new Date(dto.f_grad_kendo) : null;
