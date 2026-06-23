@@ -1,20 +1,21 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { App } from 'supertest/types';
 import { createTestApp } from './test-utils';
 
 describe('AppController (e2e)', () => {
-  let app: INestApplication<App>;
+  let app: INestApplication;
 
   beforeEach(async () => {
     ({ app } = await createTestApp());
   });
 
-  it('/ (GET)', () => {
-    return request(app.getHttpServer())
+  it('/ (GET) debería retornar health check', async () => {
+    const response = await request(app.getHttpServer())
       .get('/api/')
-      .expect(200)
-      .expect('Hello World!');
+      .expect(200);
+
+    expect(response.body).toHaveProperty('status', 'ok');
+    expect(response.body).toHaveProperty('timestamp');
   });
 
   afterEach(async () => {

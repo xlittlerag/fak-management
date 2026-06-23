@@ -82,7 +82,7 @@ describe('Perfil (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ dni: user.dni, password: 'NewPassword123!' })
-        .expect(201);
+        .expect(200);
     });
 
     it('should update dojo_id if provided', async () => {
@@ -107,10 +107,9 @@ describe('Perfil (e2e)', () => {
     it('debería retornar estado de cuota para usuario autenticado', async () => {
       const { token } = await createTestUser(prisma, jwt);
 
-      await prisma.$queryRaw`
-        INSERT INTO cuotaglobal (monto_actual, fecha_vencimiento)
-        VALUES (15000.00, ${formatDate(new Date('2026-12-31T23:59:59Z'))})
-      `;
+      await prisma.cuotaGlobal.create({
+        data: { monto_actual: 15000.00, fecha_vencimiento: new Date('2026-12-31T23:59:59Z') },
+      });
 
       const response = await request(app.getHttpServer())
         .get('/api/usuarios/cuota')

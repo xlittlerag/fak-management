@@ -105,7 +105,7 @@ describe('Aprobaciones (e2e)', () => {
   });
 
   describe('Gestion Global (ADMIN_GENERAL)', () => {
-    it('GET /usuarios should return all users', async () => {
+    it('GET /usuarios should return all approved users', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       await createTestUser(prisma, jwt, { email: 'u1@ex.com' });
       await createTestUser(prisma, jwt, { email: 'u2@ex.com' });
@@ -115,8 +115,8 @@ describe('Aprobaciones (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .expect(200);
 
-      // 3 users: the admin and the 2 created
-      expect(response.body.length).toBeGreaterThanOrEqual(3);
+      // 2 users created (admin is no longer a user record)
+      expect(response.body.length).toBe(2);
     });
 
     it('PATCH /usuarios/:id/rol should update user role', async () => {

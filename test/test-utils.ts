@@ -26,15 +26,16 @@ export async function createTestApp(): Promise<{
 }
 
 export async function cleanupDb(prisma: PrismaService) {
-  // In reverse order of dependencies to satisfy FK constraints
   await prisma.historialGraduacion.deleteMany();
   await prisma.inscripcionEvento.deleteMany();
   await prisma.certificadoExterno.deleteMany();
   await prisma.usuario.deleteMany();
+  await prisma.dojo.updateMany({ where: { deleted_at: { not: null } }, data: { deleted_at: null } });
   await prisma.dojo.deleteMany();
   await prisma.evento.deleteMany();
   await prisma.asociacion.deleteMany();
   await prisma.cuotaGlobal.deleteMany();
+  await prisma.adminGeneral.deleteMany();
 }
 
 export async function createAdminGeneral(
@@ -42,40 +43,22 @@ export async function createAdminGeneral(
   jwt: JwtService,
 ) {
   const password = await bcrypt.hash('Admin123!', 10);
-  
-  // Temporary setup for Admin
-  // Needs association/dojo to pass FK constraints for now
-  const assoc = await prisma.asociacion.create({ data: { nombre: 'Federacion' } });
-  const dojo = await prisma.dojo.create({ data: { nombre: 'Central', asociacion_id: assoc.id } });
 
-  const user = await prisma.usuario.create({
+  const admin = await prisma.adminGeneral.create({
     data: {
-      email: 'admin@test.com',
-      password,
-      nombre: 'Admin',
-      apellido: 'General',
       dni: '00000000',
-      fecha_nacimiento: new Date('1990-01-01'),
-      sexo: 'MASCULINO',
-      rol: 'ADMIN_GENERAL',
-      asociacion_id: assoc.id,
-      dojo_id: dojo.id,
-      calle_altura: 'N/A',
-      ciudad: 'N/A',
-      provincia: 'BUENOS_AIRES',
-      codigo_postal: '0000',
-      estado_reg: 'APROBADO',
+      password,
     },
   });
 
   const token = jwt.sign({
-    sub: user.id,
-    email: user.email,
-    rol: user.rol,
-    asociacion_id: user.asociacion_id,
+    sub: admin.id,
+    email: 'admin@kendo-manager',
+    rol: 'ADMIN_GENERAL',
+    asociacion_id: 0,
   });
 
-  return { user, token };
+  return { admin, token };
 }
 
 export async function createTestUser(

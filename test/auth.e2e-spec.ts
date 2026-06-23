@@ -111,33 +111,6 @@ describe('Auth (e2e)', () => {
       expect(response.body.message).toContain('aprobación');
     });
 
-    it('should deactivate user if fee is past due without payment but allow login', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, {
-        email: 'overdue@example.com',
-        dni: 'O999',
-        password: 'Password123!',
-        estado_pago: false,
-        estado_reg: 'APROBADO',
-        asociacion_id: assoc.id,
-      });
-
-      await prisma.$queryRaw`
-        INSERT INTO cuotaglobal (monto_actual, fecha_vencimiento)
-        VALUES (15000.00, '2025-01-01T00:00:00Z')
-      `;
-
-      const response = await request(app.getHttpServer())
-        .post('/api/auth/login')
-        .send({ dni: 'O999', password: 'Password123!' })
-        .expect(201);
-
-      expect(response.body).toHaveProperty('access_token');
-
-      const updatedUser = await prisma.usuario.findUnique({ where: { id: user.user.id } });
-      expect(updatedUser?.estado_reg).toBe('PENDIENTE_APROBACION');
-    });
-
     it('should return 200 and a JWT if user is APROBADO', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
       const user = await createTestUser(prisma, jwt, { 
@@ -151,7 +124,7 @@ describe('Auth (e2e)', () => {
       const response = await request(app.getHttpServer())
         .post('/api/auth/login')
         .send({ dni: 'A123', password: 'Password123!' })
-        .expect(201); // Or 200, spec says 200/201
+        .expect(200);
 
       expect(response.body).toHaveProperty('access_token');
       

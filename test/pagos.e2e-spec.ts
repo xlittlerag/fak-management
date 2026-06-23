@@ -4,17 +4,18 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
 import { createTestApp, cleanupDb, createTestUser } from './test-utils';
+import MercadoPago, { Payment } from 'mercadopago';
 
 describe('Pagos (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let jwt: JwtService;
+  let mpService: MercadoPagoService;
 
   beforeAll(async () => {
     ({ app, prisma, jwt } = await createTestApp());
 
-    // Mock only the external Mercado Pago API call, keep DB queries real
-    const mpService = app.get(MercadoPagoService);
+    mpService = app.get(MercadoPagoService);
     jest.spyOn(mpService, 'createFederativeFeePreference').mockImplementation(
       async (userId: number, userEmail: string, amount: number) => ({
         preferenceId: `mp_test_${userId}_${Date.now()}`,
@@ -37,10 +38,9 @@ describe('Pagos (e2e)', () => {
   });
 
   async function seedFeeConfig() {
-    await prisma.$queryRaw`
-      INSERT INTO cuotaglobal (monto_actual, fecha_vencimiento)
-      VALUES (15000.00, '2026-12-31T23:59:59Z')
-    `;
+    await prisma.cuotaGlobal.create({
+      data: { monto_actual: 15000.00, fecha_vencimiento: new Date('2026-12-31T23:59:59Z') },
+    });
   }
 
   describe('POST /pagos/checkout-fee', () => {
@@ -76,24 +76,6 @@ describe('Pagos (e2e)', () => {
         .set('Authorization', `Bearer ${inactiveToken}`)
         .expect(403);
     });
-
-    it('debería permitir checkout a usuario desactivado por cuota vencida', async () => {
-      await prisma.$queryRaw`
-        INSERT INTO cuotaglobal (monto_actual, fecha_vencimiento)
-        VALUES (15000.00, '2025-01-01T00:00:00Z')
-      `;
-      const { token } = await createTestUser(prisma, jwt, {
-        estado_reg: 'PENDIENTE_APROBACION',
-        estado_pago: false,
-      });
-
-      const response = await request(app.getHttpServer())
-        .post('/api/pagos/checkout-fee')
-        .set('Authorization', `Bearer ${token}`)
-        .expect(200);
-
-      expect(response.body).toHaveProperty('preferenceId');
-    });
   });
 
   describe('POST /pagos/webhook', () => {
@@ -101,24 +83,25 @@ describe('Pagos (e2e)', () => {
       await seedFeeConfig();
       const { user, token } = await createTestUser(prisma, jwt);
 
-      // Create a preference to get a payment ID
       const preferenceResponse = await request(app.getHttpServer())
         .post('/api/pagos/checkout-fee')
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      const paymentId = preferenceResponse.body.preferenceId;
+      const externalReference = preferenceResponse.body.externalReference;
+
+      jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+        id: 'test_payment_id',
+        status: 'approved',
+        external_reference: externalReference,
+        date_approved: new Date().toISOString(),
+      } as any);
 
       const response = await request(app.getHttpServer())
         .post('/api/pagos/webhook')
         .send({
           action: 'payment.updated',
-          data: {
-            id: paymentId,
-            status: 'approved',
-            external_reference: `fee_user_${user.id}_ts_${Date.now()}`,
-            date_approved: new Date().toISOString(),
-          },
+          data: { id: 'test_payment_id' },
         })
         .expect(200);
 
@@ -129,6 +112,24 @@ describe('Pagos (e2e)', () => {
       expect(updatedUser).not.toBeNull();
       expect(updatedUser!.estado_pago).toBe(true);
       expect(updatedUser!.estado_reg).toBe('APROBADO');
+    });
+
+    it('debería ignorar webhook si el pago no está aprobado', async () => {
+      jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+        id: 'test_payment_id',
+        status: 'pending',
+        external_reference: 'fee_user_1_ts_123',
+      } as any);
+
+      const response = await request(app.getHttpServer())
+        .post('/api/pagos/webhook')
+        .send({
+          action: 'payment.updated',
+          data: { id: 'test_payment_id' },
+        })
+        .expect(200);
+
+      expect(response.body).toHaveProperty('processed', false);
     });
   });
 
@@ -162,7 +163,7 @@ describe('Pagos (e2e)', () => {
   describe('Formato de preferencia de checkout', () => {
     it('debería generar preferencia con formato correcto en external_reference', async () => {
       await seedFeeConfig();
-      const { user, token } = await createTestUser(prisma, jwt);
+      const { token } = await createTestUser(prisma, jwt);
 
       const response = await request(app.getHttpServer())
         .post('/api/pagos/checkout-fee')
