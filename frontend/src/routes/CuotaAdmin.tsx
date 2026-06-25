@@ -3,6 +3,7 @@ import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
+import { DateInput } from '../components/DateInput';
 
 export default function CuotaAdmin() {
   const { user } = useAuth();
@@ -86,8 +87,7 @@ export default function CuotaAdmin() {
 
         <div>
           <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
-          <input
-            type="date"
+          <DateInput
             required
             value={fecha}
             onInput={(e: Event) => setFecha((e.currentTarget as HTMLInputElement).value)}

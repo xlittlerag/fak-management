@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
 import { getErrorMessage } from '../lib/error';
+import { DateInput } from '../components/DateInput';
 
 export default function Perfil() {
   const [formData, setFormData] = useState({
@@ -153,7 +154,7 @@ export default function Perfil() {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Nacimiento</label>
-              <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <DateInput name="fecha_nacimiento" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
@@ -197,7 +198,7 @@ export default function Perfil() {
               </div>
             </div>
             <div class="mt-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono (Opcional)</label>
               <input name="telefono" value={formData.telefono || ''} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
           </div>
