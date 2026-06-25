@@ -54,7 +54,8 @@ describe('Perfil (e2e)', () => {
       const updateDto = {
         nombre: 'Updated',
         apellido: 'Modified',
-        sexo: 'FEMENINO'
+        sexo: 'FEMENINO',
+        telefono: '1188888888',
       };
 
       await request(app.getHttpServer())
@@ -75,7 +76,7 @@ describe('Perfil (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
-        .send({ password: 'NewPassword123!' })
+        .send({ password: 'NewPassword123!', telefono: '1188888888' })
         .expect(200);
 
       // Verify login works with new password
@@ -95,7 +96,7 @@ describe('Perfil (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
-        .send({ dojo_id: newDojo.id })
+        .send({ dojo_id: newDojo.id, telefono: '1188888888' })
         .expect(200);
 
       const updated = await prisma.usuario.findUnique({ where: { id: user.id } });

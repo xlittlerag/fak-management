@@ -42,6 +42,7 @@ describe('Auth (e2e)', () => {
         ciudad: 'Springfield',
         provincia: 'BUENOS_AIRES',
         codigo_postal: '1234',
+        telefono: '1199999999',
       };
 
       await request(app.getHttpServer())
@@ -75,6 +76,7 @@ describe('Auth (e2e)', () => {
         ciudad: 'Springfield',
         provincia: 'BUENOS_AIRES',
         codigo_postal: '1234',
+        telefono: '1199999999',
       };
 
       await request(app.getHttpServer())
