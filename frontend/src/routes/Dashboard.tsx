@@ -7,6 +7,11 @@ import Asociaciones from './Asociaciones';
 import Usuarios from './Usuarios';
 import Perfil from './Perfil';
 import CuotaAdmin from './CuotaAdmin';
+import EventosAdmin from './EventosAdmin';
+import InscripcionesAdmin from './InscripcionesAdmin';
+import MisInscripciones from './MisInscripciones';
+import EventosDashboard from './EventosDashboard';
+import PreciosExamenAdmin from './PreciosExamenAdmin';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -31,7 +36,12 @@ export default function Dashboard() {
     { label: 'Mi Perfil', path: '/dashboard/perfil', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Usuarios Pendientes', path: '/dashboard/pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Listado de Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
+    { label: 'Ver Eventos', path: '/dashboard/eventos', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
+    { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
+    { label: 'Inscripciones Pendientes', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Configurar Cuota', path: '/dashboard/admin/cuota', roles: ['ADMIN_GENERAL'] },
+    { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
+    { label: 'Precios de Exámenes', path: '/dashboard/precios-examen', roles: ['ADMIN_GENERAL'] },
     { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
   ];
 
@@ -43,7 +53,12 @@ export default function Dashboard() {
       '/dashboard/perfil': 'Mi Perfil',
       '/dashboard/pendientes': 'Usuarios Pendientes',
       '/dashboard/usuarios': 'Listado de Miembros',
+      '/dashboard/eventos': 'Ver Eventos',
+      '/dashboard/mis-inscripciones': 'Mis Inscripciones',
+      '/dashboard/inscripciones': 'Inscripciones Pendientes',
       '/dashboard/admin/cuota': 'Configurar Cuota',
+      '/dashboard/eventos-admin': 'Gestión de Eventos',
+      '/dashboard/precios-examen': 'Precios de Exámenes',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
     };
     return labels[path] || 'Dashboard';
@@ -116,7 +131,12 @@ export default function Dashboard() {
           {path === '/dashboard/perfil' && <Perfil />}
           {path === '/dashboard/pendientes' && <Pendientes />}
           {path === '/dashboard/usuarios' && <Usuarios />}
+          {path === '/dashboard/eventos' && <EventosDashboard />}
+          {path === '/dashboard/mis-inscripciones' && <MisInscripciones />}
+          {path === '/dashboard/inscripciones' && <InscripcionesAdmin />}
           {path === '/dashboard/admin/cuota' && <CuotaAdmin />}
+          {path === '/dashboard/eventos-admin' && <EventosAdmin />}
+          {path === '/dashboard/precios-examen' && <PreciosExamenAdmin />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
         </div>
       </main>
@@ -126,10 +146,20 @@ export default function Dashboard() {
 
 function DashboardHome() {
   const { user } = useAuth();
+  const { route } = useLocation();
   const [cuota, setCuota] = useState<CuotaData | null>(null);
   const [loadingCuota, setLoadingCuota] = useState(true);
   const [loadingPreference, setLoadingPreference] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+  const [proximos, setProximos] = useState<any[]>([]);
+  const [loadingProximos, setLoadingProximos] = useState(true);
+
+  useEffect(() => {
+    api.get('/eventos')
+      .then(res => setProximos(res.data.filter((e: any) => new Date(e.fecha_inicio) > new Date()).slice(0, 5)))
+      .catch(() => {})
+      .finally(() => setLoadingProximos(false));
+  }, []);
 
   useEffect(() => {
     api.get('/usuarios/cuota')
@@ -238,6 +268,40 @@ function DashboardHome() {
         <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
           <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
           <p class="text-slate-400 mt-2">La cuota federativa aún no ha sido configurada.</p>
+        </div>
+      ) : null}
+
+      {loadingProximos ? (
+        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+          <p class="text-slate-400">Cargando próximos eventos...</p>
+        </div>
+      ) : proximos.length > 0 ? (
+        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+          <div class="px-6 py-4 border-b border-slate-100">
+            <h4 class="font-semibold text-slate-800">Próximos Eventos</h4>
+          </div>
+          <div class="divide-y divide-slate-100">
+            {proximos.map((ev: any) => (
+              <button
+                key={ev.id}
+                onClick={() => route('/dashboard/eventos')}
+                class="w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors"
+              >
+                <div class="flex justify-between items-center">
+                  <span class="font-medium text-slate-900">{ev.tipo}</span>
+                  <span class="text-sm text-slate-500">
+                    {new Date(ev.fecha_inicio).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                  </span>
+                </div>
+                {ev.datos_lugar && (
+                  <p class="text-xs text-slate-400 mt-0.5">
+                    {(ev.datos_lugar as any).direccion || ''}
+                    {(ev.datos_lugar as any).provincia ? ` - ${(ev.datos_lugar as any).provincia}` : ''}
+                  </p>
+                )}
+              </button>
+            ))}
+          </div>
         </div>
       ) : null}
     </div>

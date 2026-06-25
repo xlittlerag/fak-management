@@ -25,6 +25,32 @@ export const PROVINCIAS = [
   { value: 'TUCUMAN', label: 'Tucumán' },
 ];
 
+export const SEXOS = [
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'FEMENINO', label: 'Femenino' },
+  { value: 'X', label: 'X' },
+];
+
+export const SEXOS_CATEGORIA = [
+  { value: '', label: 'Todos' },
+  { value: 'MASCULINO', label: 'Masculino' },
+  { value: 'FEMENINO', label: 'Femenino' },
+  { value: 'MIXTO', label: 'Mixto' },
+];
+
+export const CATEGORIAS_TORNEO_DEFAULT = [
+  { nombre: 'Junior', genero: 'MIXTO', edad_max: 16 },
+  { nombre: 'Master', genero: 'MIXTO', edad_min: 50 },
+  { nombre: 'Kyu Femenino', genero: 'FEMENINO', grad_min: 'SIN_GRADUACION', grad_max: 'KYU_1' },
+  { nombre: 'Kyu Masculino', genero: 'MASCULINO', grad_min: 'SIN_GRADUACION', grad_max: 'KYU_1' },
+  { nombre: 'Dan Femenino', genero: 'FEMENINO', grad_min: 'DAN_1' },
+  { nombre: 'Dan Masculino 1er y 2do Dan', genero: 'MASCULINO', grad_min: 'DAN_1', grad_max: 'DAN_2' },
+  { nombre: 'Dan Masculino 3er Dan en adelante', genero: 'MASCULINO', grad_min: 'DAN_3' },
+  { nombre: 'Equipos Junior', genero: 'MIXTO' },
+  { nombre: 'Equipos Femenino', genero: 'FEMENINO' },
+  { nombre: 'Equipos Masculino', genero: 'MASCULINO' },
+];
+
 export const GRADUACIONES = [
   { value: 'SIN_GRADUACION', label: 'Sin graduación' },
   { value: 'KYU_3', label: '3° Kyu' },

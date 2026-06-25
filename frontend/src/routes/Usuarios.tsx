@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
-import { GRADUACIONES } from '../constants';
+import { GRADUACIONES, SEXOS } from '../constants';
 import { Modal } from '../components/Modal';
 
 interface User {
@@ -9,8 +9,17 @@ interface User {
   nombre: string;
   apellido: string;
   dni: string;
+  email: string;
+  sexo: string;
+  fecha_nacimiento: string;
+  calle_altura: string;
+  piso_depto: string;
+  ciudad: string;
+  provincia: string;
+  codigo_postal: string;
   rol: string;
   estado_reg: string;
+  estado_pago: boolean;
   grad_kendo: string;
   f_grad_kendo: string;
   grad_iaido: string;
@@ -33,6 +42,7 @@ export default function Usuarios() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [page, setPage] = useState(0);
   const [gradForm, setGradForm] = useState<GradForm>({
     grad_kendo: '', f_grad_kendo: '',
@@ -95,6 +105,10 @@ export default function Usuarios() {
     return GRADUACIONES.find(g => g.value === val)?.label || val;
   };
 
+  const getSexoLabel = (val: string) => {
+    return SEXOS.find(s => s.value === val)?.label || val;
+  };
+
   if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
@@ -136,6 +150,7 @@ export default function Usuarios() {
                 </td>
                 <td class="px-4 py-2 text-right">
                   <div class="flex flex-col items-end gap-2">
+                    <button onClick={() => setViewingUser(user)} class="text-slate-600 hover:underline">Ver Perfil</button>
                     {isAdminGeneral && <button onClick={() => startEditGrad(user)} class="text-blue-600 hover:underline">Editar Grad.</button>}
                     {isAdminGeneral && user.estado_reg === 'APROBADO' && (
                       user.rol === 'BASICO' ? (
@@ -171,6 +186,78 @@ export default function Usuarios() {
           Página siguiente
         </button>
       </div>
+
+      {/* Modal Ver Perfil */}
+      {viewingUser !== null && (
+        <Modal
+          isOpen={true}
+          onClose={() => setViewingUser(null)}
+          title="Perfil del Usuario"
+          subtitle={`${viewingUser.nombre} ${viewingUser.apellido}`}
+        >
+          <div class="space-y-4 text-sm">
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">DNI</span>
+                <p class="font-medium font-mono">{viewingUser.dni}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Email</span>
+                <p class="font-medium">{viewingUser.email}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Sexo Registral</span>
+                <p class="font-medium">{getSexoLabel(viewingUser.sexo)}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Fecha Nac.</span>
+                <p class="font-medium">{viewingUser.fecha_nacimiento ? new Date(viewingUser.fecha_nacimiento).toLocaleDateString('es-AR') : '-'}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Asociación</span>
+                <p class="font-medium">{viewingUser.asociacion?.nombre || '-'}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Dojo</span>
+                <p class="font-medium">{viewingUser.dojo?.nombre || '-'}</p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Domicilio Real</span>
+                <p class="font-medium">
+                  {viewingUser.calle_altura}
+                  {viewingUser.piso_depto ? ` - ${viewingUser.piso_depto}` : ''}
+                  {viewingUser.ciudad ? `, ${viewingUser.ciudad}` : ''}
+                </p>
+              </div>
+              <div>
+                <span class="text-slate-500 text-[10px] uppercase font-semibold">Estado</span>
+                <p class="font-medium">{viewingUser.estado_pago ? 'Cuota al día' : 'Cuota pendiente'}</p>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-100 pt-4">
+              <span class="text-slate-500 text-[10px] uppercase font-semibold">Graduaciones</span>
+              <div class="flex flex-wrap gap-2 mt-2">
+                {viewingUser.grad_kendo !== 'SIN_GRADUACION' && (
+                  <span class="bg-amber-50 text-amber-800 px-3 py-1 rounded-full text-xs font-medium">
+                    Kendo: {getGradLabel(viewingUser.grad_kendo)}
+                  </span>
+                )}
+                {viewingUser.grad_iaido !== 'SIN_GRADUACION' && (
+                  <span class="bg-indigo-50 text-indigo-800 px-3 py-1 rounded-full text-xs font-medium">
+                    Iaido: {getGradLabel(viewingUser.grad_iaido)}
+                  </span>
+                )}
+                {viewingUser.grad_jodo !== 'SIN_GRADUACION' && (
+                  <span class="bg-emerald-50 text-emerald-800 px-3 py-1 rounded-full text-xs font-medium">
+                    Jodo: {getGradLabel(viewingUser.grad_jodo)}
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        </Modal>
+      )}
 
       {editingUser !== null && (
         <Modal

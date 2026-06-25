@@ -5,6 +5,8 @@ import Login from './routes/Login';
 import AdminLogin from './routes/AdminLogin';
 import Register from './routes/Register';
 import Dashboard from './routes/Dashboard';
+import Eventos from './routes/Eventos';
+import EventoDetalle from './routes/EventoDetalle';
 import PagoExito from './routes/PagoExito';
 import PagoPendiente from './routes/PagoPendiente';
 import PagoError from './routes/PagoError';
@@ -26,6 +28,8 @@ function AppContent() {
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/register" component={Register} />
+      <Route path="/eventos" component={Eventos} />
+      <Route path="/eventos/:id" component={EventoDetalle} />
       <Route path="/pagos/exito" component={PagoExito} />
       <Route path="/pagos/pending" component={PagoPendiente} />
       <Route path="/pagos/error" component={PagoError} />
