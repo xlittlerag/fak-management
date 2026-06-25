@@ -51,4 +51,8 @@ export class RegisterUserDto {
 
   @IsInt()
   dojo_id: number;
+
+  @IsOptional()
+  @IsString()
+  telefono?: string;
 }

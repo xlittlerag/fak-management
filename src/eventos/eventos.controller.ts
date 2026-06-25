@@ -11,10 +11,10 @@ import { Rol } from '@prisma/client';
 export class EventosController {
   constructor(private readonly eventosService: EventosService) {}
 
-  @Roles(Rol.ADMIN_GENERAL)
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Post('eventos')
-  create(@Body() dto: CreateEventoDto) {
-    return this.eventosService.create(dto);
+  create(@Body() dto: CreateEventoDto, @Request() req: any) {
+    return this.eventosService.create(dto, req.user);
   }
 
   @Public()
@@ -30,22 +30,22 @@ export class EventosController {
     return this.eventosService.findOne(id);
   }
 
-  @Roles(Rol.ADMIN_GENERAL)
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto) {
-    return this.eventosService.update(id, dto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto, @Request() req: any) {
+    return this.eventosService.update(id, dto, req.user);
   }
 
-  @Roles(Rol.ADMIN_GENERAL)
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id/publicar')
-  publicar(@Param('id', ParseIntPipe) id: number) {
-    return this.eventosService.publicar(id);
+  publicar(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.eventosService.publicar(id, req.user);
   }
 
-  @Roles(Rol.ADMIN_GENERAL)
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Delete('eventos/:id')
-  remove(@Param('id', ParseIntPipe) id: number) {
-    return this.eventosService.remove(id);
+  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
+    return this.eventosService.remove(id, req.user);
   }
 
   @Post('eventos/:id/inscribir')
@@ -86,5 +86,43 @@ export class EventosController {
     @Request() req: any,
   ) {
     return this.eventosService.pagarInscripcion(id, req.user.id);
+  }
+
+  @Patch('inscripciones/:id')
+  editarInscripcion(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+    @Body() dto: InscribirEventoDto,
+  ) {
+    return this.eventosService.editarInscripcion(id, req.user.id, dto);
+  }
+
+  @Delete('inscripciones/:id')
+  @HttpCode(HttpStatus.OK)
+  bajaInscripcion(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    return this.eventosService.bajaInscripcion(id, req.user.id);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
+  @Post('inscripciones/:id/pago-manual')
+  @HttpCode(HttpStatus.OK)
+  pagoManual(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    return this.eventosService.pagoManual(id, req.user);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
+  @Post('eventos/:id/cerrar-inscripciones')
+  @HttpCode(HttpStatus.OK)
+  cerrarInscripciones(
+    @Param('id', ParseIntPipe) id: number,
+    @Request() req: any,
+  ) {
+    return this.eventosService.cerrarInscripciones(id, req.user);
   }
 }

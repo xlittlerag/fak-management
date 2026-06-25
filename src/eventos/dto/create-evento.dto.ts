@@ -29,6 +29,10 @@ export class CreateEventoDto {
   @IsString()
   tipo: string;
 
+  @IsOptional()
+  @IsString()
+  ambito?: string;
+
   @IsDateString()
   fecha_inicio: string;
 
@@ -37,6 +41,14 @@ export class CreateEventoDto {
 
   @IsObject()
   datos_lugar: Record<string, any>;
+
+  @IsOptional()
+  @IsBoolean()
+  pago_fuera_sistema?: boolean;
+
+  @IsOptional()
+  @IsArray()
+  archivos_info?: string[];
 
   @IsOptional()
   @IsString()
@@ -76,4 +88,16 @@ export class CreateEventoDto {
   @IsOptional()
   @IsString()
   info_adicional?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fecha_limite_informativa?: string;
+
+  @IsOptional()
+  @IsDateString()
+  fecha_limite_real?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  inscripciones_abiertas?: boolean;
 }

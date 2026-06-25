@@ -1,4 +1,4 @@
-import { IsArray, IsString, IsOptional } from 'class-validator';
+import { IsArray, IsString, IsOptional, IsBoolean } from 'class-validator';
 
 export class InscribirEventoDto {
   @IsArray()
@@ -10,4 +10,16 @@ export class InscribirEventoDto {
   @IsString({ each: true })
   @IsOptional()
   disciplinas?: string[];
+
+  @IsOptional()
+  @IsBoolean()
+  necesidades_especiales?: boolean;
+
+  @IsOptional()
+  @IsString()
+  descripcion_necesidades?: string;
+
+  @IsOptional()
+  @IsString()
+  archivo_medico_url?: string;
 }

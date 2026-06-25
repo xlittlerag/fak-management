@@ -24,6 +24,13 @@ export class AuthService {
   }
 
   async register(dto: RegisterUserDto) {
+    const blacklisted = await this.prisma.dniBlacklist.findUnique({
+      where: { dni: dto.dni },
+    });
+    if (blacklisted) {
+      throw new ForbiddenException('El DNI ingresado no puede registrarse en el sistema.');
+    }
+
     const existingUser = await this.prisma.usuario.findFirst({
       where: {
         OR: [{ email: dto.email }, { dni: dto.dni }],
@@ -50,6 +57,7 @@ export class AuthService {
         ciudad: dto.ciudad,
         provincia: dto.provincia,
         codigo_postal: dto.codigo_postal,
+        telefono: dto.telefono ?? null,
         asociacion_id: dto.asociacion_id,
         dojo_id: dto.dojo_id,
         rol: 'BASICO',

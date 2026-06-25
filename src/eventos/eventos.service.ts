@@ -49,16 +49,33 @@ export class EventosService {
     } as const;
   }
 
-  async create(dto: CreateEventoDto) {
+  async create(dto: CreateEventoDto, user?: any) {
+    const ambito = dto.ambito ?? 'REGIONAL';
+
+    if (user?.rol === 'ADMIN_ASOCIACION') {
+      if (dto.tipo === 'EXAMEN') {
+        throw new ForbiddenException('Los administradores de asociación no pueden crear exámenes');
+      }
+      if (ambito !== 'REGIONAL') {
+        throw new ForbiddenException('Los administradores de asociación solo pueden crear eventos regionales');
+      }
+    }
+
     this.validarDatosPorTipo(dto);
+
+    const creadorId = user?.rol === 'ADMIN_ASOCIACION' ? user.sub : undefined;
 
     const evento = await this.prisma.evento.create({
       data: {
         tipo: dto.tipo,
+        ambito,
         fecha_inicio: new Date(dto.fecha_inicio),
         fecha_fin: new Date(dto.fecha_fin),
         datos_lugar: dto.datos_lugar,
-        publicado: dto.tipo === 'SEMINARIO' ? false : false,
+        publicado: false,
+        pago_fuera_sistema: dto.pago_fuera_sistema ?? false,
+        archivos_info: dto.archivos_info ?? undefined,
+        creador_id: creadorId,
       },
     });
 
@@ -86,12 +103,33 @@ export class EventosService {
     return this.formatEvento(evento);
   }
 
-  async update(id: number, dto: UpdateEventoDto) {
+  private async checkEventOwnership(eventoId: number, user: any) {
+    if (user.rol === 'ADMIN_GENERAL') return;
+    const evento = await this.prisma.evento.findUnique({ where: { id: eventoId } });
+    if (!evento) throw new NotFoundException('Evento no encontrado');
+    if (evento.creador_id !== user.sub) {
+      throw new ForbiddenException('Usted no tiene permisos sobre este evento');
+    }
+  }
+
+  async update(id: number, dto: UpdateEventoDto, user?: any) {
     const evento = await this.prisma.evento.findUnique({
       where: { id },
       include: this.includeSub,
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+
+    await this.checkEventOwnership(id, user);
+
+    const ambito = dto.ambito ?? evento.ambito;
+    if (user?.rol === 'ADMIN_ASOCIACION') {
+      if (dto.tipo === 'EXAMEN') {
+        throw new ForbiddenException('Los administradores de asociación no pueden crear exámenes');
+      }
+      if (ambito !== 'REGIONAL') {
+        throw new ForbiddenException('Los administradores de asociación solo pueden crear eventos regionales');
+      }
+    }
 
     const tipo = dto.tipo ?? evento.tipo;
     const mergedDto = { ...dto, tipo } as CreateEventoDto;
@@ -99,9 +137,12 @@ export class EventosService {
 
     const data: any = {};
     if (dto.tipo !== undefined) data.tipo = dto.tipo;
+    if (dto.ambito !== undefined) data.ambito = dto.ambito;
     if (dto.fecha_inicio !== undefined) data.fecha_inicio = new Date(dto.fecha_inicio);
     if (dto.fecha_fin !== undefined) data.fecha_fin = new Date(dto.fecha_fin);
     if (dto.datos_lugar !== undefined) data.datos_lugar = dto.datos_lugar;
+    if (dto.pago_fuera_sistema !== undefined) data.pago_fuera_sistema = dto.pago_fuera_sistema;
+    if (dto.archivos_info !== undefined) data.archivos_info = dto.archivos_info;
 
     await this.prisma.evento.update({ where: { id }, data });
     await this.upsertSubRecord(id, mergedDto);
@@ -109,9 +150,10 @@ export class EventosService {
     return this.findOne(id);
   }
 
-  async publicar(id: number) {
+  async publicar(id: number, user?: any) {
     const evento = await this.prisma.evento.findUnique({ where: { id } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+    await this.checkEventOwnership(id, user);
     if (evento.publicado) throw new BadRequestException('El evento ya está publicado');
 
     const updated = await this.prisma.evento.update({
@@ -121,9 +163,10 @@ export class EventosService {
     return this.findOne(updated.id);
   }
 
-  async remove(id: number) {
+  async remove(id: number, user?: any) {
     const evento = await this.prisma.evento.findUnique({ where: { id } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
+    await this.checkEventOwnership(id, user);
     await this.prisma.evento.delete({ where: { id } });
     return { eliminado: true };
   }
@@ -146,7 +189,16 @@ export class EventosService {
     }
 
     const now = new Date();
-    if (new Date(evento.fecha_inicio) < now) {
+
+    if (evento.torneo && !evento.torneo.inscripciones_abiertas) {
+      throw new BadRequestException('Las inscripciones para este evento están cerradas');
+    }
+
+    if (evento.torneo?.fecha_limite_real && new Date(evento.torneo.fecha_limite_real) < now) {
+      throw new BadRequestException('La fecha límite de inscripción ya ha vencido');
+    }
+
+    if (new Date(evento.fecha_inicio) < now && evento.creador_id !== usuarioId) {
       throw new BadRequestException('El evento ya ha comenzado');
     }
 
@@ -176,6 +228,9 @@ export class EventosService {
         categoria_grad: categoriasArray,
         disciplinas: evento.tipo === 'EXAMEN' ? dto?.disciplinas : undefined,
         estado_aprob: EstadoSolicitud.PENDIENTE,
+        necesidades_especiales: dto?.necesidades_especiales ?? false,
+        descripcion_necesidades: dto?.descripcion_necesidades ?? null,
+        archivo_medico_url: dto?.archivo_medico_url ?? null,
       },
       include: { evento: true, usuario: true },
     });
@@ -269,6 +324,114 @@ export class EventosService {
     );
   }
 
+  async editarInscripcion(inscripcionId: number, usuarioId: number, dto: InscribirEventoDto) {
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+      include: { evento: { include: { torneo: true } } },
+    });
+
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+    if (inscripcion.usuario_id !== usuarioId) {
+      throw new ForbiddenException('Esta inscripción no le pertenece');
+    }
+
+    if (inscripcion.evento.torneo?.fecha_limite_real && new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()) {
+      throw new BadRequestException('La fecha límite para modificar la inscripción ya ha vencido');
+    }
+
+    if (!inscripcion.evento.torneo?.inscripciones_abiertas) {
+      throw new BadRequestException('Las inscripciones están cerradas, no puede modificar');
+    }
+
+    const data: any = {};
+    if (dto.categorias !== undefined) data.categoria_grad = dto.categorias;
+    if (dto.disciplinas !== undefined) data.disciplinas = dto.disciplinas;
+    if (dto.necesidades_especiales !== undefined) data.necesidades_especiales = dto.necesidades_especiales;
+    if (dto.descripcion_necesidades !== undefined) data.descripcion_necesidades = dto.descripcion_necesidades;
+    if (dto.archivo_medico_url !== undefined) data.archivo_medico_url = dto.archivo_medico_url;
+
+    await this.prisma.inscripcionEvento.update({
+      where: { id: inscripcionId },
+      data,
+    });
+
+    return { modificado: true, mensaje: 'Si aplicaran devoluciones, comuníquese con el organizador del evento.' };
+  }
+
+  async bajaInscripcion(inscripcionId: number, usuarioId: number) {
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+      include: { evento: { include: { torneo: true } } },
+    });
+
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+    if (inscripcion.usuario_id !== usuarioId) {
+      throw new ForbiddenException('Esta inscripción no le pertenece');
+    }
+
+    if (inscripcion.evento.torneo?.fecha_limite_real && new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()) {
+      throw new BadRequestException('La fecha límite para darse de baja ya ha vencido');
+    }
+
+    await this.prisma.inscripcionEvento.delete({ where: { id: inscripcionId } });
+
+    return { eliminado: true, mensaje: 'Si aplicaran devoluciones, comuníquese con el organizador del evento.' };
+  }
+
+  async pagoManual(inscripcionId: number, user: any) {
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+      include: { evento: true },
+    });
+
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+
+    if (user.rol === 'ADMIN_ASOCIACION') {
+      if (inscripcion.evento.creador_id !== user.sub) {
+        throw new ForbiddenException('Usted no tiene permisos para registrar pagos en este evento');
+      }
+    }
+
+    if (!inscripcion.evento.pago_fuera_sistema) {
+      throw new BadRequestException('Este evento no permite pagos fuera del sistema');
+    }
+
+    if (inscripcion.pagado || inscripcion.pagado_fuera_sistema) {
+      throw new ConflictException('Esta inscripción ya se encuentra pagada');
+    }
+
+    if (inscripcion.estado_aprob !== EstadoSolicitud.APROBADO) {
+      throw new ForbiddenException('La inscripción debe estar aprobada primero');
+    }
+
+    await this.prisma.inscripcionEvento.update({
+      where: { id: inscripcionId },
+      data: { pagado_fuera_sistema: true, pagado: true },
+    });
+
+    return { pagado: true, fuera_de_sistema: true };
+  }
+
+  async cerrarInscripciones(eventoId: number, user: any) {
+    const evento = await this.prisma.evento.findUnique({
+      where: { id: eventoId },
+      include: { torneo: true },
+    });
+    if (!evento) throw new NotFoundException('Evento no encontrado');
+    await this.checkEventOwnership(eventoId, user);
+
+    if (evento.tipo !== 'TORNEO') {
+      throw new BadRequestException('Solo los torneos tienen inscripciones');
+    }
+
+    await this.prisma.torneo.update({
+      where: { evento_id: eventoId },
+      data: { inscripciones_abiertas: false },
+    });
+
+    return { inscripciones_abiertas: false };
+  }
+
   private async upsertSubRecord(eventoId: number, dto: CreateEventoDto) {
     // Clean up sub-records of other types when tipo changes
     if (dto.tipo !== 'TORNEO') {
@@ -293,6 +456,9 @@ export class EventosService {
           grad_min: dto.grad_min ?? null,
           grad_max: dto.grad_max ?? null,
           info_adicional: dto.info_adicional ?? null,
+          fecha_limite_informativa: dto.fecha_limite_informativa ? new Date(dto.fecha_limite_informativa) : null,
+          fecha_limite_real: dto.fecha_limite_real ? new Date(dto.fecha_limite_real) : null,
+          inscripciones_abiertas: dto.inscripciones_abiertas ?? true,
         },
         update: {
           disciplina: dto.disciplina ?? 'KENDO',
@@ -302,6 +468,9 @@ export class EventosService {
           grad_min: dto.grad_min ?? null,
           grad_max: dto.grad_max ?? null,
           info_adicional: dto.info_adicional ?? null,
+          fecha_limite_informativa: dto.fecha_limite_informativa ? new Date(dto.fecha_limite_informativa) : null,
+          fecha_limite_real: dto.fecha_limite_real ? new Date(dto.fecha_limite_real) : null,
+          inscripciones_abiertas: dto.inscripciones_abiertas ?? true,
         },
       });
     } else if (dto.tipo === 'EXAMEN') {
@@ -566,10 +735,14 @@ export class EventosService {
     return {
       id: evento.id,
       tipo: evento.tipo,
+      ambito: evento.ambito,
       fecha_inicio: evento.fecha_inicio,
       fecha_fin: evento.fecha_fin,
       datos_lugar: evento.datos_lugar,
       publicado: evento.publicado,
+      pago_fuera_sistema: evento.pago_fuera_sistema,
+      archivos_info: evento.archivos_info,
+      creador_id: evento.creador_id,
       ...(evento.tipo === 'TORNEO' && evento.torneo ? { torneo: evento.torneo } : {}),
       ...(evento.tipo === 'EXAMEN' && evento.examen ? { examen: evento.examen } : {}),
       ...(evento.tipo === 'SEMINARIO' && evento.seminario ? { seminario: evento.seminario } : {}),
@@ -585,6 +758,10 @@ export class EventosService {
       disciplinas: inscripcion.disciplinas ? this.parseCategorias(inscripcion.disciplinas) : undefined,
       estado_aprob: inscripcion.estado_aprob,
       pagado: inscripcion.pagado,
+      pagado_fuera_sistema: inscripcion.pagado_fuera_sistema,
+      necesidades_especiales: inscripcion.necesidades_especiales,
+      descripcion_necesidades: inscripcion.descripcion_necesidades,
+      archivo_medico_url: inscripcion.archivo_medico_url,
       usuario: inscripcion.usuario ? {
         id: inscripcion.usuario.id,
         nombre: `${inscripcion.usuario.nombre} ${inscripcion.usuario.apellido}`,

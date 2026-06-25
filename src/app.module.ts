@@ -15,6 +15,7 @@ import { PagosModule } from './pagos/pagos.module';
 import { PagosAdminModule } from './pagos/pagos-admin.module';
 import { EventosModule } from './eventos/eventos.module';
 import { PreciosExamenModule } from './precios-examen/precios-examen.module';
+import { FilesModule } from './files/files.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -29,6 +30,12 @@ import { RolesGuard } from './auth/guards/roles.guard';
       rootPath: join(__dirname, '..', 'frontend', 'dist'),
       exclude: ['/api/{*rest}'],
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+      serveStaticOptions: { index: false },
+      exclude: ['/api/{*rest}'],
+    }),
     PrismaModule,
     AuthModule,
     AsociacionesModule,
@@ -38,6 +45,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     PagosAdminModule,
     EventosModule,
     PreciosExamenModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [
