@@ -14,11 +14,11 @@ El sistema está pensado para ser utilizado por practicantes, administradores de
 
 - Nombre y Apellido  
 - Fecha de nacimiento  
-- DNI (Utilizado como credencial única de inicio de sesión, no editable)  
-- Sexo (Masculino / Femenino)  
+- DNI (Utilizado como credencial única de inicio de sesión, no editable; no debe utilizarse como clave primaria de la tabla)  
+- Sexo Registral (Masculino / Femenino / X). La opción X solo puede utilizarse para inscripción en competiciones de categoría masculina.  
 - Email (Editable por el usuario)  
 - Contraseña  
-- Dirección (Calle, altura, piso/depto, ciudad, código postal, provincia)  
+- Domicilio Real (Calle, altura, piso/depto, ciudad, código postal, provincia)  
 - Asociación  (Seleccionable de una lista precargada)  
 - Dojo  (Seleccionable de una lista precargada en base a la asociacion)
 
@@ -61,6 +61,7 @@ El sistema debe llevar dos registros independientes por usuario (uno para Kendo,
 Además de sus funciones como usuario básico dentro de su propio perfil:
 
 - Puede ver la lista de todos los usuarios de su asociación.  
+- Puede ver el perfil completo de cualquier usuario de su asociación (datos personales, graduaciones, eventos en los que participó).  
 - Puede aprobar/rechazar registros y solicitudes de blanqueo de su asociación.  
 - También debe poder solicitar la desafiliación de socios. Si el socio la solicita debe ser automático en informar a la asociación y a federación. Si la asociación solicita la baja debe aprobar la federación antes. Si otra asociación solicita el alta, o admite alta solicitada por el usuario debe informar a federación y dar alta automática 
 
@@ -85,6 +86,82 @@ Cuenta dedicada y centralizada.
   1. El usuario solicita blanqueo indicando su DNI.  
   2. El administrador aprueba la solicitud.  
   3. El usuario inicia sesión; el sistema detecta el blanqueo aprobado, acepta la contraseña ingresada, la hashea y actualiza la base de datos, desactivando el estado de blanqueo.
+
+---
+
+## Módulo de Eventos y Torneos
+
+### 1\. Ciclo de vida del evento
+
+- **Borrador:** El administrador general crea el evento con los datos básicos. Solo él puede verlo y editarlo.
+- **Publicado:** El administrador general publica el evento. Se vuelve visible para todos los usuarios (incluyendo la página pública y el dashboard).
+
+### 2\. Datos del evento
+
+- Tipo (texto libre: Torneo, Examen, Seminario, etc.)
+- Fecha de inicio y fecha de fin (solo fecha, sin hora)
+- Lugar: dirección y provincia
+- Disciplina (única para Torneo/Seminario; múltiple para Examen: Kendo, Iaido, Jodo)
+- Rango de graduación permitido (graduación mínima y máxima) — solo Torneo
+- Costo de inscripción (0 = gratuito) — solo Torneo/Seminario
+- Información adicional (texto libre)
+- Categorías (solo para Torneos): nombre, graduación mínima, graduación máxima, género, edad mínima, edad máxima. Se precargan valores por defecto desde un archivo de configuración y el administrador puede ajustarlos.
+- Inscripción múltiple (solo Torneos): permite seleccionar varias categorías en una misma inscripción.
+- Graduaciones a rendir (solo Exámenes): lista de graduaciones disponibles para rendir, con costo variable según tabla de precios global.
+- Estado: borrador o publicado
+
+### 3\. Flujo de inscripción
+
+1. Usuario activo selecciona un evento y una o más categorías (según `inscripcion_multiple` del evento, solo aplicable a Torneos). Para Exámenes, selecciona graduaciones a rendir.
+2. El sistema valida:
+   - Usuario con estado activo (cuota al día).
+   - No duplicado de inscripción.
+   - Categoría/graduación compatible con el perfil del usuario.
+   - Usuarios con sexo registral "X" solo pueden inscribirse en categorías masculinas.
+3. Se crea la inscripción en estado `PENDIENTE`.
+4. El administrador de la asociación aprueba o rechaza la inscripción.
+5. Si está aprobada, el usuario puede pagar el costo de inscripción.
+6. Una vez pagado, el usuario queda inscripto definitivamente.
+7. Para Exámenes, el costo varía según la graduación a rendir (precios globales fijados por el administrador general).
+
+### 4\. Mesas examinadoras (iteración futura)
+
+- Permitir la carga de aprobados y desaprobados por instancia de examen (práctico → kata → escrito).
+- Registrar las distintas mesas examinadoras del día con:
+  - Nombres de los examinadores (texto libre, un input por mesa)
+  - Rango de graduación que examinó cada mesa
+- Al cargar el resultado de un candidato:
+  - Si solo hay una mesa para su graduación, se asigna automáticamente.
+  - Si hay dos o más mesas compatibles, el administrador general debe seleccionar la mesa.
+
+---
+
+## Auditoría
+
+### 1\. Datos auditables
+
+Se debe registrar un historial de cambios para:
+
+- **Usuarios:** Cambios de rol, graduación, estado de registro, blanqueo de contraseña.
+- **Eventos:** Creación, publicación, modificación de datos.
+- **Inscripciones:** Aprobación, rechazo, pago.
+
+### 2\. Acceso
+
+Solo el administrador general puede visualizar la sección de auditoría.
+
+### 3\. Información registrada
+
+Para cada cambio se debe almacenar:
+
+- Usuario que realizó el cambio
+- Fecha y hora
+- Tipo de cambio
+- Valor anterior y valor nuevo (formato JSON o similar)
+
+### 4\. Implementación
+
+Los registros de auditoría deben generarse automáticamente mediante middlewares de aplicación o triggers de base de datos, sin intervención del usuario.
 
 ---
 
