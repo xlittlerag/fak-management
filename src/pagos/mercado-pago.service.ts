@@ -3,9 +3,14 @@ import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import MercadoPago, { Preference, Payment } from 'mercadopago';
 
+interface WebhookData {
+  action?: string;
+  data?: { id?: string | number };
+}
+
 @Injectable()
 export class MercadoPagoService {
-  private client: any;
+  private client: MercadoPago;
   private readonly processedPayments = new Set<string>();
   private readonly logger = new Logger(MercadoPagoService.name);
 
@@ -130,8 +135,8 @@ export class MercadoPagoService {
     }
   }
 
-  async processWebhook(webhookData: any) {
-    if (!webhookData || !webhookData.data || !webhookData.data.id) {
+  async processWebhook(webhookData: WebhookData) {
+    if (!webhookData?.data?.id) {
       return { processed: false };
     }
 

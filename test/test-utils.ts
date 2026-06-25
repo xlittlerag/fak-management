@@ -75,10 +75,32 @@ export async function createAdminGeneral(
   return { admin, token };
 }
 
+interface CreateTestUserOverrides {
+  password?: string;
+  asociacion_id?: number;
+  dojo_id?: number;
+  email?: string;
+  nombre?: string;
+  apellido?: string;
+  dni?: string;
+  sexo?: string;
+  rol?: string;
+  estado_pago?: boolean;
+  estado_reg?: string;
+  calle_altura?: string;
+  ciudad?: string;
+  provincia?: string;
+  codigo_postal?: string;
+  grad_kendo?: string;
+  f_grad_kendo?: Date;
+  fecha_nacimiento?: Date;
+  [key: string]: unknown;
+}
+
 export async function createTestUser(
   prisma: PrismaService,
   jwt: JwtService,
-  overrides: any = {},
+  overrides: CreateTestUserOverrides = {},
 ) {
   const password = await bcrypt.hash(overrides.password || 'Password123!', 10);
 
@@ -99,7 +121,7 @@ export async function createTestUser(
     dojoId = dojo.id;
   }
 
-  const explicitFields: Record<string, any> = {
+  const explicitFields: Record<string, unknown> = {
     email: overrides.email || `test-${Date.now()}@example.com`,
     password,
     nombre: overrides.nombre || 'Test',
@@ -123,7 +145,7 @@ export async function createTestUser(
     explicitFields[key] = overrides[key];
   }
 
-  const user = await prisma.usuario.create({ data: explicitFields });
+  const user = await prisma.usuario.create({ data: explicitFields as never });
 
   const token = jwt.sign({
     sub: user.id,

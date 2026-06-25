@@ -18,7 +18,9 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       if (typeof res === 'string') {
         message = res;
       } else if (typeof res === 'object' && res !== null) {
-        message = (res as any).message ?? message;
+        const resObj = res as Record<string, unknown>;
+        if (typeof resObj.message === 'string') message = resObj.message;
+        else if (Array.isArray(resObj.message)) message = resObj.message as string[];
       }
     }
 

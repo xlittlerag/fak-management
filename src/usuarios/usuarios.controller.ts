@@ -1,9 +1,11 @@
-import { Controller, Get, Patch, Param, Body, Request, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Body, Req, ParseIntPipe, Query } from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { UpdateAprobacionDto } from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { UpdateGraduacionDto } from './dto/update-graduacion.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
+import type { Request } from 'express';
 
 @Controller('usuarios')
 export class UsuariosController {
@@ -12,32 +14,32 @@ export class UsuariosController {
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get()
   findAll(
-    @Request() req: any,
+    @Req() req: Request,
     @Query('skip') skip?: string,
     @Query('take') take?: string,
   ) {
-    return this.usuariosService.findAll(req.user, { skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
+    return this.usuariosService.findAll(req.user!, { skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
   }
 
   @Get('perfil')
-  getPerfil(@Request() req: any) {
-    return this.usuariosService.findOne(req.user.id);
+  getPerfil(@Req() req: Request) {
+    return this.usuariosService.findOne(req.user!.id);
   }
 
   @Get('cuota')
-  getCuota(@Request() req: any) {
-    return this.usuariosService.getCuota(req.user.id);
+  getCuota(@Req() req: Request) {
+    return this.usuariosService.getCuota(req.user!.id);
   }
 
   @Patch('perfil')
-  updatePerfil(@Request() req: any, @Body() dto: UpdatePerfilDto) {
-    return this.usuariosService.updatePerfil(req.user.id, dto);
+  updatePerfil(@Req() req: Request, @Body() dto: UpdatePerfilDto) {
+    return this.usuariosService.updatePerfil(req.user!.id, dto);
   }
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get('pendientes')
-  findPendientes(@Request() req: any) {
-    return this.usuariosService.findPendientes(req.user);
+  findPendientes(@Req() req: Request) {
+    return this.usuariosService.findPendientes(req.user!);
   }
 
   @Roles(Rol.ADMIN_GENERAL)
@@ -53,7 +55,7 @@ export class UsuariosController {
   @Patch(':id/graduacion')
   updateGraduacion(
     @Param('id', ParseIntPipe) id: number,
-    @Body() dto: any,
+    @Body() dto: UpdateGraduacionDto,
   ) {
     return this.usuariosService.updateGraduacion(id, dto);
   }
@@ -63,8 +65,8 @@ export class UsuariosController {
   updateAprobacion(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: UpdateAprobacionDto,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.usuariosService.updateAprobacion(id, dto, req.user);
+    return this.usuariosService.updateAprobacion(id, dto, req.user!);
   }
 }

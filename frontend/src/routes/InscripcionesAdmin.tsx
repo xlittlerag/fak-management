@@ -9,6 +9,7 @@ interface Inscripcion {
   disciplinas?: string[];
   estado_aprob: string;
   pagado: boolean;
+  pagado_fuera_sistema: boolean;
   usuario: { id: number; nombre: string; email: string; dni: string };
   evento: { id: number; tipo: string; fecha_inicio: string };
 }
@@ -17,6 +18,7 @@ export default function InscripcionesAdmin() {
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [msg, setMsg] = useState('');
 
   useEffect(() => {
     fetchAllInscripciones();
@@ -55,6 +57,17 @@ export default function InscripcionesAdmin() {
     }
   };
 
+  const handlePagoManual = async (inscripcionId: number) => {
+    if (!confirm('¿Registrar pago fuera del sistema para esta inscripción?')) return;
+    try {
+      await api.post(`/inscripciones/${inscripcionId}/pago-manual`);
+      setMsg('Pago registrado fuera del sistema');
+      fetchAllInscripciones();
+    } catch {
+      alert('Error al registrar pago manual');
+    }
+  };
+
   if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
@@ -63,6 +76,10 @@ export default function InscripcionesAdmin() {
   return (
     <div class="space-y-4">
       <h2 class="text-lg font-semibold text-slate-800">Inscripciones Pendientes</h2>
+
+      {msg && (
+        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>
+      )}
 
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
@@ -114,6 +131,14 @@ export default function InscripcionesAdmin() {
                       >
                         Rechazar
                       </button>
+                      {!ins.pagado && (
+                        <button
+                          onClick={() => handlePagoManual(ins.id)}
+                          class="px-3 py-1 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors"
+                        >
+                          Pago manual
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))

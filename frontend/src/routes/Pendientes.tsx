@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
 
 interface UserPending {
   id: number;
@@ -23,9 +24,8 @@ export default function Pendientes() {
     try {
       const res = await api.get('/usuarios/pendientes');
       setUsers(res.data);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al cargar pendientes';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

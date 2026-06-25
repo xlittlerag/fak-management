@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": false
   },
   "exclude": ["node_modules", "dist", "frontend"],
-  "include": ["src", "test"]
+  "include": ["src", "test", "types"]
 }

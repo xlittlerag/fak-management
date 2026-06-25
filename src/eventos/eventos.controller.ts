@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Request, ParseIntPipe, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Req, ParseIntPipe, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
@@ -6,6 +6,7 @@ import { InscribirEventoDto } from './dto/inscribir-evento.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { Rol } from '@prisma/client';
+import type { Request } from 'express';
 
 @Controller()
 export class EventosController {
@@ -13,8 +14,8 @@ export class EventosController {
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Post('eventos')
-  create(@Body() dto: CreateEventoDto, @Request() req: any) {
-    return this.eventosService.create(dto, req.user);
+  create(@Body() dto: CreateEventoDto, @Req() req: Request) {
+    return this.eventosService.create(dto, req.user!);
   }
 
   @Public()
@@ -32,30 +33,30 @@ export class EventosController {
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto, @Request() req: any) {
-    return this.eventosService.update(id, dto, req.user);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto, @Req() req: Request) {
+    return this.eventosService.update(id, dto, req.user!);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id/publicar')
-  publicar(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    return this.eventosService.publicar(id, req.user);
+  publicar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    return this.eventosService.publicar(id, req.user!);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Delete('eventos/:id')
-  remove(@Param('id', ParseIntPipe) id: number, @Request() req: any) {
-    return this.eventosService.remove(id, req.user);
+  remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+    return this.eventosService.remove(id, req.user!);
   }
 
   @Post('eventos/:id/inscribir')
   @HttpCode(HttpStatus.OK)
   inscribir(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
     @Body() dto?: InscribirEventoDto,
   ) {
-    return this.eventosService.inscribir(id, req.user.id, dto);
+    return this.eventosService.inscribir(id, req.user!.id, dto);
   }
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
@@ -65,45 +66,45 @@ export class EventosController {
   }
 
   @Get('mis-inscripciones')
-  misInscripciones(@Request() req: any) {
-    return this.eventosService.findMisInscripciones(req.user.id);
+  misInscripciones(@Req() req: Request) {
+    return this.eventosService.findMisInscripciones(req.user!.id);
   }
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Patch('inscripciones/:id/aprobar')
   aprobarInscripcion(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
     @Body('accion') accion: 'APROBAR' | 'RECHAZAR',
   ) {
-    return this.eventosService.aprobarInscripcion(id, req.user, accion);
+    return this.eventosService.aprobarInscripcion(id, req.user!, accion);
   }
 
   @Post('inscripciones/:id/pagar')
   @HttpCode(HttpStatus.OK)
   pagarInscripcion(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.eventosService.pagarInscripcion(id, req.user.id);
+    return this.eventosService.pagarInscripcion(id, req.user!.id);
   }
 
   @Patch('inscripciones/:id')
   editarInscripcion(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
     @Body() dto: InscribirEventoDto,
   ) {
-    return this.eventosService.editarInscripcion(id, req.user.id, dto);
+    return this.eventosService.editarInscripcion(id, req.user!.id, dto);
   }
 
   @Delete('inscripciones/:id')
   @HttpCode(HttpStatus.OK)
   bajaInscripcion(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.eventosService.bajaInscripcion(id, req.user.id);
+    return this.eventosService.bajaInscripcion(id, req.user!.id);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
@@ -111,9 +112,9 @@ export class EventosController {
   @HttpCode(HttpStatus.OK)
   pagoManual(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.eventosService.pagoManual(id, req.user);
+    return this.eventosService.pagoManual(id, req.user!);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
@@ -121,8 +122,8 @@ export class EventosController {
   @HttpCode(HttpStatus.OK)
   cerrarInscripciones(
     @Param('id', ParseIntPipe) id: number,
-    @Request() req: any,
+    @Req() req: Request,
   ) {
-    return this.eventosService.cerrarInscripciones(id, req.user);
+    return this.eventosService.cerrarInscripciones(id, req.user!);
   }
 }

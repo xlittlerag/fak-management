@@ -41,7 +41,7 @@ describe('Admin Features (e2e)', () => {
         .expect(200);
 
       // Should see only memberA and themselves (if they belong to the same assoc)
-      expect(response.body.every((u: any) => u.asociacion_id === assocA.id)).toBe(true);
+      expect(response.body.every((u: { asociacion_id: number }) => u.asociacion_id === assocA.id)).toBe(true);
       expect(response.body.length).toBeGreaterThanOrEqual(1);
     });
   });

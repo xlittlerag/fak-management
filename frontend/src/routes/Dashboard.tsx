@@ -2,6 +2,8 @@ import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
+import type { EventoResumen } from '../types';
 import Pendientes from './Pendientes';
 import Asociaciones from './Asociaciones';
 import Usuarios from './Usuarios';
@@ -40,7 +42,7 @@ export default function Dashboard() {
     { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Inscripciones Pendientes', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Configurar Cuota', path: '/dashboard/admin/cuota', roles: ['ADMIN_GENERAL'] },
-    { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
+    { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'] },
     { label: 'Precios de Exámenes', path: '/dashboard/precios-examen', roles: ['ADMIN_GENERAL'] },
     { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
   ];
@@ -151,12 +153,12 @@ function DashboardHome() {
   const [loadingCuota, setLoadingCuota] = useState(true);
   const [loadingPreference, setLoadingPreference] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
-  const [proximos, setProximos] = useState<any[]>([]);
+  const [proximos, setProximos] = useState<EventoResumen[]>([]);
   const [loadingProximos, setLoadingProximos] = useState(true);
 
   useEffect(() => {
     api.get('/eventos')
-      .then(res => setProximos(res.data.filter((e: any) => new Date(e.fecha_inicio) > new Date()).slice(0, 5)))
+      .then(res => setProximos(res.data.filter((e: EventoResumen) => new Date(e.fecha_inicio) > new Date()).slice(0, 5)))
       .catch(() => {})
       .finally(() => setLoadingProximos(false));
   }, []);
@@ -174,14 +176,13 @@ function DashboardHome() {
     try {
       const res = await api.post('/pagos/checkout-fee');
       const { preferenceId } = res.data;
-      const mp = new (window as any).MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
         preference: { id: preferenceId },
         render: { container: '#mp-checkout-container', label: 'Pagar' },
       });
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al generar el pago';
-      setCheckoutError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setCheckoutError(getErrorMessage(err));
     } finally {
       setLoadingPreference(false);
     }
@@ -281,7 +282,7 @@ function DashboardHome() {
             <h4 class="font-semibold text-slate-800">Próximos Eventos</h4>
           </div>
           <div class="divide-y divide-slate-100">
-            {proximos.map((ev: any) => (
+            {proximos.map((ev: EventoResumen) => (
               <button
                 key={ev.id}
                 onClick={() => route('/dashboard/eventos')}
@@ -295,8 +296,8 @@ function DashboardHome() {
                 </div>
                 {ev.datos_lugar && (
                   <p class="text-xs text-slate-400 mt-0.5">
-                    {(ev.datos_lugar as any).direccion || ''}
-                    {(ev.datos_lugar as any).provincia ? ` - ${(ev.datos_lugar as any).provincia}` : ''}
+                    {ev.datos_lugar.direccion || ''}
+                    {ev.datos_lugar.provincia ? ` - ${ev.datos_lugar.provincia}` : ''}
                   </p>
                 )}
               </button>

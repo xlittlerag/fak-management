@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT } from '../constants';
+import { getErrorMessage } from '../lib/error';
 
 interface Categoria {
   nombre: string;
@@ -14,10 +15,13 @@ interface Categoria {
 interface Evento {
   id: number;
   tipo: string;
+  ambito: string;
   fecha_inicio: string;
   fecha_fin: string;
   datos_lugar: Record<string, any>;
   publicado: boolean;
+  pago_fuera_sistema: boolean;
+  archivos_info: string[];
   torneo?: {
     disciplina: string;
     costo_inscripcion: number;
@@ -26,6 +30,9 @@ interface Evento {
     grad_min?: string;
     grad_max?: string;
     info_adicional?: string;
+    fecha_limite_informativa?: string;
+    fecha_limite_real?: string;
+    inscripciones_abiertas: boolean;
   };
   examen?: {
     disciplinas: string[];
@@ -61,6 +68,7 @@ export default function EventosAdmin() {
 
   const [form, setForm] = useState({
     tipo: 'TORNEO',
+    ambito: 'REGIONAL',
     fecha_inicio: '',
     fecha_fin: '',
     direccion: '',
@@ -71,6 +79,10 @@ export default function EventosAdmin() {
     grad_max: '',
     info_adicional: '',
     inscripcion_multiple: false,
+    pago_fuera_sistema: false,
+    fecha_limite_informativa: '',
+    fecha_limite_real: '',
+    archivos_info: '',
   });
   const [categorias, setCategorias] = useState<Categoria[]>([emptyCategoria()]);
   const [selectedDisciplinas, setSelectedDisciplinas] = useState<string[]>(['KENDO']);
@@ -93,10 +105,11 @@ export default function EventosAdmin() {
 
   function resetForm() {
     setForm({
-      tipo: 'TORNEO', fecha_inicio: '', fecha_fin: '',
+      tipo: 'TORNEO', ambito: 'REGIONAL', fecha_inicio: '', fecha_fin: '',
       direccion: '', provincia: '', costo_inscripcion: '',
       disciplina: '', grad_min: '', grad_max: '', info_adicional: '',
-      inscripcion_multiple: false,
+      inscripcion_multiple: false, pago_fuera_sistema: false,
+      fecha_limite_informativa: '', fecha_limite_real: '', archivos_info: '',
     });
     setCategorias([emptyCategoria()]);
     setSelectedDisciplinas(['KENDO']);
@@ -112,16 +125,21 @@ export default function EventosAdmin() {
   function openEdit(ev: Evento) {
     setForm({
       tipo: ev.tipo,
+      ambito: ev.ambito || 'REGIONAL',
       fecha_inicio: ev.fecha_inicio.slice(0, 10),
       fecha_fin: ev.fecha_fin.slice(0, 10),
-      direccion: (ev.datos_lugar as any).direccion || '',
-      provincia: (ev.datos_lugar as any).provincia || '',
+      direccion: ((ev.datos_lugar as { direccion: string; provincia: string })?.direccion ?? ''),
+      provincia: ((ev.datos_lugar as { direccion: string; provincia: string })?.provincia ?? ''),
       costo_inscripcion: String(ev.torneo?.costo_inscripcion ?? ev.seminario?.costo_inscripcion ?? ''),
       disciplina: ev.torneo?.disciplina ?? ev.seminario?.disciplina ?? '',
       grad_min: ev.torneo?.grad_min || '',
       grad_max: ev.torneo?.grad_max || '',
       info_adicional: ev.torneo?.info_adicional ?? ev.examen?.info_adicional ?? ev.seminario?.info_adicional ?? '',
       inscripcion_multiple: ev.torneo?.inscripcion_multiple || false,
+      pago_fuera_sistema: ev.pago_fuera_sistema || false,
+      fecha_limite_informativa: ev.torneo?.fecha_limite_informativa?.slice(0, 10) || '',
+      fecha_limite_real: ev.torneo?.fecha_limite_real?.slice(0, 10) || '',
+      archivos_info: (ev.archivos_info || []).join('\n'),
     });
     setCategorias(
       ev.torneo?.categorias?.length
@@ -141,7 +159,7 @@ export default function EventosAdmin() {
 
   function updateCat(index: number, field: keyof Categoria, value: string | number | undefined) {
     const next = [...categorias];
-    (next[index] as any)[field] = value;
+    next[index] = { ...next[index], [field]: value };
     setCategorias(next);
   }
 
@@ -159,10 +177,16 @@ export default function EventosAdmin() {
     try {
       const body: Record<string, any> = {
         tipo: form.tipo,
+        ambito: form.ambito,
         fecha_inicio: new Date(form.fecha_inicio + 'T00:00:00').toISOString(),
         fecha_fin: new Date(form.fecha_fin + 'T23:59:59').toISOString(),
         datos_lugar: { direccion: form.direccion, provincia: form.provincia },
+        pago_fuera_sistema: form.pago_fuera_sistema,
       };
+
+      if (form.archivos_info.trim()) {
+        body.archivos_info = form.archivos_info.split('\n').map(s => s.trim()).filter(Boolean);
+      }
 
       if (form.tipo === 'TORNEO') {
         body.disciplina = form.disciplina;
@@ -178,6 +202,13 @@ export default function EventosAdmin() {
           return;
         }
         body.categorias = validas;
+
+        if (form.fecha_limite_informativa) {
+          body.fecha_limite_informativa = new Date(form.fecha_limite_informativa + 'T23:59:59').toISOString();
+        }
+        if (form.fecha_limite_real) {
+          body.fecha_limite_real = new Date(form.fecha_limite_real + 'T23:59:59').toISOString();
+        }
       }
 
       if (form.tipo === 'EXAMEN') {
@@ -209,9 +240,8 @@ export default function EventosAdmin() {
 
       cancelForm();
       fetchEventos();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al guardar evento';
-      setFormError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setFormError(getErrorMessage(err));
     }
   }
 
@@ -231,6 +261,16 @@ export default function EventosAdmin() {
       fetchEventos();
     } catch {
       alert('Error al publicar evento');
+    }
+  };
+
+  const handleCerrar = async (id: number) => {
+    if (!confirm('¿Está seguro de cerrar las inscripciones para este evento?')) return;
+    try {
+      await api.post(`/eventos/${id}/cerrar-inscripciones`);
+      fetchEventos();
+    } catch {
+      alert('Error al cerrar inscripciones');
     }
   };
 
@@ -272,7 +312,7 @@ export default function EventosAdmin() {
                   <td class="px-4 py-2 text-slate-600">
                     {new Date(ev.fecha_inicio).toLocaleDateString('es-AR')}
                   </td>
-                  <td class="px-4 py-2 text-slate-600">{(ev.datos_lugar as any).direccion || '-'}</td>
+                  <td class="px-4 py-2 text-slate-600">{((ev.datos_lugar as { direccion: string; provincia: string })?.direccion ?? '-')}</td>
                   <td class="px-4 py-2">
                     <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       ev.publicado ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
@@ -287,6 +327,9 @@ export default function EventosAdmin() {
                     <button onClick={() => openEdit(ev)} class="text-blue-600 hover:underline">Editar</button>
                     {!ev.publicado && (
                       <button onClick={() => handlePublicar(ev.id)} class="text-green-600 hover:underline">Publicar</button>
+                    )}
+                    {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
+                      <button onClick={() => handleCerrar(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
                     )}
                     <button onClick={() => handleDelete(ev.id)} class="text-red-600 hover:underline">Eliminar</button>
                   </td>
@@ -321,6 +364,18 @@ export default function EventosAdmin() {
                 class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
               >
                 {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ámbito</label>
+              <select
+                value={form.ambito}
+                onChange={(e: Event) => setForm({...form, ambito: (e.target as HTMLSelectElement).value})}
+                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
+              >
+                <option value="REGIONAL">Regional</option>
+                <option value="NACIONAL">Nacional</option>
               </select>
             </div>
 
@@ -426,6 +481,39 @@ export default function EventosAdmin() {
                 </label>
               </div>
             )}
+
+            <div class="flex items-end">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={form.pago_fuera_sistema}
+                  onChange={(e: Event) => setForm({...form, pago_fuera_sistema: (e.target as HTMLInputElement).checked})}
+                  class="w-4 h-4" />
+                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pago fuera del sistema</span>
+              </label>
+            </div>
+
+            {form.tipo === 'TORNEO' && (
+              <>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite informativa</label>
+                  <input type="date" value={form.fecha_limite_informativa}
+                    onInput={(e: Event) => setForm({...form, fecha_limite_informativa: (e.target as HTMLInputElement).value})}
+                    class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite real</label>
+                  <input type="date" value={form.fecha_limite_real}
+                    onInput={(e: Event) => setForm({...form, fecha_limite_real: (e.target as HTMLInputElement).value})}
+                    class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
+                </div>
+              </>
+            )}
+
+            <div class="lg:col-span-3">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Archivos de información (URLs, uno por línea)</label>
+              <textarea value={form.archivos_info}
+                onInput={(e: Event) => setForm({...form, archivos_info: (e.target as HTMLTextAreaElement).value})}
+                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2} />
+            </div>
 
             <div class={form.tipo === 'EXAMEN' ? 'lg:col-span-3' : 'lg:col-span-3'}>
               <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Información adicional</label>

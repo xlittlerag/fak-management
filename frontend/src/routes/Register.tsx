@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { PROVINCIAS, SEXOS } from '../constants';
+import { getErrorMessage } from '../lib/error';
 
 interface Asociacion {
   id: number;
@@ -70,9 +71,8 @@ export default function Register() {
         dojo_id: formData.dojo_id ? parseInt(formData.dojo_id) : null,
       });
       route('/login?registered=true');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al registrar usuario';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -213,6 +213,10 @@ export default function Register() {
                 <label class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
                 <input name="codigo_postal" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
               </div>
+            </div>
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono (Opcional)</label>
+              <input name="telefono" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
           </div>
 

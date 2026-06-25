@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
+import { getErrorMessage } from '../lib/error';
 
 export default function Perfil() {
   const [formData, setFormData] = useState({
@@ -15,6 +16,7 @@ export default function Perfil() {
     ciudad: '',
     provincia: 'BUENOS_AIRES',
     codigo_postal: '',
+    telefono: '',
     password: '',
     grad_kendo: '',
     f_grad_kendo: '',
@@ -44,7 +46,7 @@ export default function Perfil() {
       });
     } catch (err) {
       console.error(err);
-      setMessage({ text: 'Error al cargar el perfil', type: 'error' });
+      setMessage({ text: getErrorMessage(err), type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -55,7 +57,7 @@ export default function Perfil() {
     setSaving(true);
     setMessage({ text: '', type: '' });
 
-    const updateData: Record<string, string> = {
+    const updateData: Record<string, string | undefined> = {
       nombre: formData.nombre,
       apellido: formData.apellido,
       email: formData.email,
@@ -66,6 +68,7 @@ export default function Perfil() {
       ciudad: formData.ciudad,
       provincia: formData.provincia,
       codigo_postal: formData.codigo_postal,
+      telefono: formData.telefono || undefined,
     };
 
     if (formData.password) {
@@ -77,7 +80,7 @@ export default function Perfil() {
       setMessage({ text: 'Perfil actualizado con éxito', type: 'success' });
       fetchPerfil();
     } catch (err) {
-      setMessage({ text: 'Error al actualizar el perfil', type: 'error' });
+      setMessage({ text: getErrorMessage(err), type: 'error' });
     } finally {
       setSaving(false);
     }
@@ -192,6 +195,10 @@ export default function Perfil() {
                 <input name="codigo_postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono ${fieldError('codigo_postal') ? 'border-red-400' : 'border-slate-300'}`} />
                 {fieldError('codigo_postal') && <span class="text-xs text-red-600 mt-1">{fieldError('codigo_postal')}</span>}
               </div>
+            </div>
+            <div class="mt-4">
+              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+              <input name="telefono" value={formData.telefono || ''} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
           </div>
 

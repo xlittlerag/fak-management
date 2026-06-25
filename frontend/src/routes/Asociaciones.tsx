@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
 
 interface Dojo {
   id: number;
@@ -33,9 +34,8 @@ export default function Asociaciones() {
         return { ...a, dojos: dojosRes.data };
       }));
       setAsociaciones(assocData);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al cargar asociaciones';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }
@@ -67,9 +67,8 @@ export default function Asociaciones() {
     try {
       await api.delete(`/dojos/${id}`);
       fetchAsociaciones();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al eliminar dojo';
-      alert(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      alert(getErrorMessage(err));
     }
   };
 

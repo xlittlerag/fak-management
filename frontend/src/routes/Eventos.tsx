@@ -54,8 +54,8 @@ export default function Eventos() {
                     </p>
                     {evento.datos_lugar && (
                       <p class="text-sm text-slate-500">
-                        {(evento.datos_lugar as any).direccion || ''}
-                        {(evento.datos_lugar as any).provincia ? ` - ${(evento.datos_lugar as any).provincia}` : ''}
+                        {evento.datos_lugar.direccion || ''}
+                        {evento.datos_lugar.provincia ? ` - ${evento.datos_lugar.provincia}` : ''}
                       </p>
                     )}
                   </div>

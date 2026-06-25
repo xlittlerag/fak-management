@@ -3,6 +3,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { GRADUACIONES, SEXOS } from '../constants';
 import { Modal } from '../components/Modal';
+import { getErrorMessage } from '../lib/error';
 
 interface User {
   id: number;
@@ -60,9 +61,8 @@ export default function Usuarios() {
     try {
       const res = await api.get(`/usuarios?skip=${page * PAGE_SIZE}&take=${PAGE_SIZE}`);
       setUsers(res.data);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al cargar usuarios';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setLoading(false);
     }

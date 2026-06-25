@@ -2,6 +2,7 @@ import { useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
 
 export default function Login() {
   const { url, route } = useLocation();
@@ -22,9 +23,8 @@ export default function Login() {
       const res = await api.post('/auth/login', { dni, password });
       login(res.data.access_token);
       route('/dashboard');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Credenciales incorrectas';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
       setLoading(false);
     }
   };

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
 
 interface Inscripcion {
   id: number;
@@ -8,6 +9,10 @@ interface Inscripcion {
   disciplinas?: string[];
   estado_aprob: string;
   pagado: boolean;
+  pagado_fuera_sistema: boolean;
+  necesidades_especiales: boolean;
+  descripcion_necesidades: string;
+  archivo_medico_url: string;
   evento: { id: number; tipo: string; fecha_inicio: string };
 }
 
@@ -16,6 +21,13 @@ export default function MisInscripciones() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payingId, setPayingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editCats, setEditCats] = useState<string[]>([]);
+  const [editNecesidades, setEditNecesidades] = useState(false);
+  const [editDescNecesidades, setEditDescNecesidades] = useState('');
+  const [editFileUrl, setEditFileUrl] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [msg, setMsg] = useState('');
 
   useEffect(() => {
     fetchInscripciones();
@@ -40,16 +52,69 @@ export default function MisInscripciones() {
         fetchInscripciones();
         return;
       }
-      const mp = new (window as any).MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
         preference: { id: res.data.preferenceId },
         render: { container: `#mp-checkout-${inscripcionId}`, label: 'Pagar' },
       });
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al procesar el pago';
-      alert(typeof msg === 'string' ? msg : msg[0]);
+    } catch (err) {
+      alert(getErrorMessage(err));
     } finally {
       setPayingId(null);
+    }
+  };
+
+  const startEdit = (ins: Inscripcion) => {
+    setEditingId(ins.id);
+    setEditCats([...ins.categorias]);
+    setEditNecesidades(ins.necesidades_especiales);
+    setEditDescNecesidades(ins.descripcion_necesidades || '');
+    setEditFileUrl(ins.archivo_medico_url || '');
+    setMsg('');
+  };
+
+  const handleSaveEdit = async (inscripcionId: number) => {
+    setSavingEdit(true);
+    try {
+      const res = await api.patch(`/inscripciones/${inscripcionId}`, {
+        categorias: editCats,
+        necesidades_especiales: editNecesidades,
+        descripcion_necesidades: editDescNecesidades || undefined,
+        archivo_medico_url: editFileUrl || undefined,
+      });
+      setMsg(res.data.mensaje || 'Inscripción modificada');
+      setEditingId(null);
+      fetchInscripciones();
+    } catch (err) {
+      setMsg(getErrorMessage(err));
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  const handleBaja = async (inscripcionId: number) => {
+    if (!confirm('¿Está seguro de darse de baja de este evento?')) return;
+    try {
+      const res = await api.delete(`/inscripciones/${inscripcionId}`);
+      setMsg(res.data.mensaje || 'Se ha dado de baja del evento');
+      fetchInscripciones();
+    } catch (err) {
+      setMsg(getErrorMessage(err));
+    }
+  };
+
+  const handleUpload = async (e: Event) => {
+    const input = e.target as HTMLInputElement;
+    if (!input.files?.length) return;
+    const formData = new FormData();
+    formData.append('file', input.files[0]);
+    try {
+      const res = await api.post('/files/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setEditFileUrl(res.data.url);
+    } catch (err) {
+      setMsg(getErrorMessage(err));
     }
   };
 
@@ -68,6 +133,10 @@ export default function MisInscripciones() {
   return (
     <div class="space-y-4">
       <h2 class="text-lg font-semibold text-slate-800">Mis Inscripciones</h2>
+
+      {msg && (
+        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>
+      )}
 
       {inscripciones.length === 0 ? (
         <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 text-center text-slate-500">
@@ -103,7 +172,57 @@ export default function MisInscripciones() {
                   </span>
                 </div>
               </div>
-              {ins.estado_aprob === 'APROBADO' && !ins.pagado && (
+
+              {editingId === ins.id ? (
+                <div class="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                  <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
+                    <input type="text" value={editCats.join(', ')}
+                      onInput={(e: Event) => setEditCats((e.target as HTMLInputElement).value.split(',').map(s => s.trim()))}
+                      class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="checkbox" checked={editNecesidades}
+                      onChange={(e: Event) => setEditNecesidades((e.target as HTMLInputElement).checked)}
+                      class="w-4 h-4" />
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Necesidades especiales</span>
+                  </div>
+                  {editNecesidades && (
+                    <>
+                      <textarea value={editDescNecesidades}
+                        onInput={(e: Event) => setEditDescNecesidades((e.target as HTMLTextAreaElement).value)}
+                        class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
+                        placeholder="Describa la necesidad especial" />
+                      <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (PDF/JPG)</label>
+                        <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload} class="text-sm" />
+                        {editFileUrl && <p class="text-xs text-green-600 mt-1">Archivo subido: {editFileUrl}</p>}
+                      </div>
+                    </>
+                  )}
+                  <div class="flex gap-2">
+                    <button onClick={() => setEditingId(null)}
+                      class="px-4 py-1.5 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200">Cancelar</button>
+                    <button onClick={() => handleSaveEdit(ins.id)} disabled={savingEdit}
+                      class="px-4 py-1.5 bg-slate-900 text-white rounded text-sm hover:bg-slate-800 disabled:opacity-50">
+                      {savingEdit ? 'Guardando...' : 'Guardar'}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div class="mt-3 flex gap-2">
+                  {ins.estado_aprob !== 'RECHAZADO' && (
+                    <button onClick={() => startEdit(ins)}
+                      class="text-xs text-blue-600 hover:underline">Editar</button>
+                  )}
+                  {ins.estado_aprob !== 'RECHAZADO' && (
+                    <button onClick={() => handleBaja(ins.id)}
+                      class="text-xs text-red-600 hover:underline">Darse de baja</button>
+                  )}
+                </div>
+              )}
+
+              {ins.estado_aprob === 'APROBADO' && !ins.pagado && editingId !== ins.id && (
                 <div class="mt-4" id={`mp-checkout-${ins.id}`}>
                   <button
                     onClick={() => handlePagar(ins.id)}

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
 
 export default function CuotaAdmin() {
   const { user } = useAuth();
@@ -42,9 +43,8 @@ export default function CuotaAdmin() {
         fecha_vencimiento: new Date(fecha).toISOString(),
       });
       setSuccess('Configuración guardada correctamente.');
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al guardar la configuración';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setSaving(false);
     }

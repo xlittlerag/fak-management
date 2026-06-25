@@ -1,9 +1,11 @@
 import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
-import { EstadoRegistro, Rol, Graduacion } from '@prisma/client';
+import { EstadoRegistro, Rol, Graduacion, Prisma } from '@prisma/client';
+import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { AprobacionAccion, UpdateAprobacionDto } from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
+import { UpdateGraduacionDto } from './dto/update-graduacion.dto';
 import * as bcrypt from 'bcrypt';
 
 const GraduacionInputMap: Record<string, Graduacion> = {
@@ -32,8 +34,8 @@ export class UsuariosService {
     private readonly feeConfigService: FeeConfigService,
   ) {}
 
-  async findPendientes(user: any) {
-    const where: any = {
+  async findPendientes(user: AuthUser) {
+    const where: Prisma.UsuarioWhereInput = {
       estado_reg: EstadoRegistro.PENDIENTE_APROBACION,
     };
 
@@ -47,8 +49,8 @@ export class UsuariosService {
     });
   }
 
-  async findAll(user: any, pagination?: { skip?: number; take?: number }) {
-    const where: any = { estado_reg: EstadoRegistro.APROBADO };
+  async findAll(user: AuthUser, pagination?: { skip?: number; take?: number }) {
+    const where: Prisma.UsuarioWhereInput = { estado_reg: EstadoRegistro.APROBADO };
     if (user.rol === Rol.ADMIN_ASOCIACION) {
       where.asociacion_id = user.asociacion_id;
     }
@@ -71,12 +73,12 @@ export class UsuariosService {
   }
 
   async updatePerfil(id: number, dto: UpdatePerfilDto) {
-    const data: any = { ...dto };
+    const data: Prisma.UsuarioUpdateInput = { ...dto } as Prisma.UsuarioUpdateInput;
     if (data.password) {
-      data.password = await bcrypt.hash(data.password, 10);
+      data.password = await bcrypt.hash(data.password as string, 10);
     }
-    if (data.fecha_nacimiento) {
-      data.fecha_nacimiento = new Date(data.fecha_nacimiento);
+    if (dto.fecha_nacimiento) {
+      data.fecha_nacimiento = new Date(dto.fecha_nacimiento);
     }
 
     try {
@@ -84,12 +86,15 @@ export class UsuariosService {
         where: { id },
         data,
       });
-    } catch (err: any) {
-      if (err.code === 'P2025') {
-        throw new NotFoundException('Usuario no encontrado');
-      }
-      if (err.code === 'P2002') {
-        throw new ConflictException('El correo electrónico ya se encuentra en uso.');
+    } catch (err: unknown) {
+      if (err instanceof Error && 'code' in err) {
+        const prismaErr = err as { code: string };
+        if (prismaErr.code === 'P2025') {
+          throw new NotFoundException('Usuario no encontrado');
+        }
+        if (prismaErr.code === 'P2002') {
+          throw new ConflictException('El correo electrónico ya se encuentra en uso.');
+        }
       }
       throw err;
     }
@@ -107,13 +112,13 @@ export class UsuariosService {
     });
   }
 
-  async updateGraduacion(id: number, dto: any) {
+  async updateGraduacion(id: number, dto: UpdateGraduacionDto) {
     const user = await this.prisma.usuario.findUnique({ where: { id } });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    const data: any = {};
+    const data: Prisma.UsuarioUpdateInput = {};
 
     if (dto.grad_kendo !== undefined) data.grad_kendo = mapGrad(dto.grad_kendo);
     if (dto.f_grad_kendo !== undefined) data.f_grad_kendo = dto.f_grad_kendo ? new Date(dto.f_grad_kendo) : null;
@@ -128,7 +133,7 @@ export class UsuariosService {
     });
   }
 
-  async updateAprobacion(id: number, dto: UpdateAprobacionDto, admin: any) {
+  async updateAprobacion(id: number, dto: UpdateAprobacionDto, admin: AuthUser) {
     const user = await this.prisma.usuario.findUnique({
       where: { id },
     });

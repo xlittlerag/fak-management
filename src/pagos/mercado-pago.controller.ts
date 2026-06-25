@@ -2,6 +2,7 @@ import { Controller, Post, Body, Req, HttpCode, HttpStatus, Logger, ForbiddenExc
 import { MercadoPagoService } from './mercado-pago.service';
 import { FeeConfigService } from './fee-config.service';
 import { Public } from '../auth/decorators/public.decorator';
+import { AuthUser } from '../common/interfaces/auth-user.interface';
 import type { Request } from 'express';
 
 @Controller('pagos')
@@ -16,7 +17,7 @@ export class MercadoPagoController {
   @Post('checkout-fee')
   @HttpCode(HttpStatus.OK)
   async createFeeCheckoutPreference(@Req() request: Request) {
-    const user = (request as any).user;
+    const user = request.user as AuthUser;
 
     const feeConfig = await this.feeConfigService.getFeeConfig();
 
@@ -46,11 +47,11 @@ export class MercadoPagoController {
   @Post('webhook')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async handleWebhook(@Body() webhookData: any) {
+  async handleWebhook(@Body() webhookData: Record<string, unknown>) {
     this.logger.log(`Webhook recibido: ${JSON.stringify(webhookData)}`);
 
     try {
-      const result = await this.mpService.processWebhook(webhookData);
+      const result = await this.mpService.processWebhook(webhookData as never);
 
       if (result.processed && 'userId' in result) {
         this.logger.log(
@@ -60,7 +61,7 @@ export class MercadoPagoController {
 
       return { received: true, processed: result.processed };
     } catch (error) {
-      this.logger.error(`Error procesando webhook: ${error.message}`);
+      this.logger.error(`Error procesando webhook: ${(error as Error).message}`);
 
       return { received: true };
     }

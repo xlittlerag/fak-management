@@ -160,7 +160,7 @@ describe('Auth (e2e)', () => {
 
       expect(response.body).toHaveProperty('access_token');
       
-      const decoded = jwt.decode(response.body.access_token) as any;
+      const decoded = jwt.decode(response.body.access_token) as { sub: number };
       expect(decoded.sub).toBe(user.user.id);
     });
   });
@@ -175,7 +175,7 @@ describe('Auth (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('access_token');
-      const decoded = jwt.decode(response.body.access_token) as any;
+      const decoded = jwt.decode(response.body.access_token) as { rol: string };
       expect(decoded.rol).toBe('ADMIN_GENERAL');
     });
 

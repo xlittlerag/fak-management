@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'crypto';
 
 const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
@@ -29,7 +29,7 @@ export class FilesService {
     }
 
     const ext = file.originalname.split('.').pop();
-    const filename = `${uuid()}.${ext}`;
+    const filename = `${randomUUID()}.${ext}`;
     const filepath = join(this.uploadDir, filename);
 
     await writeFile(filepath, file.buffer);
