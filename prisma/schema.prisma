@@ -28,6 +28,7 @@ enum Disciplina {
 enum Sexo {
   MASCULINO
   FEMENINO
+  X
 }
 
 enum Graduacion {
@@ -157,8 +158,42 @@ model Evento {
   fecha_inicio    DateTime
   fecha_fin       DateTime
   datos_lugar     Json
-  config          Json
+  publicado       Boolean   @default(false)
+  torneo          Torneo?
+  examen          Examen?
+  seminario       Seminario?
   inscripciones   InscripcionEvento[]
+}
+
+model Torneo {
+  id                  Int      @id @default(autoincrement())
+  evento_id           Int      @unique
+  evento              Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  disciplina          String
+  costo_inscripcion   Float    @default(0)
+  categorias          Json
+  inscripcion_multiple Boolean @default(false)
+  grad_min            String?
+  grad_max            String?
+  info_adicional      String?
+}
+
+model Examen {
+  id                    Int      @id @default(autoincrement())
+  evento_id             Int      @unique
+  evento                Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  disciplinas           Json
+  graduaciones_a_rendir Json
+  info_adicional        String?
+}
+
+model Seminario {
+  id                Int      @id @default(autoincrement())
+  evento_id         Int      @unique
+  evento            Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  disciplina        String
+  costo_inscripcion Float    @default(0)
+  info_adicional    String?
 }
 
 model InscripcionEvento {
@@ -167,9 +202,10 @@ model InscripcionEvento {
   usuario         Usuario   @relation(fields: [usuario_id], references: [id])
   evento_id       Int
   evento          Evento    @relation(fields: [evento_id], references: [id])
-  tipo_evento     String 
-  categoria_grad  String
+  categoria_grad  Json
+  disciplinas     Json?
   estado_aprob    EstadoSolicitud @default(PENDIENTE)
+  pagado          Boolean   @default(false)
 }
 
 model HistorialGraduacion {
@@ -180,6 +216,15 @@ model HistorialGraduacion {
   graduacion      Graduacion
   fecha_obtencion DateTime
   otorgado_por    String
+}
+
+model PrecioExamen {
+  id         Int      @id @default(autoincrement())
+  graduacion String   @unique
+  costo      Float
+  updatedAt  DateTime @updatedAt
+
+  @@map("precioexamen")
 }
 
 model CuotaGlobal {
