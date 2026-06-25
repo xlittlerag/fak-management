@@ -47,6 +47,7 @@ export async function cleanupDb(prisma: PrismaService) {
   await prisma.dojo.deleteMany();
   await prisma.evento.deleteMany();
   await prisma.asociacion.deleteMany();
+  await prisma.precioExamen.deleteMany();
   await prisma.cuotaGlobal.deleteMany();
   await prisma.adminGeneral.deleteMany();
 }
@@ -98,25 +99,31 @@ export async function createTestUser(
     dojoId = dojo.id;
   }
 
-  const user = await prisma.usuario.create({
-    data: {
-      email: overrides.email || `test-${Date.now()}@example.com`,
-      password,
-      nombre: overrides.nombre || 'Test',
-      apellido: overrides.apellido || 'User',
-      dni: overrides.dni || `DNI-${Date.now()}`,
-      fecha_nacimiento: new Date('1990-01-01'),
-      sexo: overrides.sexo || 'MASCULINO',
-      rol: overrides.rol || 'BASICO',
-      asociacion_id: asociacionId,
-      dojo_id: dojoId,
-      estado_reg: overrides.estado_reg || 'APROBADO',
-      calle_altura: overrides.calle_altura || 'Calle Falsa 123',
-      ciudad: overrides.ciudad || 'Ciudad Test',
-      provincia: overrides.provincia || 'BUENOS_AIRES',
-      codigo_postal: overrides.codigo_postal || '1234',
-    },
-  });
+  const explicitFields: Record<string, any> = {
+    email: overrides.email || `test-${Date.now()}@example.com`,
+    password,
+    nombre: overrides.nombre || 'Test',
+    apellido: overrides.apellido || 'User',
+    dni: overrides.dni || `DNI-${Date.now()}`,
+    fecha_nacimiento: new Date('1990-01-01'),
+    sexo: overrides.sexo || 'MASCULINO',
+    rol: overrides.rol || 'BASICO',
+    estado_pago: overrides.estado_pago ?? true,
+    asociacion_id: asociacionId,
+    dojo_id: dojoId,
+    estado_reg: overrides.estado_reg || 'APROBADO',
+    calle_altura: overrides.calle_altura || 'Calle Falsa 123',
+    ciudad: overrides.ciudad || 'Ciudad Test',
+    provincia: overrides.provincia || 'BUENOS_AIRES',
+    codigo_postal: overrides.codigo_postal || '1234',
+  };
+
+  for (const key of Object.keys(overrides)) {
+    if (key === 'password') continue;
+    explicitFields[key] = overrides[key];
+  }
+
+  const user = await prisma.usuario.create({ data: explicitFields });
 
   const token = jwt.sign({
     sub: user.id,
