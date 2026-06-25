@@ -46,6 +46,11 @@ interface CategoriaDef {
 @Injectable()
 export class EventosService {
   private readonly logger = new Logger(EventosService.name);
+  private readonly DISC_LABEL: Record<string, string> = {
+    KENDO: 'Kendo',
+    IAIDO: 'Iaido',
+    JODO: 'Jodo',
+  };
 
   constructor(
     private prisma: PrismaService,
@@ -662,8 +667,9 @@ export class EventosService {
 
       const userFGrad = usuario[fGradKey] as Date | null;
       if (!userFGrad) {
+        const discLabel = this.DISC_LABEL[disciplina] || disciplina;
         throw new ForbiddenException(
-          `No tiene registro de fecha de obtención de ${userGrad} en ${disciplina}`,
+          `No tiene registrada la fecha de obtención de su graduación actual en ${discLabel}. Contacte a su administrador para que registre este dato.`,
         );
       }
 
