@@ -154,10 +154,11 @@ model HistorialGraduacion {
 }
 
 model PrecioExamen {
-  id         Int      @id @default(autoincrement())
-  graduacion String   @unique
-  costo      Float
-  updatedAt  DateTime @updatedAt
+  id                Int      @id @default(autoincrement())
+  graduacion        String   @unique
+  costo_inscripcion Float
+  costo_registro    Float
+  updatedAt         DateTime @updatedAt
 
   @@map("precioexamen")
 }

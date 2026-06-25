@@ -6,5 +6,9 @@ export class CreatePrecioExamenDto {
 
   @IsNumber()
   @Min(0)
-  costo: number;
+  costo_inscripcion: number;
+
+  @IsNumber()
+  @Min(0)
+  costo_registro: number;
 }

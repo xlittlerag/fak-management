@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { getErrorMessage } from '../lib/error';
+import type { CategoriaDef } from '../types';
 
 interface Evento {
   id: number;
@@ -48,7 +50,7 @@ const DISCIPLINA_LABELS: Record<string, string> = {
 export default function EventosDashboard() {
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
-  const [preciosExamen, setPreciosExamen] = useState<Record<string, number>>({});
+  const [preciosExamen, setPreciosExamen] = useState<Record<string, { inscripcion: number; registro: number }>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [inscribiendo, setInscribiendo] = useState<Record<number, boolean>>({});
@@ -65,8 +67,8 @@ export default function EventosDashboard() {
       .then(([evRes, insRes, pxRes]) => {
         setEventos(evRes.data);
         setInscripciones(insRes.data);
-        const pxMap: Record<string, number> = {};
-        (pxRes.data as Array<{ graduacion: string; costo: number }>).forEach(p => { pxMap[p.graduacion] = p.costo; });
+        const pxMap: Record<string, { inscripcion: number; registro: number }> = {};
+        (pxRes.data as Array<{ graduacion: string; costo_inscripcion: number; costo_registro: number }>).forEach(p => { pxMap[p.graduacion] = { inscripcion: p.costo_inscripcion, registro: p.costo_registro }; });
         setPreciosExamen(pxMap);
       })
       .catch(() => setError('Error al cargar datos'))
@@ -87,9 +89,8 @@ export default function EventosDashboard() {
       if (disc?.length) body.disciplinas = disc;
       const res = await api.post(`/eventos/${eventoId}/inscribir`, body);
       setInscripciones(prev => [...prev, res.data]);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al inscribirse';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setInscribiendo(prev => ({ ...prev, [eventoId]: false }));
     }
@@ -106,14 +107,13 @@ export default function EventosDashboard() {
         );
         return;
       }
-      const mp = new (window as any).MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
         preference: { id: res.data.preferenceId },
         render: { container: `#mp-checkout-ev-${ins.id}`, label: 'Pagar' },
       });
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al procesar el pago';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     } finally {
       setPayingId(null);
     }
@@ -169,8 +169,8 @@ export default function EventosDashboard() {
                     <p class="text-sm text-slate-500 mt-1">{formatDate(evento.fecha_inicio)}</p>
                     {evento.datos_lugar && (
                       <p class="text-sm text-slate-500">
-                        {(evento.datos_lugar as any).direccion || ''}
-                        {(evento.datos_lugar as any).provincia ? ` - ${(evento.datos_lugar as any).provincia}` : ''}
+                        {evento.datos_lugar.direccion ?? ''}
+                        {evento.datos_lugar.provincia ? ` - ${evento.datos_lugar.provincia}` : ''}
                       </p>
                     )}
                   </div>
@@ -207,7 +207,7 @@ export default function EventosDashboard() {
 
                 {evento.tipo === 'TORNEO' && cats.length > 0 && (
                   <div class="flex flex-wrap gap-1">
-                    {cats.map((c: any) => (
+                    {cats.map((c: CategoriaDef) => (
                       <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{c.nombre}</span>
                     ))}
                   </div>
@@ -222,7 +222,7 @@ export default function EventosDashboard() {
                           {!evento.torneo?.inscripcion_multiple && <span class="text-xs text-slate-400 ml-1">(seleccione una)</span>}
                         </label>
                         <div class="space-y-1">
-                          {cats.map((c: any) => {
+                          {cats.map((c: CategoriaDef) => {
                             const selected = (categorias[evento.id] || []).includes(c.nombre);
                             return (
                               <label class="flex items-center gap-2 text-sm cursor-pointer">
@@ -279,7 +279,7 @@ export default function EventosDashboard() {
                           <div class="space-y-1">
                             {gradRendir.map((g: string) => {
                               const selected = (categorias[evento.id] || []).includes(g);
-                              const costoGrad = preciosExamen[g];
+                              const costoGrad = preciosExamen[g]?.inscripcion;
                               return (
                                 <label class="flex items-center gap-2 text-sm cursor-pointer">
                                   <input type="checkbox" checked={selected}
@@ -302,7 +302,7 @@ export default function EventosDashboard() {
                           </div>
                           {(categorias[evento.id] || []).length > 0 && (
                             <p class="text-sm font-medium text-slate-700 mt-2">
-                              Total: ${(categorias[evento.id] || []).reduce((sum, g) => sum + (preciosExamen[g] || 0), 0).toLocaleString('es-AR')}
+                              Total: ${(categorias[evento.id] || []).reduce((sum, g) => sum + ((preciosExamen[g]?.inscripcion) || 0), 0).toLocaleString('es-AR')}
                             </p>
                           )}
                         </div>

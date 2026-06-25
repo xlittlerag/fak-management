@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { GRADUACIONES } from '../constants';
+import { getErrorMessage } from '../lib/error';
 
 interface PrecioExamen {
   id: number;
   graduacion: string;
-  costo: number;
+  costo_inscripcion: number;
+  costo_registro: number;
 }
 
 const GRAD_EXAMEN = GRADUACIONES.filter(g => g.value !== 'SIN_GRADUACION');
@@ -19,7 +21,8 @@ export default function PreciosExamenAdmin() {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState<PrecioExamen | null>(null);
   const [newGraduacion, setNewGraduacion] = useState('');
-  const [newCosto, setNewCosto] = useState('');
+  const [newCostoIns, setNewCostoIns] = useState('');
+  const [newCostoReg, setNewCostoReg] = useState('');
   const [adding, setAdding] = useState(false);
 
   const fetchPrecios = async () => {
@@ -36,31 +39,38 @@ export default function PreciosExamenAdmin() {
   useEffect(() => { fetchPrecios(); }, []);
 
   const handleAdd = async () => {
-    if (!newGraduacion || !newCosto) return;
+    if (!newGraduacion || !newCostoIns || !newCostoReg) return;
     setError('');
     try {
-      await api.post('/precios-examen', { graduacion: newGraduacion, costo: Number(newCosto) });
+      await api.post('/precios-examen', {
+        graduacion: newGraduacion,
+        costo_inscripcion: Number(newCostoIns),
+        costo_registro: Number(newCostoReg),
+      });
       setNewGraduacion('');
-      setNewCosto('');
+      setNewCostoIns('');
+      setNewCostoReg('');
       setAdding(false);
       fetchPrecios();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al agregar precio';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
   };
 
   const handleUpdate = async () => {
-    if (!editing || !newCosto) return;
+    if (!editing || !newCostoIns || !newCostoReg) return;
     setError('');
     try {
-      await api.patch(`/precios-examen/${editing.id}`, { costo: Number(newCosto) });
+      await api.patch(`/precios-examen/${editing.id}`, {
+        costo_inscripcion: Number(newCostoIns),
+        costo_registro: Number(newCostoReg),
+      });
       setEditing(null);
-      setNewCosto('');
+      setNewCostoIns('');
+      setNewCostoReg('');
       fetchPrecios();
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Error al actualizar precio';
-      setError(Array.isArray(msg) ? msg[0] : msg);
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
   };
 
@@ -83,7 +93,7 @@ export default function PreciosExamenAdmin() {
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-semibold text-slate-800">Precios de Exámenes</h2>
         <button
-          onClick={() => { setAdding(true); setNewGraduacion(disponibles[0]?.value || ''); setNewCosto(''); }}
+          onClick={() => { setAdding(true); setNewGraduacion(disponibles[0]?.value || ''); setNewCostoIns(''); setNewCostoReg(''); }}
           disabled={disponibles.length === 0}
           class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
         >
@@ -99,7 +109,8 @@ export default function PreciosExamenAdmin() {
             <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
               <tr>
                 <th class="px-4 py-2">Graduación</th>
-                <th class="px-4 py-2">Costo</th>
+                <th class="px-4 py-2">Inscripción</th>
+                <th class="px-4 py-2">Registro</th>
                 <th class="px-4 py-2 text-right">Acciones</th>
               </tr>
             </thead>
@@ -109,22 +120,31 @@ export default function PreciosExamenAdmin() {
                   <td class="px-4 py-2 font-medium">{GRAD_LABELS[p.graduacion] || p.graduacion}</td>
                   <td class="px-4 py-2">
                     {editing?.id === p.id ? (
-                      <input type="number" value={newCosto}
-                        onInput={(e: Event) => setNewCosto((e.target as HTMLInputElement).value)}
-                        class="w-32 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                      <input type="number" value={newCostoIns}
+                        onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
+                        class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
                     ) : (
-                      `$${p.costo.toLocaleString('es-AR')}`
+                      `$${p.costo_inscripcion.toLocaleString('es-AR')}`
+                    )}
+                  </td>
+                  <td class="px-4 py-2">
+                    {editing?.id === p.id ? (
+                      <input type="number" value={newCostoReg}
+                        onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
+                        class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                    ) : (
+                      `$${p.costo_registro.toLocaleString('es-AR')}`
                     )}
                   </td>
                   <td class="px-4 py-2 text-right space-x-2">
                     {editing?.id === p.id ? (
                       <>
                         <button onClick={handleUpdate} class="text-green-600 hover:underline">Guardar</button>
-                        <button onClick={() => { setEditing(null); setNewCosto(''); }} class="text-slate-600 hover:underline">Cancelar</button>
+                        <button onClick={() => { setEditing(null); setNewCostoIns(''); setNewCostoReg(''); }} class="text-slate-600 hover:underline">Cancelar</button>
                       </>
                     ) : (
                       <>
-                        <button onClick={() => { setEditing(p); setNewCosto(String(p.costo)); }} class="text-blue-600 hover:underline">Editar</button>
+                        <button onClick={() => { setEditing(p); setNewCostoIns(String(p.costo_inscripcion)); setNewCostoReg(String(p.costo_registro)); }} class="text-blue-600 hover:underline">Editar</button>
                         <button onClick={() => handleDelete(p.id)} class="text-red-600 hover:underline">Eliminar</button>
                       </>
                     )}
@@ -142,19 +162,24 @@ export default function PreciosExamenAdmin() {
                     </select>
                   </td>
                   <td class="px-4 py-2">
-                    <input type="number" value={newCosto}
-                      onInput={(e: Event) => setNewCosto((e.target as HTMLInputElement).value)}
-                      class="w-32 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                    <input type="number" value={newCostoIns}
+                      onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
+                      class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                  </td>
+                  <td class="px-4 py-2">
+                    <input type="number" value={newCostoReg}
+                      onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
+                      class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
                   </td>
                   <td class="px-4 py-2 text-right space-x-2">
                     <button onClick={handleAdd} class="text-green-600 hover:underline">Guardar</button>
-                    <button onClick={() => { setAdding(false); setNewGraduacion(''); setNewCosto(''); }} class="text-slate-600 hover:underline">Cancelar</button>
+                    <button onClick={() => { setAdding(false); setNewGraduacion(''); setNewCostoIns(''); setNewCostoReg(''); }} class="text-slate-600 hover:underline">Cancelar</button>
                   </td>
                 </tr>
               )}
               {precios.length === 0 && !adding && (
                 <tr>
-                  <td colspan={3} class="px-4 py-8 text-center text-slate-500">No hay precios configurados.</td>
+                  <td colspan={4} class="px-4 py-8 text-center text-slate-500">No hay precios configurados.</td>
                 </tr>
               )}
             </tbody>

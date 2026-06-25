@@ -37,16 +37,17 @@ describe('PreciosExamen (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo: 5000 })
+        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
         .expect(201);
       expect(res.body.graduacion).toBe('DAN_1');
-      expect(res.body.costo).toBe(5000);
+      expect(res.body.costo_inscripcion).toBe(5000);
+      expect(res.body.costo_registro).toBe(2000);
     });
 
     it('debería rechazar creación sin autenticación', async () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
-        .send({ graduacion: 'DAN_1', costo: 5000 })
+        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
         .expect(401);
     });
 
@@ -55,7 +56,7 @@ describe('PreciosExamen (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${token}`)
-        .send({ graduacion: 'DAN_1', costo: 5000 })
+        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
         .expect(403);
     });
 
@@ -64,33 +65,34 @@ describe('PreciosExamen (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo: 5000 })
+        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
         .expect(201);
 
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo: 6000 })
+        .send({ graduacion: 'DAN_1', costo_inscripcion: 6000, costo_registro: 3000 })
         .expect(409);
     });
   });
 
   describe('PATCH /precios-examen/:id', () => {
-    it('debería actualizar un precio', async () => {
+    it('debería actualizar un precio (parcial)', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const created = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'KYU_1', costo: 3000 })
+        .send({ graduacion: 'KYU_1', costo_inscripcion: 3000, costo_registro: 1000 })
         .expect(201);
 
       const res = await request(app.getHttpServer())
         .patch(`/api/precios-examen/${created.body.id}`)
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ costo: 3500 })
+        .send({ costo_inscripcion: 3500 })
         .expect(200);
 
-      expect(res.body.costo).toBe(3500);
+      expect(res.body.costo_inscripcion).toBe(3500);
+      expect(res.body.costo_registro).toBe(1000);
     });
   });
 
@@ -100,7 +102,7 @@ describe('PreciosExamen (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_2', costo: 7000 })
+        .send({ graduacion: 'DAN_2', costo_inscripcion: 7000, costo_registro: 3000 })
         .expect(201);
 
       await request(app.getHttpServer())

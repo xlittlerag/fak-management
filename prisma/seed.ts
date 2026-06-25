@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, Rol, Graduacion } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
 import * as bcrypt from 'bcrypt';
@@ -19,6 +19,7 @@ async function main() {
   });
 
   // 1. Limpiar datos existentes (orden inverso de FK)
+  await prisma.precioExamen.deleteMany();
   await prisma.usuario.deleteMany({});
   await prisma.dojo.deleteMany({});
   await prisma.asociacion.deleteMany({});
@@ -119,16 +120,29 @@ async function main() {
         ciudad: 'Ciudad Test',
         provincia: 'BUENOS_AIRES',
         codigo_postal: '1000',
-        rol: u.rol as any,
+        rol: u.rol as Rol,
         estado_reg: 'APROBADO',
         asociacion_id: u.asocId,
         dojo_id: u.dojoId,
-        grad_kendo: u.gradKendo as any,
-        grad_iaido: u.gradIaido as any,
-        grad_jodo: u.gradJodo as any,
+        grad_kendo: u.gradKendo as Graduacion,
+        grad_iaido: u.gradIaido as Graduacion,
+        grad_jodo: u.gradJodo as Graduacion,
       },
     });
   }
+
+  // 5. Crear precios de exámenes
+  await prisma.precioExamen.createMany({
+    data: [
+      { graduacion: 'KYU_3', costo_inscripcion: 20000, costo_registro: 10000 },
+      { graduacion: 'KYU_2', costo_inscripcion: 20000, costo_registro: 20000 },
+      { graduacion: 'KYU_1', costo_inscripcion: 25000, costo_registro: 30000 },
+      { graduacion: 'DAN_1', costo_inscripcion: 35000, costo_registro: 50000 },
+      { graduacion: 'DAN_2', costo_inscripcion: 60000, costo_registro: 70000 },
+      { graduacion: 'DAN_3', costo_inscripcion: 70000, costo_registro: 110000 },
+      { graduacion: 'DAN_4', costo_inscripcion: 110000, costo_registro: 160000 },
+    ],
+  });
 
   console.log('✅ Base de datos sembrada correctamente.');
   await pool.end();
