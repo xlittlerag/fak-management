@@ -110,7 +110,7 @@ export default function EventosAdmin() {
 
   const fetchEventos = async () => {
     try {
-      const res = await api.get('/eventos?all=true');
+      const res = await api.get('/eventos/admin');
       setEventos(res.data);
     } catch {
       setTableError('Error al cargar eventos');

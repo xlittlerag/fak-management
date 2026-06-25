@@ -20,9 +20,14 @@ export class EventosController {
 
   @Public()
   @Get('eventos')
-  findAll(@Query('all') all?: string) {
-    const incluirBorradores = all === 'true';
-    return this.eventosService.findAll(incluirBorradores);
+  findAll() {
+    return this.eventosService.findAll(false);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
+  @Get('eventos/admin')
+  findAllAdmin(@Req() req: Request) {
+    return this.eventosService.findAllAdmin(req.user!);
   }
 
   @Public()

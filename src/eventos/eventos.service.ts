@@ -115,6 +115,22 @@ export class EventosService {
     return eventos.map(e => this.formatEvento(e));
   }
 
+  async findAllAdmin(user: AuthUser) {
+    const where: Prisma.EventoWhereInput = {};
+    if (user.rol === 'ADMIN_ASOCIACION') {
+      where.OR = [
+        { publicado: true },
+        { publicado: false, creador_id: user.id },
+      ];
+    }
+    const eventos = await this.prisma.evento.findMany({
+      where,
+      include: this.includeSub,
+      orderBy: { fecha_inicio: 'asc' },
+    });
+    return eventos.map(e => this.formatEvento(e));
+  }
+
   async findOne(id: number) {
     const evento = await this.prisma.evento.findUnique({
       where: { id },
