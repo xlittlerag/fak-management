@@ -52,7 +52,7 @@ export class MercadoPagoController {
     try {
       const result = await this.mpService.processWebhook(webhookData);
 
-      if (result.processed) {
+      if (result.processed && 'userId' in result) {
         this.logger.log(
           `Pago procesado exitosamente para usuario ${result.userId}`,
         );

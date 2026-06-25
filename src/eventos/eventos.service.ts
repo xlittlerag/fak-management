@@ -270,12 +270,23 @@ export class EventosService {
   }
 
   private async upsertSubRecord(eventoId: number, dto: CreateEventoDto) {
+    // Clean up sub-records of other types when tipo changes
+    if (dto.tipo !== 'TORNEO') {
+      await this.prisma.torneo.deleteMany({ where: { evento_id: eventoId } });
+    }
+    if (dto.tipo !== 'EXAMEN') {
+      await this.prisma.examen.deleteMany({ where: { evento_id: eventoId } });
+    }
+    if (dto.tipo !== 'SEMINARIO') {
+      await this.prisma.seminario.deleteMany({ where: { evento_id: eventoId } });
+    }
+
     if (dto.tipo === 'TORNEO') {
       await this.prisma.torneo.upsert({
         where: { evento_id: eventoId },
         create: {
           evento_id: eventoId,
-          disciplina: dto.disciplina!,
+          disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
           categorias: (dto.categorias ?? []) as any,
           inscripcion_multiple: dto.inscripcion_multiple ?? false,
@@ -284,7 +295,7 @@ export class EventosService {
           info_adicional: dto.info_adicional ?? null,
         },
         update: {
-          disciplina: dto.disciplina!,
+          disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
           categorias: (dto.categorias ?? []) as any,
           inscripcion_multiple: dto.inscripcion_multiple ?? false,
@@ -313,12 +324,12 @@ export class EventosService {
         where: { evento_id: eventoId },
         create: {
           evento_id: eventoId,
-          disciplina: dto.disciplina!,
+          disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
           info_adicional: dto.info_adicional ?? null,
         },
         update: {
-          disciplina: dto.disciplina!,
+          disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
           info_adicional: dto.info_adicional ?? null,
         },

@@ -71,10 +71,62 @@ export class MercadoPagoService {
         },
       };
     } catch (error) {
-      throw new InternalServerErrorException({
-        message: 'No se pudo crear la preferencia de pago',
-        error: error.message,
+      this.logger.error(`Error al crear preferencia de pago: ${error.message}`, error.stack);
+      throw new InternalServerErrorException(
+        'No se pudo crear la preferencia de pago',
+      );
+    }
+  }
+
+  async createInscriptionPreference(userId: number, userEmail: string, amount: number, inscripcionId: number, eventoId: number) {
+    const preferenceClient = new Preference(this.client);
+    const appUrl = this.configService.get<string>('APP_URL');
+
+    const externalReference = `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`;
+
+    try {
+      const preferenceResponse = await preferenceClient.create({
+        body: {
+          items: [
+            {
+              id: `insc_${inscripcionId}`,
+              title: 'Inscripción a Evento',
+              quantity: 1,
+              unit_price: amount,
+            },
+          ],
+          payer: {
+            email: userEmail,
+          },
+          back_urls: {
+            success: `${appUrl}/pagos/exito`,
+            pending: `${appUrl}/pagos/pending`,
+            failure: `${appUrl}/pagos/error`,
+          },
+          external_reference: externalReference,
+          notification_url: `${appUrl}/api/pagos/webhook`,
+          auto_return: 'approved',
+          payment_methods: {
+            excluded_payment_types: [
+              {
+                id: 'credit_card',
+              },
+            ],
+          },
+          statement_descriptor: 'FAK - Evento',
+        },
       });
+
+      return {
+        preferenceId: preferenceResponse.id,
+        initPoint: preferenceResponse.init_point || preferenceResponse.sandbox_init_point,
+        externalReference: preferenceResponse.external_reference,
+      };
+    } catch (error) {
+      this.logger.error(`Error al crear preferencia de pago de inscripción: ${error.message}`, error.stack);
+      throw new InternalServerErrorException(
+        'No se pudo crear la preferencia de pago',
+      );
     }
   }
 
@@ -104,48 +156,91 @@ export class MercadoPagoService {
       }
 
       const reference = payment.external_reference;
-      if (!reference || !reference.startsWith('fee_user_')) {
+      if (!reference) {
         return { processed: false };
       }
 
-      const userIdMatch = reference.match(/fee_user_(\d+)_ts_\d+/);
-      if (!userIdMatch) {
-        return { processed: false };
+      if (reference.startsWith('fee_user_')) {
+        return this.processFeePayment(paymentId, reference);
       }
 
-      const userId = parseInt(userIdMatch[1]);
-      const user = await this.prisma.usuario.findUnique({
-        where: { id: userId },
-      });
-
-      if (!user) {
-        return { processed: false };
+      if (reference.startsWith('inscripcion_user_')) {
+        return this.processInscriptionPayment(paymentId, reference);
       }
 
-      if (user.estado_pago) {
-        this.processedPayments.add(paymentId);
-        return { processed: true, alreadyPaid: true };
-      }
-
-      await this.prisma.usuario.update({
-        where: { id: userId },
-        data: {
-          estado_pago: true,
-          estado_reg: 'APROBADO',
-        },
-      });
-
-      this.processedPayments.add(paymentId);
-
-      return {
-        processed: true,
-        userId,
-        statusUpdated: true,
-      };
+      return { processed: false };
     } catch (error) {
       this.logger.error(`Error al consultar pago ${paymentId}: ${error.message}`);
       return { processed: false };
     }
+  }
+
+  private async processFeePayment(paymentId: string, reference: string) {
+    const match = reference.match(/fee_user_(\d+)_ts_\d+/);
+    if (!match) return { processed: false };
+
+    const userId = parseInt(match[1]);
+    const user = await this.prisma.usuario.findUnique({
+      where: { id: userId },
+    });
+
+    if (!user) return { processed: false };
+
+    if (user.estado_pago) {
+      this.processedPayments.add(paymentId);
+      return { processed: true, alreadyPaid: true };
+    }
+
+    await this.prisma.usuario.update({
+      where: { id: userId },
+      data: {
+        estado_pago: true,
+        estado_reg: 'APROBADO',
+      },
+    });
+
+    this.processedPayments.add(paymentId);
+
+    return {
+      processed: true,
+      userId,
+      statusUpdated: true,
+    };
+  }
+
+  private async processInscriptionPayment(paymentId: string, reference: string) {
+    const match = reference.match(/inscripcion_user_(\d+)_evento_(\d+)_insc_(\d+)_ts_\d+/);
+    if (!match) return { processed: false };
+
+    const userId = parseInt(match[1]);
+    const eventoId = parseInt(match[2]);
+    const inscripcionId = parseInt(match[3]);
+
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+    });
+
+    if (!inscripcion) return { processed: false };
+    if (inscripcion.usuario_id !== userId) return { processed: false };
+    if (inscripcion.evento_id !== eventoId) return { processed: false };
+    if (inscripcion.pagado) {
+      this.processedPayments.add(paymentId);
+      return { processed: true, alreadyPaid: true };
+    }
+
+    await this.prisma.inscripcionEvento.update({
+      where: { id: inscripcionId },
+      data: { pagado: true, estado_aprob: 'APROBADO' },
+    });
+
+    this.processedPayments.add(paymentId);
+
+    return {
+      processed: true,
+      userId,
+      inscripcionId,
+      statusUpdated: true,
+    };
   }
 
   async getUserStatus(userId: number) {
