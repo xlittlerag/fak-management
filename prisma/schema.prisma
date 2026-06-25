@@ -1,10 +1,180 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
   binaryTargets = ["native"]
 }
 
 datasource db {
   provider = "postgresql"
+}
+
+model AdminGeneral {
+  id       Int    @id @default(autoincrement())
+  dni      String @unique
+  password String
+}
+
+model Asociacion {
+  id         Int       @id @default(autoincrement())
+  nombre     String
+  deleted_at DateTime?
+  dojos      Dojo[]
+  usuarios   Usuario[]
+}
+
+model Dojo {
+  id            Int        @id @default(autoincrement())
+  nombre        String
+  asociacion_id Int
+  deleted_at    DateTime?
+  asociacion    Asociacion @relation(fields: [asociacion_id], references: [id])
+  usuarios      Usuario[]
+}
+
+model Usuario {
+  id               Int                   @id @default(autoincrement())
+  email            String                @unique
+  password         String
+  nombre           String
+  apellido         String
+  dni              String                @unique
+  fecha_nacimiento DateTime
+  sexo             Sexo
+  calle_altura     String
+  piso_depto       String?
+  ciudad           String
+  provincia        Provincia
+  codigo_postal    String
+  rol              Rol                   @default(BASICO)
+  estado_pago      Boolean               @default(false)
+  asociacion_id    Int
+  dojo_id          Int
+  estado_reg       EstadoRegistro        @default(PENDIENTE_APROBACION)
+  estado_blanqueo  EstadoSolicitud       @default(APROBADO)
+  grad_kendo       Graduacion            @default(SIN_GRADUACION)
+  f_grad_kendo     DateTime?
+  grad_iaido       Graduacion            @default(SIN_GRADUACION)
+  f_grad_iaido     DateTime?
+  grad_jodo        Graduacion            @default(SIN_GRADUACION)
+  f_grad_jodo      DateTime?
+  telefono         String?
+  certificados     CertificadoExterno[]
+  eventos_creados  Evento[]
+  historial_grad   HistorialGraduacion[]
+  inscripciones    InscripcionEvento[]
+  asociacion       Asociacion            @relation(fields: [asociacion_id], references: [id])
+  dojo             Dojo                  @relation(fields: [dojo_id], references: [id])
+}
+
+model CertificadoExterno {
+  id              Int             @id @default(autoincrement())
+  usuario_id      Int
+  url_archivo     String
+  disciplina      Disciplina
+  grad_solicitada Graduacion
+  estado          EstadoSolicitud @default(PENDIENTE)
+  usuario         Usuario         @relation(fields: [usuario_id], references: [id])
+}
+
+model Evento {
+  id                 Int                 @id @default(autoincrement())
+  tipo               String
+  fecha_inicio       DateTime
+  fecha_fin          DateTime
+  datos_lugar        Json
+  publicado          Boolean             @default(false)
+  ambito             String              @default("REGIONAL")
+  archivos_info      Json?
+  creador_id         Int?
+  pago_fuera_sistema Boolean             @default(false)
+  creador            Usuario?            @relation(fields: [creador_id], references: [id])
+  examen             Examen?
+  inscripciones      InscripcionEvento[]
+  seminario          Seminario?
+  torneo             Torneo?
+}
+
+model Torneo {
+  id                       Int       @id @default(autoincrement())
+  evento_id                Int       @unique
+  disciplina               String
+  costo_inscripcion        Float     @default(0)
+  categorias               Json
+  inscripcion_multiple     Boolean   @default(false)
+  grad_min                 String?
+  grad_max                 String?
+  info_adicional           String?
+  fecha_limite_informativa DateTime?
+  fecha_limite_real        DateTime?
+  inscripciones_abiertas   Boolean   @default(true)
+  evento                   Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+}
+
+model Examen {
+  id                    Int     @id @default(autoincrement())
+  evento_id             Int     @unique
+  disciplinas           Json
+  graduaciones_a_rendir Json
+  info_adicional        String?
+  evento                Evento  @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+}
+
+model Seminario {
+  id                Int     @id @default(autoincrement())
+  evento_id         Int     @unique
+  disciplina        String
+  costo_inscripcion Float   @default(0)
+  info_adicional    String?
+  evento            Evento  @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+}
+
+model InscripcionEvento {
+  id                      Int             @id @default(autoincrement())
+  usuario_id              Int
+  evento_id               Int
+  estado_aprob            EstadoSolicitud @default(PENDIENTE)
+  pagado                  Boolean         @default(false)
+  categoria_grad          Json
+  disciplinas             Json?
+  archivo_medico_url      String?
+  descripcion_necesidades String?
+  necesidades_especiales  Boolean         @default(false)
+  pagado_fuera_sistema    Boolean         @default(false)
+  evento                  Evento          @relation(fields: [evento_id], references: [id])
+  usuario                 Usuario         @relation(fields: [usuario_id], references: [id])
+}
+
+model HistorialGraduacion {
+  id              Int        @id @default(autoincrement())
+  usuario_id      Int
+  disciplina      Disciplina
+  graduacion      Graduacion
+  fecha_obtencion DateTime
+  otorgado_por    String
+  usuario         Usuario    @relation(fields: [usuario_id], references: [id])
+}
+
+model PrecioExamen {
+  id         Int      @id @default(autoincrement())
+  graduacion String   @unique
+  costo      Float
+  updatedAt  DateTime @updatedAt
+
+  @@map("precioexamen")
+}
+
+model DniBlacklist {
+  id  Int    @id @default(autoincrement())
+  dni String @unique
+
+  @@map("dniblacklist")
+}
+
+model CuotaGlobal {
+  id                Int      @id @default(autoincrement())
+  monto_actual      Float
+  fecha_vencimiento DateTime
+
+  @@map("cuotaglobal")
 }
 
 enum Rol {
@@ -77,160 +247,4 @@ enum Provincia {
   SANTIAGO_DEL_ESTERO
   TIERRA_DEL_FUEGO
   TUCUMAN
-}
-
-model AdminGeneral {
-  id       Int    @id @default(autoincrement())
-  dni      String @unique
-  password String
-}
-
-model Asociacion {
-  id        Int       @id @default(autoincrement())
-  nombre    String
-  deleted_at DateTime?
-  dojos     Dojo[]
-  usuarios  Usuario[]
-}
-
-model Dojo {
-  id            Int        @id @default(autoincrement())
-  nombre        String
-  asociacion_id Int
-  deleted_at    DateTime?
-  asociacion    Asociacion @relation(fields: [asociacion_id], references: [id])
-  usuarios      Usuario[]
-}
-
-model Usuario {
-  id                Int       @id @default(autoincrement())
-  email             String    @unique
-  password          String
-  nombre            String
-  apellido          String
-  dni               String    @unique
-  fecha_nacimiento  DateTime
-  sexo              Sexo
-  
-  // Dirección
-  calle_altura      String
-  piso_depto        String?
-  ciudad            String
-  provincia         Provincia
-  codigo_postal     String
-
-  rol               Rol       @default(BASICO)
-  estado_pago       Boolean   @default(false)
-  
-  asociacion_id     Int
-  asociacion        Asociacion @relation(fields: [asociacion_id], references: [id])
-  dojo_id           Int
-  dojo              Dojo      @relation(fields: [dojo_id], references: [id])
-  
-  estado_reg        EstadoRegistro @default(PENDIENTE_APROBACION)
-  estado_blanqueo   EstadoSolicitud @default(APROBADO)
-  
-  grad_kendo        Graduacion @default(SIN_GRADUACION)
-  f_grad_kendo      DateTime?
-  grad_iaido        Graduacion @default(SIN_GRADUACION)
-  f_grad_iaido      DateTime?
-  grad_jodo         Graduacion @default(SIN_GRADUACION)
-  f_grad_jodo       DateTime?
-
-  certificados      CertificadoExterno[]
-  inscripciones     InscripcionEvento[]
-  historial_grad    HistorialGraduacion[]
-}
-
-model CertificadoExterno {
-  id              Int       @id @default(autoincrement())
-  usuario_id      Int
-  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
-  url_archivo     String
-  disciplina      Disciplina
-  grad_solicitada Graduacion
-  estado          EstadoSolicitud @default(PENDIENTE)
-}
-
-model Evento {
-  id              Int       @id @default(autoincrement())
-  tipo            String 
-  fecha_inicio    DateTime
-  fecha_fin       DateTime
-  datos_lugar     Json
-  publicado       Boolean   @default(false)
-  torneo          Torneo?
-  examen          Examen?
-  seminario       Seminario?
-  inscripciones   InscripcionEvento[]
-}
-
-model Torneo {
-  id                  Int      @id @default(autoincrement())
-  evento_id           Int      @unique
-  evento              Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
-  disciplina          String
-  costo_inscripcion   Float    @default(0)
-  categorias          Json
-  inscripcion_multiple Boolean @default(false)
-  grad_min            String?
-  grad_max            String?
-  info_adicional      String?
-}
-
-model Examen {
-  id                    Int      @id @default(autoincrement())
-  evento_id             Int      @unique
-  evento                Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
-  disciplinas           Json
-  graduaciones_a_rendir Json
-  info_adicional        String?
-}
-
-model Seminario {
-  id                Int      @id @default(autoincrement())
-  evento_id         Int      @unique
-  evento            Evento   @relation(fields: [evento_id], references: [id], onDelete: Cascade)
-  disciplina        String
-  costo_inscripcion Float    @default(0)
-  info_adicional    String?
-}
-
-model InscripcionEvento {
-  id              Int       @id @default(autoincrement())
-  usuario_id      Int
-  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
-  evento_id       Int
-  evento          Evento    @relation(fields: [evento_id], references: [id])
-  categoria_grad  Json
-  disciplinas     Json?
-  estado_aprob    EstadoSolicitud @default(PENDIENTE)
-  pagado          Boolean   @default(false)
-}
-
-model HistorialGraduacion {
-  id              Int       @id @default(autoincrement())
-  usuario_id      Int
-  usuario         Usuario   @relation(fields: [usuario_id], references: [id])
-  disciplina      Disciplina
-  graduacion      Graduacion
-  fecha_obtencion DateTime
-  otorgado_por    String
-}
-
-model PrecioExamen {
-  id         Int      @id @default(autoincrement())
-  graduacion String   @unique
-  costo      Float
-  updatedAt  DateTime @updatedAt
-
-  @@map("precioexamen")
-}
-
-model CuotaGlobal {
-  id                Int       @id @default(autoincrement())
-  monto_actual      Float
-  fecha_vencimiento DateTime
-
-  @@map("cuotaglobal")
 }

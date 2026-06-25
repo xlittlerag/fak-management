@@ -1,1 +1,0 @@
-ALTER TABLE "Dojo" ADD COLUMN "deleted_at" TIMESTAMP;
