@@ -19,17 +19,21 @@ Modelo global con precios por graduación para exámenes, administrado por `ADMI
 
 | Método   | Endpoint                        | Descripción                                        | Acceso (Guards)       |
 | -------- | --------------------------------| -------------------------------------------------- | --------------------- |
-| `POST`   | `/eventos`                      | Crea un nuevo evento.                              | `ADMIN_GENERAL`       |
-| `GET`    | `/eventos`                      | Lista todos los eventos públicos.                  | `@Public()`           |
+| `POST`   | `/eventos`                      | Crea un nuevo evento.                              | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
+| `GET`    | `/eventos`                      | Lista solo eventos publicados.                     | `@Public()`           |
+| `GET`    | `/eventos/admin`                | Lista con filtro según rol y creador.              | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
 | `GET`    | `/eventos/:id`                  | Obtiene detalle de un evento.                      | `@Public()`           |
-| `PATCH`  | `/eventos/:id`                  | Actualiza un evento.                               | `ADMIN_GENERAL`       |
-| `DELETE` | `/eventos/:id`                  | Elimina un evento.                                 | `ADMIN_GENERAL`       |
-| `PATCH`  | `/eventos/:id/publicar`         | Cambia estado de borrador a publicado.             | `ADMIN_GENERAL`       |
+| `PATCH`  | `/eventos/:id`                  | Actualiza un evento.                               | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
+| `DELETE` | `/eventos/:id`                  | Elimina un evento.                                 | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
+| `PATCH`  | `/eventos/:id/publicar`         | Cambia estado de borrador a publicado.             | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
 
 **Reglas de Negocio:**
-- Los eventos en estado `borrador` no se retornan en `GET /eventos` (solo son visibles para `ADMIN_GENERAL` vía un filtro especial).
+- Los eventos en estado `borrador` no se retornan en `GET /eventos` (lista pública).
+- `GET /eventos/admin` retorna:
+  - `ADMIN_GENERAL`: todos los eventos (publicados y borradores).
+  - `ADMIN_ASOCIACION`: eventos publicados + borradores donde `creador_id === user.id`.
 - Las fechas se almacenan como `DateTime` pero solo se utiliza la parte de fecha (sin hora).
-- `datos_lugar` es un campo JSON con `direccion` y `provincia`.
+- `datos_lugar` es un campo JSON con `direccion` y `provincia` (provincia usa el mismo `PROVINCIAS` dropdown que registro/perfil).
 - Los campos específicos de cada tipo de evento se almacenan en sub-modelos 1:1 (`Torneo`, `Examen`, `Seminario`):
 
   **TORNEO** (modelo `Torneo`):
@@ -70,7 +74,7 @@ Modelo global con precios por graduación para exámenes, administrado por `ADMI
 | `POST` | `/inscripciones/:id/pagar`           | Genera preferencia de pago para una inscripción aprobada.   | Autenticado                    |
 
 **Reglas de Negocio:**
-- El usuario debe estar activo (`estado_reg = APROBADO` y `estado_pago = true`).
+- El usuario debe estar activo (`estado_reg = APROBADO` y `estado_pago = true`). Si no existe `CuotaGlobal` configurada, se salta el chequeo de `estado_pago`.
 - No se permite inscripción duplicada al mismo evento.
 - La categoría seleccionada debe ser compatible con la graduación del usuario.
 - Usuarios con sexo registral `X` solo pueden inscribirse en categorías cuyo género sea `MASCULINO` o `MIXTO`.
@@ -100,7 +104,8 @@ El webhook de Mercado Pago en `POST /pagos/webhook` ahora también procesa refer
 | ----------- | -------- | ------------------------------------ |
 | `id`        | Int (PK) | Autoincremental                      |
 | `graduacion`| String   | Graduación (unique, ej: DAN_1)      |
-| `costo`     | Float    | Precio fijo para esa graduación      |
+| `costo_inscripcion` | Float | Precio de inscripción online   |
+| `costo_registro`    | Float | Precio de registro presencial  |
 | `updatedAt` | DateTime | Última actualización                 |
 
 ## 4. Modelos de Base de Datos
@@ -241,25 +246,14 @@ export const CATEGORIAS_TORNEO_DEFAULT = [
 ];
 ```
 
-## 7. Inscripción Múltiple
-
-- Configurable por evento mediante `Torneo.inscripcion_multiple: boolean` (default `false`).
-- Cuando está deshabilitado, el usuario selecciona una sola categoría.
-- Cuando está habilitado, el usuario puede seleccionar varias categorías mediante checkboxes.
-- Se crea una sola inscripción con un array de categorías en `categoria_grad`.
-- El pago se realiza una vez por inscripción (cubre todas las categorías seleccionadas).
-
-### Nota: Categorías de equipo
-
-Las categorías "Equipos Junior", "Equipos Femenino" y "Equipos Masculino" se incluyen como opciones en el formulario de categorías del torneo. La lógica de registro por equipo/asociación (alta por admin de asociación vs. inscripción individual) está pendiente de definir en una iteración futura.
-
-## 8. Criterios de Aceptación (DoD)
+## 7. Criterios de Aceptación (DoD)
 
 - [x] Admin General puede crear, editar y eliminar eventos.
-- [x] Los eventos en borrador solo son visibles para Admin General.
+- [x] Admin de Asociación puede crear/editar/eliminar eventos propios (no exámenes).
+- [x] Los eventos en borrador solo son visibles para Admin General o el creador (Admin Asociación).
 - [x] Los usuarios pueden ver eventos publicados sin autenticación.
 - [x] Usuarios activos pueden inscribirse en eventos.
-- [x] Se validan requisitos (cuota al día, no duplicado, categoría compatible, sexo registral).
+- [x] Se validan requisitos (cuota al día si hay CuotaGlobal configurada, no duplicado, categoría compatible, sexo registral).
 - [x] Admin de asociación puede aprobar/rechazar inscripciones de su asociación.
 - [x] Usuario puede pagar inscripción aprobada vía Mercado Pago.
 - [x] Inscripciones gratuitas se confirman automáticamente.
@@ -270,8 +264,7 @@ Las categorías "Equipos Junior", "Equipos Femenino" y "Equipos Masculino" se in
 - [x] 10 categorías default para torneo con botón "Cargar por defecto".
 - [x] Inscripción múltiple configurable por evento (checkboxes en lugar de dropdown).
 - [x] Cada inscripción puede tener 1 o N categorías almacenadas como JSON array.
-- [x] 29 tests E2E de eventos cubren los flujos principales.
-- [x] 106 tests E2E totales en el proyecto.
+- [x] 108 tests E2E cubren los flujos principales.
 - [x] Precios globales de exámenes (PrecioExamen) con CRUD exclusivo para ADMIN_GENERAL.
 - [x] Validación tipo-dependiente al crear/editar eventos (TORNEO ≠ EXAMEN ≠ SEMINARIO).
 - [x] Exámenes: disciplinas múltiples, rangos de graduaciones por disciplina, costo variable por graduación.
@@ -284,3 +277,36 @@ Las categorías "Equipos Junior", "Equipos Femenino" y "Equipos Masculino" se in
 - [x] El frontend informa al usuario qué graduación va a rendir antes de inscribir.
 - [x] Se validan requisitos de edad, graduación previa y tiempo de espera por disciplina.
 - [x] Mensajes de error en español formal (Usted).
+
+## 8. Cambios posteriores (sesión junio 2026)
+
+### 8.1 Permisos de creación de eventos
+- Se agregó `ADMIN_ASOCIACION` como rol permitido para crear/editar eventos (antes solo `ADMIN_GENERAL`).
+- `ADMIN_ASOCIACION` no puede crear exámenes (opción oculta en frontend).
+- `ADMIN_ASOCIACION` no puede crear eventos con ámbito NACIONAL.
+- `checkEventOwnership()` verifica que `ADMIN_ASOCIACION` solo modifique eventos propios.
+
+### 8.2 Visibilidad de borradores
+- Se creó endpoint `GET /eventos/admin` (autenticado, roles ADMIN).
+- `ADMIN_GENERAL`: ve todos los eventos.
+- `ADMIN_ASOCIACION`: ve publicados + borradores propios.
+- `GET /eventos` público solo retorna publicados.
+
+### 8.3 Botones de acción según permisos
+- `EventosAdmin.tsx`: botones Editar/Publicar/Cerrar/Eliminar solo visibles si `canEditEvent()` retorna true.
+
+### 8.4 Chequeo de cuota condicional
+- Si no existe `CuotaGlobal` configurada, se salta la validación de `estado_pago` al inscribir.
+
+### 8.5 Teléfono obligatorio
+- `telefono` pasó de opcional a obligatorio en registro y perfil (frontend + backend DTOs).
+
+### 8.6 Mensajes de error
+- `getErrorMessage()` ahora prioriza `response.data.message` sobre el genérico de Axios.
+- Mensaje de error por falta de `f_grad` no incluye códigos internos (ej: "Contacte a su administrador").
+
+### 8.7 Selector de provincia
+- `EventosAdmin.tsx` reemplazó input texto por `<select>` con `PROVINCIAS`.
+
+### 8.8 Formato de fecha
+- Se mantiene `<input type="date">` nativo (el formato depende de la configuración regional del navegador).

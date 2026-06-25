@@ -38,8 +38,8 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 4. Start backend (`pnpm start:dev`) and frontend (`cd frontend && pnpm dev`)
 
 ## Gaps to address
-- Frontend implementation incomplete
-- `RolesGuard` needs proper RBAC logic
-- Event/Inscription models exist but lack controllers/services
-- External diploma/certification flow not wired
+- Auditoría module (automatic change logging) not implemented
+- RolesGuard is a no-op fallback (RBAC done via @Roles decorator + checkEventOwnership)
 - `.env.example` and `podman-compose.yml` referenced but missing
+- Iteración 5 (diplomas/certificaciones) in progress — see `docs/iteraciones/05-diplomas-certificaciones.md`
+- Schema changes use `npx prisma db push` (no migration files)
