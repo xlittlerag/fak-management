@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
-import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT } from '../constants';
+import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT, PROVINCIAS } from '../constants';
 import { getErrorMessage } from '../lib/error';
 import { useAuth } from '../context/AuthContext';
 
@@ -446,9 +446,13 @@ export default function EventosAdmin() {
 
             <div>
               <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Provincia</label>
-              <input type="text" value={form.provincia}
-                onInput={(e: Event) => setForm({...form, provincia: (e.target as HTMLInputElement).value})}
-                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
+              <select value={form.provincia}
+                onChange={(e: Event) => setForm({...form, provincia: (e.target as HTMLSelectElement).value})}
+                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
+              >
+                <option value="">Seleccionar provincia</option>
+                {PROVINCIAS.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
+              </select>
             </div>
 
             {form.tipo === 'TORNEO' && (
