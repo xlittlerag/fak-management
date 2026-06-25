@@ -3,7 +3,6 @@ import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { PROVINCIAS, SEXOS } from '../constants';
 import { getErrorMessage } from '../lib/error';
-import { DateInput } from '../components/DateInput';
 
 interface Asociacion {
   id: number;
@@ -154,7 +153,7 @@ export default function Register() {
             </div>
             <div>
               <label class="block text-sm font-medium text-slate-700 mb-1">Fecha Nac.</label>
-              <DateInput name="fecha_nacimiento" required onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <input name="fecha_nacimiento" type="date" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
           </div>
 

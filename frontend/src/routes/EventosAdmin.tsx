@@ -3,7 +3,6 @@ import api from '../services/api';
 import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT } from '../constants';
 import { getErrorMessage } from '../lib/error';
 import { useAuth } from '../context/AuthContext';
-import { DateInput } from '../components/DateInput';
 
 interface Categoria {
   nombre: string;
@@ -426,14 +425,14 @@ export default function EventosAdmin() {
 
             <div>
               <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Inicio</label>
-              <DateInput value={form.fecha_inicio}
+              <input type="date" value={form.fecha_inicio}
                 onInput={(e: Event) => setForm({...form, fecha_inicio: (e.target as HTMLInputElement).value})}
                 class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
             </div>
 
             <div>
               <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fin</label>
-              <DateInput value={form.fecha_fin}
+              <input type="date" value={form.fecha_fin}
                 onInput={(e: Event) => setForm({...form, fecha_fin: (e.target as HTMLInputElement).value})}
                 class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
             </div>
@@ -544,13 +543,13 @@ export default function EventosAdmin() {
               <>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite informativa</label>
-                  <DateInput value={form.fecha_limite_informativa}
+                  <input type="date" value={form.fecha_limite_informativa}
                     onInput={(e: Event) => setForm({...form, fecha_limite_informativa: (e.target as HTMLInputElement).value})}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
                 </div>
                 <div>
                   <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite real</label>
-                  <DateInput value={form.fecha_limite_real}
+                  <input type="date" value={form.fecha_limite_real}
                     onInput={(e: Event) => setForm({...form, fecha_limite_real: (e.target as HTMLInputElement).value})}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
                 </div>

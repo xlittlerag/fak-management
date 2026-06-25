@@ -4,7 +4,6 @@ import { useAuth } from '../context/AuthContext';
 import { GRADUACIONES, SEXOS } from '../constants';
 import { Modal } from '../components/Modal';
 import { getErrorMessage } from '../lib/error';
-import { DateInput } from '../components/DateInput';
 
 interface User {
   id: number;
@@ -279,7 +278,8 @@ export default function Usuarios() {
                   >
                     {GRADUACIONES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
                   </select>
-                  <DateInput
+                  <input
+                    type="date"
                     value={gradForm[`f_grad_${disc}` as keyof GradForm]}
                     onInput={(e: Event) => setGradForm({...gradForm, [`f_grad_${disc}`]: (e.target as HTMLInputElement).value})}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm focus:border-slate-500 focus:ring-slate-500 p-2"
