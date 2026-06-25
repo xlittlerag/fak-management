@@ -134,8 +134,9 @@ describe('Admin Features (e2e)', () => {
         })
         .expect(400);
 
-      expect(response.body.message).toContain('fecha de vencimiento');
-      expect(response.body.message).toMatch(/la|La/);
+      expect(response.body.message).toEqual(
+        expect.arrayContaining([expect.stringMatching(/fecha de vencimiento/i)]),
+      );
     });
   });
 

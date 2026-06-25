@@ -64,8 +64,8 @@ async function main() {
       asocId: asociacionYoshinkan.id,
       dojoId: dojoMarDelPlata.id,
       gradKendo: 'DAN_4',
-      gradIaido: 'DAN_2',
-      gradJodo: 'SIN_GRADUACION'
+      gradIaido: 'DAN_3',
+      gradJodo: 'KYU_1'
     },
     {
       email: 'juan@shinsenkai.com.ar',

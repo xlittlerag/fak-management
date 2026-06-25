@@ -116,7 +116,7 @@ describe('Pagos (e2e)', () => {
 
     it('debería ignorar webhook si el pago no está aprobado', async () => {
       jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
-        id: 'test_payment_id',
+        id: 'test_payment_pending',
         status: 'pending',
         external_reference: 'fee_user_1_ts_123',
       } as any);
@@ -125,7 +125,7 @@ describe('Pagos (e2e)', () => {
         .post('/api/pagos/webhook')
         .send({
           action: 'payment.updated',
-          data: { id: 'test_payment_id' },
+          data: { id: 'test_payment_pending' },
         })
         .expect(200);
 
