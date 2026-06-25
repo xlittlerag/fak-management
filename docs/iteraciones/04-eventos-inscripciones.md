@@ -42,12 +42,14 @@ Modelo global con precios por graduación para exámenes, administrado por `ADMI
 
   **EXAMEN** (modelo `Examen`):
   - `disciplinas`: json (string[], una o más de KENDO, IAIDO, JODO)
-  - `graduaciones_a_rendir`: json (string[], graduaciones disponibles, desde KYU_3 hasta DAN_8)
+  - `graduaciones_a_rendir`: json (Array de `{ disciplina, grad_min, grad_max }`, define rangos por disciplina)
   - `info_adicional`: string? (opcional)
   - No tiene `costo_inscripcion` (el costo se calcula desde la tabla global `PrecioExamen`)
   - No tiene `categorias`
   - No tiene `grad_min`/`grad_max`
   - No tiene `inscripcion_multiple`
+  - Los exámenes son siempre de ámbito `NACIONAL` (se fuerza en backend)
+  - No permiten `pago_fuera_sistema`
 
   **SEMINARIO** (modelo `Seminario`):
   - `disciplina`: string
@@ -135,8 +137,16 @@ El webhook de Mercado Pago en `POST /pagos/webhook` ahora también procesa refer
 | `id`                    | Int (PK) | Autoincremental                      |
 | `evento_id`             | Int (FK) | Relación 1:1 con Evento (onDelete: Cascade) |
 | `disciplinas`           | Json     | Array de strings (KENDO, IAIDO, JODO)|
-| `graduaciones_a_rendir` | Json     | Array de strings (KYU_3…DAN_8)      |
+| `graduaciones_a_rendir` | Json     | Array de `{ disciplina, grad_min, grad_max }` (rangos por disciplina) |
 | `info_adicional`        | String?  | Texto libre opcional                 |
+
+### Reglas de negocio para exámenes
+
+- El ámbito siempre es NACIONAL (se fuerza en backend y frontend bloquea el selector).
+- Los eventos nacionales no permiten `pago_fuera_sistema`.
+- Al inscribirse, el alumno selecciona una o más disciplinas. El sistema **auto-computa** la graduación siguiente a la actual del usuario en cada disciplina y verifica que esté dentro del rango definido por el admin.
+- El frontend informa al usuario qué graduación va a rendir (no permite seleccionar graduación manualmente).
+- Se validan requisitos de edad, graduación previa y tiempo de espera mínimo según `REQUISITOS_EXAMEN`.
 
 ### `Seminario` (1:1 con Evento, solo si `tipo = SEMINARIO`)
 
@@ -165,12 +175,20 @@ El webhook de Mercado Pago en `POST /pagos/webhook` ahora también procesa refer
 ### CreateEventoDto
 
 ```typescript
+class RangoExamenDto {
+  disciplina: string;     // KENDO | IAIDO | JODO
+  grad_min: string;       // Desde (ej: KYU_3)
+  grad_max: string;       // Hasta (ej: DAN_8)
+}
+
 class CreateEventoDto {
   tipo: string;                          // TORNEO | EXAMEN | SEMINARIO
   fecha_inicio: string;                  // "YYYY-MM-DD"
   fecha_fin: string;                     // "YYYY-MM-DD"
   datos_lugar: Record<string, any>;      // { direccion, provincia }
   // Campos comunes
+  ambito?: string;                       // REGIONAL | NACIONAL (EXAMEN fuerza NACIONAL)
+  pago_fuera_sistema?: boolean;          // Rechazado si ambito = NACIONAL
   info_adicional?: string;
   // Torneo / Seminario
   disciplina?: string;                   // KENDO | IAIDO | JODO
@@ -182,7 +200,7 @@ class CreateEventoDto {
   inscripcion_multiple?: boolean;
   // Examen
   disciplinas?: string[];                // ["KENDO", "IAIDO"]
-  graduaciones_a_rendir?: string[];      // ["KYU_3", "DAN_1"]
+  graduaciones_a_rendir?: RangoExamenDto[];  // [{ disciplina, grad_min, grad_max }]
 }
 ```
 
@@ -192,10 +210,16 @@ class CreateEventoDto {
 
 ```typescript
 class InscribirEventoDto {
-  categorias?: string[];  // Array de nombres de categorías o graduaciones
-  disciplinas?: string[]; // Solo para exámenes
+  categorias?: string[];  // Array de nombres de categorías (TORNEO/SEMINARIO)
+  disciplinas?: string[]; // Solo para exámenes — el backend auto-computa categorias
 }
 ```
+
+**Nota para exámenes:** El frontend envía solo `disciplinas`. El backend llama a `computeCategoriasExamen()` que:
+1. Obtiene la graduación actual del usuario en cada disciplina.
+2. Calcula la graduación siguiente (`computeSiguienteGraduacion`).
+3. Verifica que esté dentro del rango definido por el admin (`graduaciones_a_rendir`).
+4. Retorna el array de graduaciones computadas que se almacena en `categoria_grad`.
 
 ## 6. Categorías por Defecto
 
@@ -250,8 +274,13 @@ Las categorías "Equipos Junior", "Equipos Femenino" y "Equipos Masculino" se in
 - [x] 106 tests E2E totales en el proyecto.
 - [x] Precios globales de exámenes (PrecioExamen) con CRUD exclusivo para ADMIN_GENERAL.
 - [x] Validación tipo-dependiente al crear/editar eventos (TORNEO ≠ EXAMEN ≠ SEMINARIO).
-- [x] Exámenes: disciplinas múltiples, graduaciones a rendir, costo variable por graduación.
+- [x] Exámenes: disciplinas múltiples, rangos de graduaciones por disciplina, costo variable por graduación.
 - [x] Seminarios: disciplina única, costo fijo, sin categorías.
 - [x] Inscripción múltiple solo disponible para Torneos.
-- [x] UI de inscripción en Examen muestra checkboxes de graduaciones con costo unitario + total.
+- [x] UI de creación de Examen usa rangos por disciplina (Desde / Hasta) en lugar de checkboxes planos.
+- [x] Exámenes son siempre ámbito NACIONAL (backend force + frontend bloqueado).
+- [x] Eventos nacionales no permiten `pago_fuera_sistema`.
+- [x] Al inscribirse en Examen, el usuario selecciona disciplinas y el backend auto-computa la graduación siguiente.
+- [x] El frontend informa al usuario qué graduación va a rendir antes de inscribir.
+- [x] Se validan requisitos de edad, graduación previa y tiempo de espera por disciplina.
 - [x] Mensajes de error en español formal (Usted).

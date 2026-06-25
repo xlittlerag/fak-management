@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
+import { useAuth } from '../context/AuthContext';
 import type { CategoriaDef } from '../types';
 
 interface Evento {
@@ -18,7 +19,7 @@ interface Evento {
   };
   examen?: {
     disciplinas: string[];
-    graduaciones_a_rendir: string[];
+    graduaciones_a_rendir: Array<{ disciplina: string; grad_min: string; grad_max: string }>;
     info_adicional?: string;
   };
   seminario?: {
@@ -47,7 +48,21 @@ const DISCIPLINA_LABELS: Record<string, string> = {
   KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo',
 };
 
+const GRAD_RANK: Record<string, number> = {
+  SIN_GRADUACION: 0, KYU_3: 1, KYU_2: 2, KYU_1: 3,
+  DAN_1: 4, DAN_2: 5, DAN_3: 6, DAN_4: 7,
+  DAN_5: 8, DAN_6: 9, DAN_7: 10, DAN_8: 11,
+};
+
+function computeNextGrad(currentGrad: string): string | null {
+  const rank = GRAD_RANK[currentGrad];
+  if (rank === undefined) return null;
+  const next = Object.entries(GRAD_RANK).find(([_, r]) => r === rank + 1);
+  return next ? next[0] : null;
+}
+
 export default function EventosDashboard() {
+  const { user } = useAuth();
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [preciosExamen, setPreciosExamen] = useState<Record<string, { inscripcion: number; registro: number }>>({});
@@ -82,11 +97,15 @@ export default function EventosDashboard() {
     setInscribiendo(prev => ({ ...prev, [eventoId]: true }));
     setError('');
     try {
-      const cats = categorias[eventoId] || [];
+      const evento = eventos.find(e => e.id === eventoId);
       const body: Record<string, any> = {};
-      if (cats.length > 0) body.categorias = cats;
-      const disc = selectedDisciplinas[eventoId];
-      if (disc?.length) body.disciplinas = disc;
+      if (evento?.tipo === 'EXAMEN') {
+        const disc = selectedDisciplinas[eventoId];
+        if (disc?.length) body.disciplinas = disc;
+      } else {
+        const cats = categorias[eventoId] || [];
+        if (cats.length > 0) body.categorias = cats;
+      }
       const res = await api.post(`/eventos/${eventoId}/inscribir`, body);
       setInscripciones(prev => [...prev, res.data]);
     } catch (err) {
@@ -159,7 +178,7 @@ export default function EventosDashboard() {
             const costo = evento.torneo?.costo_inscripcion ?? evento.seminario?.costo_inscripcion ?? 0;
             const infoExtra = evento.torneo?.info_adicional ?? evento.examen?.info_adicional ?? evento.seminario?.info_adicional ?? '';
             const disciplinas: string[] = evento.examen?.disciplinas || [];
-            const gradRendir: string[] = evento.examen?.graduaciones_a_rendir || [];
+            const rangosExamen: Array<{ disciplina: string; grad_min: string; grad_max: string }> = evento.examen?.graduaciones_a_rendir || [];
 
             return (
               <div key={evento.id} class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
@@ -250,15 +269,28 @@ export default function EventosDashboard() {
                     )}
 
                     {evento.tipo === 'EXAMEN' && (
-                      <>
-                        <div>
-                          <label class="block text-sm text-slate-600 mb-2">Disciplinas</label>
-                          <div class="space-y-1">
-                            {disciplinas.map((d: string) => {
-                              const selected = (selectedDisciplinas[evento.id] || []).includes(d);
-                              return (
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                      <div>
+                        <label class="block text-sm text-slate-600 mb-2">
+                          Disciplinas a rendir
+                          <span class="text-xs text-slate-400 ml-1">(seleccione una o más)</span>
+                        </label>
+                        <div class="space-y-2">
+                          {disciplinas.map((d: string) => {
+                            const selected = (selectedDisciplinas[evento.id] || []).includes(d);
+                            const gradKey = `grad_${d.toLowerCase()}` as 'grad_kendo' | 'grad_iaido' | 'grad_jodo';
+                            const userGrad = user?.[gradKey] || 'SIN_GRADUACION';
+                            const nextGrad = computeNextGrad(userGrad);
+                            const rango = rangosExamen.find(r => r.disciplina === d);
+                            const costoGrad = nextGrad ? preciosExamen[nextGrad] : undefined;
+                            const enRango = nextGrad && rango
+                              ? (GRAD_RANK[nextGrad] >= GRAD_RANK[rango.grad_min] && GRAD_RANK[nextGrad] <= GRAD_RANK[rango.grad_max])
+                              : false;
+
+                            return (
+                              <div class={`border rounded-lg p-3 ${selected ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                                <label class="flex items-start gap-3 cursor-pointer">
                                   <input type="checkbox" checked={selected}
+                                    disabled={!enRango}
                                     onChange={() => {
                                       const prev = selectedDisciplinas[evento.id] || [];
                                       if (selected) {
@@ -267,46 +299,40 @@ export default function EventosDashboard() {
                                         setSelectedDisciplinas(prev2 => ({ ...prev2, [evento.id]: [...prev, d] }));
                                       }
                                     }}
-                                  />
-                                  {DISCIPLINA_LABELS[d] || d}
+                                    class="w-4 h-4 mt-0.5 disabled:opacity-40" />
+                                  <div class="flex-1">
+                                    <p class="text-sm font-medium text-slate-800">{DISCIPLINA_LABELS[d] || d}</p>
+                                    {nextGrad && enRango && (
+                                      <div class="mt-1">
+                                        <p class="text-xs text-slate-600">
+                                          Se va a inscribir para rendir: <span class="font-semibold text-slate-800">{GRAD_LABELS[nextGrad] || nextGrad}</span>
+                                          {costoGrad !== undefined && <span class="text-slate-400"> (${costoGrad.inscripcion.toLocaleString('es-AR')})</span>}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {nextGrad && !enRango && (
+                                      <p class="text-xs text-amber-600 mt-1">No disponible</p>
+                                    )}
+                                    {!nextGrad && (
+                                      <p class="text-xs text-amber-600 mt-1">Máxima graduación alcanzada</p>
+                                    )}
+                                  </div>
                                 </label>
-                              );
-                            })}
-                          </div>
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div>
-                          <label class="block text-sm text-slate-600 mb-2">Graduaciones a rendir</label>
-                          <div class="space-y-1">
-                            {gradRendir.map((g: string) => {
-                              const selected = (categorias[evento.id] || []).includes(g);
-                              const costoGrad = preciosExamen[g]?.inscripcion;
-                              return (
-                                <label class="flex items-center gap-2 text-sm cursor-pointer">
-                                  <input type="checkbox" checked={selected}
-                                    onChange={() => {
-                                      const prev = categorias[evento.id] || [];
-                                      if (selected) {
-                                        setCategorias(prev2 => ({ ...prev2, [evento.id]: prev.filter((n: string) => n !== g) }));
-                                      } else {
-                                        setCategorias(prev2 => ({ ...prev2, [evento.id]: [...prev, g] }));
-                                      }
-                                    }}
-                                  />
-                                  <span>{GRAD_LABELS[g] || g}</span>
-                                  {costoGrad !== undefined && (
-                                    <span class="text-xs text-slate-400">(${costoGrad.toLocaleString('es-AR')})</span>
-                                  )}
-                                </label>
-                              );
-                            })}
-                          </div>
-                          {(categorias[evento.id] || []).length > 0 && (
-                            <p class="text-sm font-medium text-slate-700 mt-2">
-                              Total: ${(categorias[evento.id] || []).reduce((sum, g) => sum + ((preciosExamen[g]?.inscripcion) || 0), 0).toLocaleString('es-AR')}
-                            </p>
-                          )}
-                        </div>
-                      </>
+                        {(selectedDisciplinas[evento.id] || []).length > 0 && (
+                          <p class="text-sm font-medium text-slate-700 mt-2">
+                            Total: ${(selectedDisciplinas[evento.id] || []).reduce((sum, d) => {
+                              const gradKey = `grad_${d.toLowerCase()}` as 'grad_kendo' | 'grad_iaido' | 'grad_jodo';
+                              const userGrad = user?.[gradKey] || 'SIN_GRADUACION';
+                              const nextGrad = computeNextGrad(userGrad);
+                              return sum + ((nextGrad && preciosExamen[nextGrad]?.inscripcion) || 0);
+                            }, 0).toLocaleString('es-AR')}
+                          </p>
+                        )}
+                      </div>
                     )}
 
                     <button

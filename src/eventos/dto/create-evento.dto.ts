@@ -1,4 +1,5 @@
-import { IsString, IsDateString, IsObject, IsOptional, IsNumber, Min, IsArray, IsBoolean } from 'class-validator';
+import { IsString, IsDateString, IsObject, IsOptional, IsNumber, Min, IsArray, IsBoolean, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class CategoriaDto {
   @IsString()
@@ -23,6 +24,17 @@ export class CategoriaDto {
   @IsOptional()
   @IsNumber()
   edad_max?: number;
+}
+
+export class RangoExamenDto {
+  @IsString()
+  disciplina: string;
+
+  @IsString()
+  grad_min: string;
+
+  @IsString()
+  grad_max: string;
 }
 
 export class CreateEventoDto {
@@ -82,8 +94,9 @@ export class CreateEventoDto {
 
   @IsOptional()
   @IsArray()
-  @IsString({ each: true })
-  graduaciones_a_rendir?: string[];
+  @ValidateNested({ each: true })
+  @Type(() => RangoExamenDto)
+  graduaciones_a_rendir?: RangoExamenDto[];
 
   @IsOptional()
   @IsString()

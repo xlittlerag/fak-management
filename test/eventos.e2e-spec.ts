@@ -117,7 +117,7 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo Central', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_1'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
         });
 
       const response = await request(app.getHttpServer())
@@ -126,6 +126,7 @@ describe('Eventos (e2e)', () => {
 
       expect(response.body.tipo).toBe('EXAMEN');
       expect(response.body.examen.disciplinas).toEqual(['KENDO']);
+      expect(response.body.examen.graduaciones_a_rendir).toEqual([{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]);
     });
 
     it('debería retornar 404 si el evento no existe', async () => {
@@ -318,7 +319,7 @@ describe('Eventos (e2e)', () => {
   });
 
   describe('Validación de requisitos de examen', () => {
-    it('debería inscribir en KYU_3 sin requisito previo', async () => {
+    it('debería inscribir auto-computando KYU_3 desde SIN_GRADUACION', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'SIN_GRADUACION' });
 
@@ -331,20 +332,20 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_3'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
         });
 
       const res = await request(app.getHttpServer())
         .post(`/api/eventos/${evento.body.id}/inscribir`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ categorias: ['KYU_3'], disciplinas: ['KENDO'] })
+        .send({ disciplinas: ['KENDO'] })
         .expect(200);
 
       expect(res.body.disciplinas).toEqual(['KENDO']);
       expect(res.body.categorias).toEqual(['KYU_3']);
     });
 
-    it('debería rechazar inscripción si el usuario no tiene la graduación previa requerida', async () => {
+    it('debería rechazar si la graduación siguiente no está en el rango del examen', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'SIN_GRADUACION' });
 
@@ -357,17 +358,18 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_2'],
+          // Solo KYU_2 en adelante, pero SIN_GRADUACION → siguiente es KYU_3 (no en rango)
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_2', grad_max: 'DAN_8' }],
         });
 
       await request(app.getHttpServer())
         .post(`/api/eventos/${evento.body.id}/inscribir`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ categorias: ['KYU_2'], disciplinas: ['KENDO'] })
-        .expect(403);
+        .send({ disciplinas: ['KENDO'] })
+        .expect(400);
     });
 
-    it('debería rechazar inscripción si no se alcanzó el tiempo de espera mínimo', async () => {
+    it('debería rechazar si no se alcanzó el tiempo de espera mínimo', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const fechaReciente = new Date();
       fechaReciente.setMonth(fechaReciente.getMonth() - 1); // hace 1 mes
@@ -386,18 +388,19 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['DAN_1'],
+          // KYU_1 → siguiente es DAN_1 (en rango)
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' }],
         });
 
       // DAN_1 requires 6 months after KYU_1, user only has 1 month
       await request(app.getHttpServer())
         .post(`/api/eventos/${evento.body.id}/inscribir`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ categorias: ['DAN_1'], disciplinas: ['KENDO'] })
+        .send({ disciplinas: ['KENDO'] })
         .expect(403);
     });
 
-    it('debería rechazar inscripción si el usuario no cumple la edad mínima', async () => {
+    it('debería rechazar si el usuario no cumple la edad mínima', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const fechaNac = new Date();
       fechaNac.setFullYear(fechaNac.getFullYear() - 12); // 12 años
@@ -417,14 +420,14 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['DAN_1'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' }],
         });
 
       // DAN_1 requires at least 13 years old
       await request(app.getHttpServer())
         .post(`/api/eventos/${evento.body.id}/inscribir`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ categorias: ['DAN_1'], disciplinas: ['KENDO'] })
+        .send({ disciplinas: ['KENDO'] })
         .expect(403);
     });
 
@@ -441,13 +444,13 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_3'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
         });
 
       await request(app.getHttpServer())
         .post(`/api/eventos/${evento.body.id}/inscribir`)
         .set('Authorization', `Bearer ${token}`)
-        .send({ categorias: ['KYU_3'] })
+        .send({})
         .expect(400);
     });
   });
@@ -635,11 +638,17 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo Central', provincia: 'CABA' },
           disciplinas: ['KENDO', 'IAIDO'],
-          graduaciones_a_rendir: ['KYU_1', 'DAN_1'],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' },
+            { disciplina: 'IAIDO', grad_min: 'KYU_1', grad_max: 'DAN_2' },
+          ],
         })
         .expect(201);
       expect(res.body.examen.disciplinas).toEqual(['KENDO', 'IAIDO']);
-      expect(res.body.examen.graduaciones_a_rendir).toEqual(['KYU_1', 'DAN_1']);
+      expect(res.body.examen.graduaciones_a_rendir).toEqual([
+        { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' },
+        { disciplina: 'IAIDO', grad_min: 'KYU_1', grad_max: 'DAN_2' },
+      ]);
     });
 
     it('debería rechazar examen sin disciplinas', async () => {
@@ -652,7 +661,7 @@ describe('Eventos (e2e)', () => {
           fecha_inicio: '2026-12-01T09:00:00Z',
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
-          graduaciones_a_rendir: ['KYU_1'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
         })
         .expect(400);
     });
@@ -668,7 +677,7 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_1'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
           costo_inscripcion: 5000,
         })
         .expect(400);
@@ -702,8 +711,44 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: ['KYU_1'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
           inscripcion_multiple: true,
+        })
+        .expect(400);
+    });
+
+    it('debería forzar ámbito NACIONAL para exámenes', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const res = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'EXAMEN',
+          fecha_inicio: '2026-12-01T09:00:00Z',
+          fecha_fin: '2026-12-01T18:00:00Z',
+          datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
+          disciplinas: ['KENDO'],
+          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          ambito: 'REGIONAL',
+        })
+        .expect(201);
+      expect(res.body.ambito).toBe('NACIONAL');
+    });
+
+    it('debería rechazar pago fuera del sistema para eventos nacionales', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'TORNEO',
+          ambito: 'NACIONAL',
+          fecha_inicio: '2026-12-01T09:00:00Z',
+          fecha_fin: '2026-12-01T18:00:00Z',
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          disciplina: 'KENDO',
+          costo_inscripcion: 5000,
+          pago_fuera_sistema: true,
         })
         .expect(400);
     });

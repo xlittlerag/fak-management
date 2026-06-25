@@ -4,7 +4,7 @@ import { EstadoSolicitud, EstadoRegistro, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { PreciosExamenService } from '../precios-examen/precios-examen.service';
-import { CreateEventoDto } from './dto/create-evento.dto';
+import { CreateEventoDto, RangoExamenDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
 import { REQUISITOS_EXAMEN } from './config/requisitos-examen';
@@ -61,7 +61,10 @@ export class EventosService {
   }
 
   async create(dto: CreateEventoDto, user?: AuthUser) {
-    const ambito = dto.ambito ?? 'REGIONAL';
+    let ambito = dto.ambito ?? 'REGIONAL';
+    if (dto.tipo === 'EXAMEN') {
+      ambito = 'NACIONAL';
+    }
 
     if (user?.rol === 'ADMIN_ASOCIACION') {
       if (dto.tipo === 'EXAMEN') {
@@ -72,7 +75,7 @@ export class EventosService {
       }
     }
 
-    this.validarDatosPorTipo(dto);
+    this.validarDatosPorTipo(dto, ambito);
 
     const creadorId = user?.rol === 'ADMIN_ASOCIACION' ? user.id : undefined;
 
@@ -144,7 +147,8 @@ export class EventosService {
 
     const tipo = dto.tipo ?? evento.tipo;
     const mergedDto = { ...dto, tipo } as CreateEventoDto;
-    this.validarDatosPorTipo(mergedDto);
+    const updateAmbito = ambito;
+    this.validarDatosPorTipo(mergedDto, updateAmbito);
 
     const data: Prisma.EventoUpdateInput = {};
     if (dto.tipo !== undefined) data.tipo = dto.tipo;
@@ -220,19 +224,22 @@ export class EventosService {
       throw new ConflictException('Ya se encuentra inscripto en este evento');
     }
 
-    const categoriasArray = dto?.categorias?.length ? dto.categorias : [this.guessCategoria(evento.tipo, usuario)];
-
-    const sub = evento.torneo ?? evento.examen ?? evento.seminario;
-    if (!sub) {
-      throw new BadRequestException('El evento no tiene datos de inscripción configurados');
-    }
-    this.validarCategorias(evento.tipo, sub, usuario, categoriasArray);
+    let categoriasArray = dto?.categorias?.length ? dto.categorias : [this.guessCategoria(evento.tipo, usuario)];
 
     if (evento.tipo === 'EXAMEN') {
       if (!dto?.disciplinas?.length) {
         throw new BadRequestException('Debe seleccionar al menos una disciplina para rendir');
       }
-      this.validarRequisitosExamen(dto.disciplinas, categoriasArray, usuario);
+      categoriasArray = this.computeCategoriasExamen(dto.disciplinas, evento.examen, usuario);
+      for (let i = 0; i < dto.disciplinas.length; i++) {
+        this.validarRequisitoExamen(dto.disciplinas[i], categoriasArray[i], usuario);
+      }
+    } else {
+      const sub = evento.torneo ?? evento.seminario;
+      if (!sub) {
+        throw new BadRequestException('El evento no tiene datos de inscripción configurados');
+      }
+      this.validarCategorias(evento.tipo, sub, usuario, categoriasArray);
     }
 
     const inscripcion = await this.prisma.inscripcionEvento.create({
@@ -341,7 +348,7 @@ export class EventosService {
   async editarInscripcion(inscripcionId: number, usuarioId: number, dto: InscribirEventoDto) {
     const inscripcion = await this.prisma.inscripcionEvento.findUnique({
       where: { id: inscripcionId },
-      include: { evento: { include: { torneo: true } } },
+      include: { evento: { include: { torneo: true, examen: true } } },
     });
 
     if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
@@ -358,8 +365,18 @@ export class EventosService {
     }
 
     const data: Prisma.InscripcionEventoUpdateInput = {};
-    if (dto.categorias !== undefined) data.categoria_grad = dto.categorias as Prisma.InputJsonValue;
-    if (dto.disciplinas !== undefined) data.disciplinas = dto.disciplinas as Prisma.InputJsonValue;
+
+    if (inscripcion.evento.tipo === 'EXAMEN' && dto.disciplinas) {
+      const usuario = await this.prisma.usuario.findUnique({ where: { id: usuarioId } });
+      if (!usuario) throw new NotFoundException('Usuario no encontrado');
+      const computedCategorias = this.computeCategoriasExamen(dto.disciplinas, inscripcion.evento.examen, usuario);
+      data.categoria_grad = computedCategorias as Prisma.InputJsonValue;
+      data.disciplinas = dto.disciplinas as Prisma.InputJsonValue;
+    } else {
+      if (dto.categorias !== undefined) data.categoria_grad = dto.categorias as Prisma.InputJsonValue;
+      if (dto.disciplinas !== undefined) data.disciplinas = dto.disciplinas as Prisma.InputJsonValue;
+    }
+
     if (dto.necesidades_especiales !== undefined) data.necesidades_especiales = dto.necesidades_especiales;
     if (dto.descripcion_necesidades !== undefined) data.descripcion_necesidades = dto.descripcion_necesidades;
     if (dto.archivo_medico_url !== undefined) data.archivo_medico_url = dto.archivo_medico_url;
@@ -519,14 +536,22 @@ export class EventosService {
     }
   }
 
-  private validarDatosPorTipo(dto: CreateEventoDto) {
+  private validarDatosPorTipo(dto: CreateEventoDto, ambitoOverride?: string) {
     const tipo = dto.tipo;
+    const ambito = ambitoOverride ?? dto.ambito ?? 'REGIONAL';
+
+    if (ambito === 'NACIONAL' && dto.pago_fuera_sistema) {
+      throw new BadRequestException('Los eventos nacionales no permiten pago fuera del sistema');
+    }
 
     if (tipo === 'TORNEO') {
       return;
     }
 
     if (tipo === 'EXAMEN') {
+      if (ambito !== 'NACIONAL') {
+        throw new BadRequestException('Los exámenes deben ser de ámbito nacional');
+      }
       if (dto.inscripcion_multiple) {
         throw new BadRequestException('La inscripción múltiple no aplica para exámenes');
       }
@@ -539,11 +564,20 @@ export class EventosService {
         }
       }
       if (!dto.graduaciones_a_rendir || !Array.isArray(dto.graduaciones_a_rendir) || dto.graduaciones_a_rendir.length === 0) {
-        throw new BadRequestException('Debe especificar al menos una graduación a rendir');
+        throw new BadRequestException('Debe especificar al menos un rango de graduaciones a rendir');
       }
-      for (const g of dto.graduaciones_a_rendir) {
-        if (!GRAD_EXAMEN_VALIDAS.includes(g)) {
-          throw new BadRequestException(`Graduación inválida: "${g}". Las opciones son: ${GRAD_EXAMEN_VALIDAS.join(', ')}`);
+      for (const r of dto.graduaciones_a_rendir) {
+        if (!VALID_DISCIPLINAS.includes(r.disciplina)) {
+          throw new BadRequestException(`Disciplina inválida en rango: "${r.disciplina}"`);
+        }
+        if (!GRAD_EXAMEN_VALIDAS.includes(r.grad_min)) {
+          throw new BadRequestException(`Graduación mínima inválida: "${r.grad_min}"`);
+        }
+        if (!GRAD_EXAMEN_VALIDAS.includes(r.grad_max)) {
+          throw new BadRequestException(`Graduación máxima inválida: "${r.grad_max}"`);
+        }
+        if (rankGrad(r.grad_min) > rankGrad(r.grad_max)) {
+          throw new BadRequestException(`El rango de graduaciones para ${r.disciplina} es inválido: ${r.grad_min} > ${r.grad_max}`);
         }
       }
       if (dto.costo_inscripcion !== undefined) {
@@ -553,7 +587,7 @@ export class EventosService {
         throw new BadRequestException('Los exámenes no utilizan categorías');
       }
       if (dto.grad_min || dto.grad_max) {
-        throw new BadRequestException('Los exámenes utilizan graduaciones a rendir en lugar de rango de graduación');
+        throw new BadRequestException('Los exámenes utilizan rangos de graduaciones por disciplina en lugar de rango de graduación general');
       }
       return;
     }
@@ -594,54 +628,95 @@ export class EventosService {
     return inscripcion.evento.torneo?.costo_inscripcion ?? inscripcion.evento.seminario?.costo_inscripcion ?? 0;
   }
 
-  private validarRequisitosExamen(
-    disciplinas: string[],
-    graduaciones: string[],
+  private validarRequisitoExamen(
+    disciplina: string,
+    targetGrad: string,
     usuario: Prisma.UsuarioGetPayload<{ select: { fecha_nacimiento: true; sexo: true; grad_kendo: true; f_grad_kendo: true; grad_iaido: true; f_grad_iaido: true; grad_jodo: true; f_grad_jodo: true } }>,
   ) {
     const fechaNac = new Date(usuario.fecha_nacimiento);
     const edad = this.calcularEdad(fechaNac);
+    const gradKey = `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
+    const fGradKey = `f_grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
+    const userGrad = usuario[gradKey] as string;
 
-    for (const disco of disciplinas) {
-      const gradKey = `grad_${disco.toLowerCase()}` as keyof typeof usuario;
-      const fGradKey = `f_grad_${disco.toLowerCase()}` as keyof typeof usuario;
-      const userGrad = usuario[gradKey] as string;
+    const req = REQUISITOS_EXAMEN[targetGrad];
+    if (!req) return;
 
-      for (const targetGrad of graduaciones) {
-        const req = REQUISITOS_EXAMEN[targetGrad];
-        if (!req) continue;
+    if (req.edadMin !== undefined && edad < req.edadMin) {
+      throw new ForbiddenException(
+        `Para rendir ${targetGrad} se requiere edad mínima de ${req.edadMin} años`,
+      );
+    }
 
-        if (req.edadMin !== undefined && edad < req.edadMin) {
-          throw new ForbiddenException(
-            `Para rendir ${targetGrad} se requiere edad mínima de ${req.edadMin} años`,
-          );
-        }
+    if (req.graduacionPrevia) {
+      if (userGrad !== req.graduacionPrevia) {
+        throw new ForbiddenException(
+          `Para rendir ${targetGrad} debe tener ${req.graduacionPrevia} aprobado en ${disciplina}`,
+        );
+      }
 
-        if (req.graduacionPrevia) {
-          if (userGrad !== req.graduacionPrevia) {
-            throw new ForbiddenException(
-              `Para rendir ${targetGrad} debe tener ${req.graduacionPrevia} aprobado en ${disco}`,
-            );
-          }
+      const userFGrad = usuario[fGradKey] as Date | null;
+      if (!userFGrad) {
+        throw new ForbiddenException(
+          `No tiene registro de fecha de obtención de ${userGrad} en ${disciplina}`,
+        );
+      }
 
-          const userFGrad = usuario[fGradKey] as Date | null;
-          if (!userFGrad) {
-            throw new ForbiddenException(
-              `No tiene registro de fecha de obtención de ${userGrad} en ${disco}`,
-            );
-          }
-
-          const fechaMinima = new Date(userFGrad);
-          fechaMinima.setMonth(fechaMinima.getMonth() + req.mesesEspera);
-          if (new Date() < fechaMinima) {
-            const restan = this.diasEntre(new Date(), fechaMinima);
-            throw new ForbiddenException(
-              `Deben transcurrir al menos ${req.mesesEspera} meses desde la obtención de ${req.graduacionPrevia} en ${disco} para rendir ${targetGrad} (faltan ${restan} días)`,
-            );
-          }
-        }
+      const fechaMinima = new Date(userFGrad);
+      fechaMinima.setMonth(fechaMinima.getMonth() + req.mesesEspera);
+      if (new Date() < fechaMinima) {
+        const restan = this.diasEntre(new Date(), fechaMinima);
+        throw new ForbiddenException(
+          `Deben transcurrir al menos ${req.mesesEspera} meses desde la obtención de ${req.graduacionPrevia} en ${disciplina} para rendir ${targetGrad} (faltan ${restan} días)`,
+        );
       }
     }
+  }
+
+  private computeSiguienteGraduacion(currentGrad: string): string | null {
+    const currentRank = rankGrad(currentGrad);
+    if (currentRank === -1) return null;
+    const entry = Object.entries(GraduacionRank).find(([_, r]) => r === currentRank + 1);
+    return entry ? entry[0] : null;
+  }
+
+  private computeCategoriasExamen(
+    disciplinas: string[],
+    examen: object | null,
+    usuario: Prisma.UsuarioGetPayload<{ select: { fecha_nacimiento: true; sexo: true; grad_kendo: true; f_grad_kendo: true; grad_iaido: true; f_grad_iaido: true; grad_jodo: true; f_grad_jodo: true } }>,
+  ): string[] {
+    if (!examen) {
+      throw new BadRequestException('El examen no tiene datos configurados');
+    }
+    const exam = examen as { graduaciones_a_rendir: unknown };
+    const rangos = exam.graduaciones_a_rendir as Array<{ disciplina: string; grad_min: string; grad_max: string }> | null;
+    if (!rangos || !Array.isArray(rangos) || rangos.length === 0) {
+      throw new BadRequestException('El examen no tiene graduaciones configuradas');
+    }
+
+    const categorias: string[] = [];
+    for (const disco of disciplinas) {
+      const rango = rangos.find(r => r.disciplina === disco);
+      if (!rango) {
+        throw new BadRequestException(`La disciplina "${disco}" no está disponible en este examen`);
+      }
+
+      const gradKey = `grad_${disco.toLowerCase()}` as keyof typeof usuario;
+      const userGrad = usuario[gradKey] as string;
+
+      const nextGrad = this.computeSiguienteGraduacion(userGrad);
+      if (!nextGrad) {
+        throw new BadRequestException(`Usted ya ha alcanzado la máxima graduación en ${disco}`);
+      }
+
+      if (rankGrad(nextGrad) < rankGrad(rango.grad_min) || rankGrad(nextGrad) > rankGrad(rango.grad_max)) {
+        throw new BadRequestException(`La graduación "${nextGrad}" no está disponible para ${disco} en este examen (rango: ${rango.grad_min} - ${rango.grad_max})`);
+      }
+
+      categorias.push(nextGrad);
+    }
+
+    return categorias;
   }
 
   private validarCategorias(
@@ -651,10 +726,20 @@ export class EventosService {
     categoriasArray: string[],
   ) {
     if (tipo === 'EXAMEN') {
-      const exam = sub as { graduaciones_a_rendir: unknown };
-      const grads = exam.graduaciones_a_rendir as string[] | null;
+      const exam = sub as { graduaciones_a_rendir: unknown; disciplinas: unknown };
+      const rangos = exam.graduaciones_a_rendir as Array<{ disciplina: string; grad_min: string; grad_max: string }> | null;
+      const disc = exam.disciplinas as string[] | null;
+      if (!rangos || !disc) {
+        throw new BadRequestException('El examen no tiene configuradas las graduaciones a rendir');
+      }
       for (const cat of categoriasArray) {
-        if (!grads?.includes(cat)) {
+        // Check if the graduation falls within any of the defined ranges for its disciplina
+        const inRange = rangos.some(r =>
+          disc.includes(r.disciplina) &&
+          rankGrad(cat) >= rankGrad(r.grad_min) &&
+          rankGrad(cat) <= rankGrad(r.grad_max)
+        );
+        if (!inRange) {
           throw new BadRequestException(`La graduación "${cat}" no está disponible en este examen`);
         }
       }
@@ -738,9 +823,9 @@ export class EventosService {
     }
   }
 
-  private guessCategoria(tipo: string, usuario: { grad_kendo?: string | null }): string {
+  private guessCategoria(tipo: string, _usuario: { grad_kendo?: string | null }): string {
     if (tipo === 'EXAMEN') {
-      return `Examen ${usuario.grad_kendo || 'SIN_GRADUACION'}`;
+      return 'KYU_3';
     }
     return 'General';
   }

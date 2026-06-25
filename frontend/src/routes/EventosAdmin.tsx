@@ -55,6 +55,12 @@ const DISCIPLINAS = [
   { value: 'JODO', label: 'Jodo' },
 ];
 
+interface RangoExamen {
+  disciplina: string;
+  grad_min: string;
+  grad_max: string;
+}
+
 function emptyCategoria(): Categoria {
   return { nombre: '', grad_min: '', grad_max: '', genero: '', edad_min: undefined, edad_max: undefined };
 }
@@ -86,7 +92,9 @@ export default function EventosAdmin() {
   });
   const [categorias, setCategorias] = useState<Categoria[]>([emptyCategoria()]);
   const [selectedDisciplinas, setSelectedDisciplinas] = useState<string[]>(['KENDO']);
-  const [selectedGradExamen, setSelectedGradExamen] = useState<string[]>([]);
+  const [rangosExamen, setRangosExamen] = useState<RangoExamen[]>([
+    { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+  ]);
 
   const isFormOpen = editing !== undefined;
 
@@ -103,6 +111,21 @@ export default function EventosAdmin() {
 
   useEffect(() => { fetchEventos(); }, []);
 
+  useEffect(() => {
+    if (form.tipo === 'EXAMEN') {
+      setForm(prev => ({ ...prev, ambito: 'NACIONAL', pago_fuera_sistema: false }));
+    }
+  }, [form.tipo]);
+
+  useEffect(() => {
+    setRangosExamen(prev => {
+      const kept = prev.filter(r => selectedDisciplinas.includes(r.disciplina));
+      const newDiscs = selectedDisciplinas.filter(d => !kept.find(r => r.disciplina === d));
+      if (newDiscs.length === 0) return kept;
+      return [...kept, ...newDiscs.map(d => ({ disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' }))];
+    });
+  }, [selectedDisciplinas]);
+
   function resetForm() {
     setForm({
       tipo: 'TORNEO', ambito: 'REGIONAL', fecha_inicio: '', fecha_fin: '',
@@ -113,7 +136,7 @@ export default function EventosAdmin() {
     });
     setCategorias([emptyCategoria()]);
     setSelectedDisciplinas(['KENDO']);
-    setSelectedGradExamen([]);
+    setRangosExamen([{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]);
     setFormError('');
   }
 
@@ -147,7 +170,12 @@ export default function EventosAdmin() {
         : [emptyCategoria()],
     );
     setSelectedDisciplinas(ev.examen?.disciplinas || ['KENDO']);
-    setSelectedGradExamen(ev.examen?.graduaciones_a_rendir || []);
+    const examRangos = ev.examen?.graduaciones_a_rendir as RangoExamen[] | undefined;
+    setRangosExamen(
+      Array.isArray(examRangos) && examRangos.length > 0
+        ? examRangos
+        : ev.examen?.disciplinas?.map(d => ({ disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' })) || [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]
+    );
     setFormError('');
     setEditing(ev);
   }
@@ -213,15 +241,15 @@ export default function EventosAdmin() {
 
       if (form.tipo === 'EXAMEN') {
         body.disciplinas = selectedDisciplinas;
-        body.graduaciones_a_rendir = selectedGradExamen;
+        body.graduaciones_a_rendir = rangosExamen;
         if (form.info_adicional) body.info_adicional = form.info_adicional;
 
         if (selectedDisciplinas.length === 0) {
           setFormError('Debe seleccionar al menos una disciplina');
           return;
         }
-        if (selectedGradExamen.length === 0) {
-          setFormError('Debe seleccionar al menos una graduación a rendir');
+        if (rangosExamen.length === 0) {
+          setFormError('Debe seleccionar al menos un rango de graduaciones');
           return;
         }
       }
@@ -372,11 +400,13 @@ export default function EventosAdmin() {
               <select
                 value={form.ambito}
                 onChange={(e: Event) => setForm({...form, ambito: (e.target as HTMLSelectElement).value})}
-                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
+                disabled={form.tipo === 'EXAMEN'}
+                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <option value="REGIONAL">Regional</option>
                 <option value="NACIONAL">Nacional</option>
               </select>
+              {form.tipo === 'EXAMEN' && <p class="text-[10px] text-slate-400 mt-0.5">Los exámenes son siempre nacionales</p>}
             </div>
 
             <div>
@@ -486,8 +516,12 @@ export default function EventosAdmin() {
               <label class="flex items-center gap-2 cursor-pointer">
                 <input type="checkbox" checked={form.pago_fuera_sistema}
                   onChange={(e: Event) => setForm({...form, pago_fuera_sistema: (e.target as HTMLInputElement).checked})}
-                  class="w-4 h-4" />
-                <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Pago fuera del sistema</span>
+                  disabled={form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN'}
+                  class="w-4 h-4 disabled:opacity-40" />
+                <span class={`text-xs font-bold uppercase tracking-wider ${form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN' ? 'text-slate-300' : 'text-slate-500'}`}>
+                  Pago fuera del sistema
+                </span>
+                {(form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN') && <span class="text-[10px] text-slate-400 ml-1">(no disponible para eventos nacionales)</span>}
               </label>
             </div>
 
@@ -549,29 +583,57 @@ export default function EventosAdmin() {
             </div>
           )}
 
-          {/* Graduaciones a rendir para EXAMEN */}
+          {/* Rangos de graduaciones por disciplina para EXAMEN */}
           {form.tipo === 'EXAMEN' && (
-            <div class="mt-4">
-              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Graduaciones a rendir</label>
-              <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                {GRAD_EXAMEN_OPTS.map(g => {
-                  const active = selectedGradExamen.includes(g.value);
-                  return (
-                    <label class="flex items-center gap-2 text-sm cursor-pointer bg-slate-50 border border-slate-200 rounded px-3 py-2 hover:bg-slate-100">
-                      <input type="checkbox" checked={active}
-                        onChange={() => {
-                          if (active) {
-                            setSelectedGradExamen(selectedGradExamen.filter(x => x !== g.value));
-                          } else {
-                            setSelectedGradExamen([...selectedGradExamen, g.value]);
-                          }
+            <div class="mt-4 space-y-4">
+              <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+                Rangos de graduaciones por disciplina
+              </label>
+              {selectedDisciplinas.map(d => {
+                const rango = rangosExamen.find(r => r.disciplina === d) || { disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' };
+                return (
+                  <div key={d} class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                    <span class="text-sm font-semibold text-slate-700 min-w-[60px]">{DISCIPLINAS.find(dd => dd.value === d)?.label || d}</span>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Desde</label>
+                      <select
+                        value={rango.grad_min}
+                        onChange={(e: Event) => {
+                          const val = (e.target as HTMLSelectElement).value;
+                          setRangosExamen(rangosExamen.map(r =>
+                            r.disciplina === d ? { ...r, grad_min: val } : r
+                          ));
                         }}
-                        class="w-4 h-4" />
-                      {g.label}
-                    </label>
-                  );
-                })}
-              </div>
+                        class="text-sm border-slate-300 rounded-md shadow-sm p-1.5"
+                      >
+                        {GRAD_EXAMEN_OPTS.map(g => (
+                          <option key={g.value} value={g.value}>{g.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Hasta</label>
+                      <select
+                        value={rango.grad_max}
+                        onChange={(e: Event) => {
+                          const val = (e.target as HTMLSelectElement).value;
+                          setRangosExamen(rangosExamen.map(r =>
+                            r.disciplina === d ? { ...r, grad_max: val } : r
+                          ));
+                        }}
+                        class="text-sm border-slate-300 rounded-md shadow-sm p-1.5"
+                      >
+                        {GRAD_EXAMEN_OPTS.map(g => (
+                          <option key={g.value} value={g.value}>{g.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                );
+              })}
+              {selectedDisciplinas.length === 0 && (
+                <p class="text-sm text-slate-400">Seleccione al menos una disciplina para configurar los rangos.</p>
+              )}
             </div>
           )}
 

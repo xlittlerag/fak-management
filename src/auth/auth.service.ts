@@ -80,6 +80,9 @@ export class AuthService {
         rol: true,
         asociacion_id: true,
         estado_reg: true,
+        grad_kendo: true,
+        grad_iaido: true,
+        grad_jodo: true,
       },
     });
 
@@ -104,6 +107,9 @@ export class AuthService {
       email: user.email,
       rol: user.rol,
       asociacion_id: user.asociacion_id,
+      grad_kendo: user.grad_kendo,
+      grad_iaido: user.grad_iaido,
+      grad_jodo: user.grad_jodo,
     };
 
     return {

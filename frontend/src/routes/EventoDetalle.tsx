@@ -20,7 +20,7 @@ interface Evento {
   };
   examen?: {
     disciplinas: string[];
-    graduaciones_a_rendir: string[];
+    graduaciones_a_rendir: Array<{ disciplina: string; grad_min: string; grad_max: string }>;
     info_adicional?: string;
   };
   seminario?: {
@@ -47,6 +47,19 @@ const GRAD_LABELS: Record<string, string> = {
 const DISCIPLINA_LABELS: Record<string, string> = {
   KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo',
 };
+
+const GRAD_RANK: Record<string, number> = {
+  SIN_GRADUACION: 0, KYU_3: 1, KYU_2: 2, KYU_1: 3,
+  DAN_1: 4, DAN_2: 5, DAN_3: 6, DAN_4: 7,
+  DAN_5: 8, DAN_6: 9, DAN_7: 10, DAN_8: 11,
+};
+
+function computeNextGrad(currentGrad: string): string | null {
+  const rank = GRAD_RANK[currentGrad];
+  if (rank === undefined) return null;
+  const next = Object.entries(GRAD_RANK).find(([_, r]) => r === rank + 1);
+  return next ? next[0] : null;
+}
 
 export default function EventoDetalle() {
   const { path } = useLocation();
@@ -109,8 +122,11 @@ export default function EventoDetalle() {
         descripcion_necesidades?: string;
         archivo_medico_url?: string;
       } = {};
-      if (categoria.length > 0) body.categorias = categoria;
-      if (evento?.tipo === 'EXAMEN' && selDisciplinas.length > 0) body.disciplinas = selDisciplinas;
+      if (evento?.tipo === 'EXAMEN') {
+        if (selDisciplinas.length > 0) body.disciplinas = selDisciplinas;
+      } else {
+        if (categoria.length > 0) body.categorias = categoria;
+      }
       body.necesidades_especiales = necesidadesEsp;
       if (necesidadesEsp && descNecesidades) body.descripcion_necesidades = descNecesidades;
       if (necesidadesEsp && archivoMedico) body.archivo_medico_url = archivoMedico;
@@ -166,7 +182,7 @@ export default function EventoDetalle() {
   const costo = evento.torneo?.costo_inscripcion ?? evento.seminario?.costo_inscripcion ?? 0;
   const infoExtra = evento.torneo?.info_adicional ?? evento.examen?.info_adicional ?? evento.seminario?.info_adicional ?? '';
   const disciplinas: string[] = evento.examen?.disciplinas || [];
-  const gradRendir: string[] = evento.examen?.graduaciones_a_rendir || [];
+  const rangosExamen: Array<{ disciplina: string; grad_min: string; grad_max: string }> = evento.examen?.graduaciones_a_rendir || [];
   const puedeInscribirse = user && !inscripcion && new Date(evento.fecha_inicio) > new Date();
 
   return (
@@ -234,14 +250,13 @@ export default function EventoDetalle() {
           </div>
         )}
 
-        {evento.tipo === 'EXAMEN' && gradRendir.length > 0 && (
+        {evento.tipo === 'EXAMEN' && rangosExamen.length > 0 && (
           <div>
-            <p class="text-sm text-slate-500 font-medium mb-2">Graduaciones a rendir</p>
+            <p class="text-sm text-slate-500 font-medium mb-2">Graduaciones disponibles</p>
             <div class="flex flex-wrap gap-2">
-              {gradRendir.map(g => (
+              {rangosExamen.map(r => (
                 <span class="px-3 py-1 bg-amber-50 text-amber-700 rounded-full text-xs">
-                  {GRAD_LABELS[g] || g}
-                  {preciosExamen[g] !== undefined && ` ($${preciosExamen[g].inscripcion.toLocaleString('es-AR')})`}
+                  {DISCIPLINA_LABELS[r.disciplina] || r.disciplina}: {GRAD_LABELS[r.grad_min] || r.grad_min} - {GRAD_LABELS[r.grad_max] || r.grad_max}
                 </span>
               ))}
             </div>
@@ -332,15 +347,29 @@ export default function EventoDetalle() {
           )}
 
           {evento.tipo === 'EXAMEN' && (
-            <>
-              <div>
-                <label class="block text-sm text-slate-600 mb-2">Disciplinas</label>
-                <div class="space-y-1">
-                  {disciplinas.map((d: string) => {
-                    const selected = selDisciplinas.includes(d);
-                    return (
-                      <label class="flex items-center gap-2 text-sm cursor-pointer">
+            <div>
+              <label class="block text-sm text-slate-600 mb-2">
+                Disciplinas a rendir
+                <span class="text-xs text-slate-400 ml-1">(seleccione una o más)</span>
+              </label>
+              <div class="space-y-2">
+                {disciplinas.map((d: string) => {
+                  const selected = selDisciplinas.includes(d);
+                  const gradKey = `grad_${d.toLowerCase()}` as keyof typeof user;
+                  const userGrad = (user?.[gradKey] as string) || 'SIN_GRADUACION';
+                  const nextGrad = computeNextGrad(userGrad);
+                  const rango = rangosExamen.find(r => r.disciplina === d);
+
+                  const costoGrad = nextGrad ? preciosExamen[nextGrad] : undefined;
+                  const enRango = nextGrad && rango
+                    ? (GRAD_RANK[nextGrad] >= GRAD_RANK[rango.grad_min] && GRAD_RANK[nextGrad] <= GRAD_RANK[rango.grad_max])
+                    : false;
+
+                  return (
+                    <div class={`border rounded-lg p-3 ${selected ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                      <label class="flex items-start gap-3 cursor-pointer">
                         <input type="checkbox" checked={selected}
+                          disabled={!enRango}
                           onChange={() => {
                             if (selected) {
                               setSelDisciplinas(selDisciplinas.filter((x: string) => x !== d));
@@ -348,53 +377,55 @@ export default function EventoDetalle() {
                               setSelDisciplinas([...selDisciplinas, d]);
                             }
                           }}
-                        />
-                        {DISCIPLINA_LABELS[d] || d}
+                          class="w-4 h-4 mt-0.5 disabled:opacity-40" />
+                        <div class="flex-1">
+                          <p class="text-sm font-medium text-slate-800">{DISCIPLINA_LABELS[d] || d}</p>
+                          {nextGrad && enRango && (
+                            <div class="mt-1">
+                              <p class="text-xs text-slate-600">
+                                Se va a inscribir para rendir: <span class="font-semibold text-slate-800">{GRAD_LABELS[nextGrad] || nextGrad}</span>
+                                {costoGrad && <span class="text-slate-400"> (${costoGrad.inscripcion.toLocaleString('es-AR')})</span>}
+                              </p>
+                              {(costoGrad?.registro ?? 0) > 0 && (
+                                <p class="text-[10px] text-slate-400 mt-0.5">
+                                  En caso de aprobar, deberá abonar ${(costoGrad?.registro ?? 0).toLocaleString('es-AR')} en concepto de registro
+                                </p>
+                              )}
+                            </div>
+                          )}
+                          {nextGrad && !enRango && (
+                            <p class="text-xs text-amber-600 mt-1">No disponible — su graduación siguiente no está dentro del rango de este examen</p>
+                          )}
+                          {!nextGrad && (
+                            <p class="text-xs text-amber-600 mt-1">Ya ha alcanzado la máxima graduación en esta disciplina</p>
+                          )}
+                        </div>
                       </label>
-                    );
-                  })}
-                </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              <div>
-                <label class="block text-sm text-slate-600 mb-2">Graduaciones a rendir</label>
-                <div class="space-y-1">
-                  {gradRendir.map((g: string) => {
-                    const selected = categoria.includes(g);
-                    const costoGrad = preciosExamen[g];
-                    return (
-                      <label class="flex items-center gap-2 text-sm cursor-pointer">
-                        <input type="checkbox" checked={selected}
-                          onChange={() => {
-                            if (selected) {
-                              setCategoria(categoria.filter((n: string) => n !== g));
-                            } else {
-                              setCategoria([...categoria, g]);
-                            }
-                          }}
-                        />
-                        <span>{GRAD_LABELS[g] || g}</span>
-                        {costoGrad !== undefined && (
-                          <span class="text-xs text-slate-400">(${costoGrad.inscripcion.toLocaleString('es-AR')})</span>
-                        )}
-                      </label>
-                    );
-                  })}
-                </div>
-                {categoria.length > 0 && (
-                  <div class="mt-2 space-y-1">
-                    <p class="text-sm font-medium text-slate-700">
-                      Total: ${categoria.reduce((sum, g) => sum + ((preciosExamen[g]?.inscripcion) || 0), 0).toLocaleString('es-AR')}
+              {selDisciplinas.length > 0 && (
+                <div class="mt-3 space-y-1">
+                  <p class="text-sm font-medium text-slate-700">
+                    Total inscripción: ${selDisciplinas.reduce((sum, d) => {
+                      const gradKey = `grad_${d.toLowerCase()}` as keyof typeof user;
+                      const userGrad = (user?.[gradKey] as string) || 'SIN_GRADUACION';
+                      const nextGrad = computeNextGrad(userGrad);
+                      return sum + ((nextGrad && preciosExamen[nextGrad]?.inscripcion) || 0);
+                    }, 0).toLocaleString('es-AR')}
+                  </p>
+                  {selDisciplinas.some(d => {
+                    const gradKey = `grad_${d.toLowerCase()}` as keyof typeof user;
+                    return preciosExamen[computeNextGrad((user?.[gradKey] as string) || 'SIN_GRADUACION') || '']?.registro > 0;
+                  }) && (
+                    <p class="text-xs text-slate-500">
+                      En caso de aprobar, deberá abonar el registro al momento del examen.
                     </p>
-                    {categoria.some(g => preciosExamen[g]?.registro) && (
-                      <p class="text-xs text-slate-500">
-                        En caso de aprobar, deberá abonar ${categoria.reduce((sum, g) => sum + ((preciosExamen[g]?.registro) || 0), 0).toLocaleString('es-AR')} en concepto de registro al momento del examen.
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {evento.tipo === 'EXAMEN' && (
