@@ -405,7 +405,7 @@ export default function EventosAdmin() {
                 onChange={(e: Event) => setForm({...form, tipo: (e.target as HTMLSelectElement).value})}
                 class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
               >
-                {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                {(user?.rol === 'ADMIN_GENERAL' ? TIPOS : TIPOS.filter(t => t !== 'EXAMEN')).map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
