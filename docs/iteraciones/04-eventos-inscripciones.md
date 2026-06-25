@@ -229,7 +229,7 @@ export const CATEGORIAS_TORNEO_DEFAULT = [
 
 Las categorías "Equipos Junior", "Equipos Femenino" y "Equipos Masculino" se incluyen como opciones en el formulario de categorías del torneo. La lógica de registro por equipo/asociación (alta por admin de asociación vs. inscripción individual) está pendiente de definir en una iteración futura.
 
-## 7. Criterios de Aceptación (DoD)
+## 8. Criterios de Aceptación (DoD)
 
 - [x] Admin General puede crear, editar y eliminar eventos.
 - [x] Los eventos en borrador solo son visibles para Admin General.

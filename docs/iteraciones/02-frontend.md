@@ -1,13 +1,15 @@
 # Especificación Técnica - Iteración 2: Frontend Base (Preact)
 
+## 🎯 Objetivo
+
+Construir la interfaz de usuario base con Preact + Vite + Tailwind CSS v4, incluyendo autenticación (login, registro, blanqueo de contraseña), layout administrativo con sidebar dinámico según rol, y vistas básicas (perfil, usuarios pendientes, listado de miembros).
+
 ## 🛠️ Stack del Frontend
 
 - **Bundler:** Vite con el plugin `@preact/preset-vite`.
 - **Lenguaje:** TypeScript.
 - **Enrutador:** `preact-iso`.
 - **Estilos:** Tailwind CSS v4.
-
----
 
 ## 1. Estructura de Archivos
 
@@ -75,3 +77,16 @@ Layout unificado con Sidebar dinámico según rol.
 - Diseño sobrio y administrativo.
 - Tipografía: `font-sans` para legibilidad general y `font-mono` para DNI y códigos.
 - Interactividad: Botones con estados `hover` y `disabled` claros para mejorar la experiencia de usuario.
+
+## 5. Criterios de Aceptación (DoD)
+
+- [x] Login con DNI y contraseña, manejo de errores en español formal.
+- [x] Registro con todos los campos requeridos y selector de provincias.
+- [x] AuthContext global con login, logout, checkAuth.
+- [x] Interceptor HTTP que inyecta JWT y redirige al login en 401.
+- [x] Layout con sidebar dinámico según rol (Admin General vs Admin Asociación vs Usuario).
+- [x] Vista de perfil con edición de datos personales (DNI de solo lectura).
+- [x] Vista de usuarios pendientes con filtro por asociación.
+- [x] Vista de listado de miembros (solo aprobados).
+- [x] Rutas protegidas, redirección inteligente según sesión.
+- [x] Diseño responsive con Tailwind CSS v4.
