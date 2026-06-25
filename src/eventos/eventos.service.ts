@@ -4,6 +4,7 @@ import { EstadoSolicitud, EstadoRegistro, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { PreciosExamenService } from '../precios-examen/precios-examen.service';
+import { FeeConfigService } from '../pagos/fee-config.service';
 import { CreateEventoDto, RangoExamenDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
@@ -50,6 +51,7 @@ export class EventosService {
     private prisma: PrismaService,
     private mercadopagoService: MercadoPagoService,
     private preciosExamenService: PreciosExamenService,
+    private feeConfigService: FeeConfigService,
   ) {}
 
   private get includeSub() {
@@ -200,7 +202,10 @@ export class EventosService {
       throw new ForbiddenException('Su cuenta debe estar aprobada para inscribirse a eventos');
     }
     if (!usuario.estado_pago) {
-      throw new ForbiddenException('Debe tener la cuota federativa al día para inscribirse');
+      const cuota = await this.feeConfigService.getFeeConfig();
+      if (cuota) {
+        throw new ForbiddenException('Debe tener la cuota federativa al día para inscribirse. Contacte al administrador para regularizar su situación.');
+      }
     }
 
     const now = new Date();

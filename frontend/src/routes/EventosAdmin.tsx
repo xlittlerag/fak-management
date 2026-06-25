@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT } from '../constants';
 import { getErrorMessage } from '../lib/error';
+import { useAuth } from '../context/AuthContext';
 
 interface Categoria {
   nombre: string;
@@ -22,6 +23,7 @@ interface Evento {
   publicado: boolean;
   pago_fuera_sistema: boolean;
   archivos_info: string[];
+  creador_id?: number;
   torneo?: {
     disciplina: string;
     costo_inscripcion: number;
@@ -65,7 +67,15 @@ function emptyCategoria(): Categoria {
   return { nombre: '', grad_min: '', grad_max: '', genero: '', edad_min: undefined, edad_max: undefined };
 }
 
+function canEditEvent(evento: Evento, user: { id: number; rol: string } | null): boolean {
+  if (!user) return false;
+  if (user.rol === 'ADMIN_GENERAL') return true;
+  if (user.rol === 'ADMIN_ASOCIACION' && evento.creador_id === user.id) return true;
+  return false;
+}
+
 export default function EventosAdmin() {
+  const { user } = useAuth();
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState('');
@@ -352,14 +362,18 @@ export default function EventosAdmin() {
                     {ev.tipo === 'EXAMEN' ? 'Variable' : `$${(ev.torneo?.costo_inscripcion ?? ev.seminario?.costo_inscripcion ?? 0)}`}
                   </td>
                   <td class="px-4 py-2 text-right space-x-2">
-                    <button onClick={() => openEdit(ev)} class="text-blue-600 hover:underline">Editar</button>
-                    {!ev.publicado && (
-                      <button onClick={() => handlePublicar(ev.id)} class="text-green-600 hover:underline">Publicar</button>
+                    {canEditEvent(ev, user) && (
+                      <>
+                        <button onClick={() => openEdit(ev)} class="text-blue-600 hover:underline">Editar</button>
+                        {!ev.publicado && (
+                          <button onClick={() => handlePublicar(ev.id)} class="text-green-600 hover:underline">Publicar</button>
+                        )}
+                        {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
+                          <button onClick={() => handleCerrar(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
+                        )}
+                        <button onClick={() => handleDelete(ev.id)} class="text-red-600 hover:underline">Eliminar</button>
+                      </>
                     )}
-                    {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
-                      <button onClick={() => handleCerrar(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
-                    )}
-                    <button onClick={() => handleDelete(ev.id)} class="text-red-600 hover:underline">Eliminar</button>
                   </td>
                 </tr>
               ))}

@@ -217,6 +217,10 @@ describe('Eventos (e2e)', () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { token } = await createTestUser(prisma, jwt, { estado_pago: false });
 
+      await prisma.cuotaGlobal.create({
+        data: { monto_actual: 5000, fecha_vencimiento: new Date('2099-12-31') },
+      });
+
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
         .set('Authorization', `Bearer ${admin.token}`)
