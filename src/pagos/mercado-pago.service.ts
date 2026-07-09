@@ -173,6 +173,10 @@ export class MercadoPagoService {
         return this.processInscriptionPayment(paymentId, reference);
       }
 
+      if (reference.startsWith('reimpresion_user_')) {
+        return this.processReimpresionPayment(paymentId, reference);
+      }
+
       return { processed: false };
     } catch (error) {
       this.logger.error(`Error al consultar pago ${paymentId}: ${error.message}`);
@@ -246,6 +250,86 @@ export class MercadoPagoService {
       inscripcionId,
       statusUpdated: true,
     };
+  }
+
+  private async processReimpresionPayment(paymentId: string, reference: string) {
+    const match = reference.match(/reimpresion_user_(\d+)_reimp_(\d+)_ts_\d+/);
+    if (!match) return { processed: false };
+
+    const userId = parseInt(match[1]);
+    const reimpresionId = parseInt(match[2]);
+
+    const reimpresion = await this.prisma.reimpresionDiploma.findUnique({
+      where: { id: reimpresionId },
+    });
+
+    if (!reimpresion) return { processed: false };
+    if (reimpresion.usuario_id !== userId) return { processed: false };
+    if (reimpresion.pagado) {
+      this.processedPayments.add(paymentId);
+      return { processed: true, alreadyPaid: true };
+    }
+
+    await this.prisma.reimpresionDiploma.update({
+      where: { id: reimpresionId },
+      data: {
+        pagado: true,
+        mp_payment_id: paymentId,
+      },
+    });
+
+    this.processedPayments.add(paymentId);
+
+    return {
+      processed: true,
+      userId,
+      reimpresionId,
+      statusUpdated: true,
+    };
+  }
+
+  async createReimpresionPreference(userId: number, userEmail: string, amount: number, reimpresionId: number) {
+    const preferenceClient = new Preference(this.client);
+    const appUrl = this.configService.get<string>('APP_URL');
+
+    const externalReference = `reimpresion_user_${userId}_reimp_${reimpresionId}_ts_${Date.now()}`;
+
+    try {
+      const preferenceResponse = await preferenceClient.create({
+        body: {
+          items: [
+            {
+              id: `reimp_${reimpresionId}`,
+              title: 'Reimpresión de Diploma',
+              quantity: 1,
+              unit_price: amount,
+            },
+          ],
+          payer: { email: userEmail },
+          back_urls: {
+            success: `${appUrl}/pagos/exito`,
+            pending: `${appUrl}/pagos/pending`,
+            failure: `${appUrl}/pagos/error`,
+          },
+          external_reference: externalReference,
+          notification_url: `${appUrl}/api/pagos/webhook`,
+          auto_return: 'approved',
+          payment_methods: {
+            excluded_payment_types: [{ id: 'credit_card' }],
+          },
+          statement_descriptor: 'FAK - Reimpresión',
+        },
+      });
+
+      return {
+        preferenceId: preferenceResponse.id,
+        initPoint: preferenceResponse.init_point || preferenceResponse.sandbox_init_point,
+        externalReference: preferenceResponse.external_reference,
+      };
+    } catch (error) {
+      this.logger.error(`Error al crear preferencia de reimpresión: ${error.message}`, error.stack);
+      throw new InternalServerErrorException('No se pudo crear la preferencia de pago');
+    }
   }
 
   async getUserStatus(userId: number) {

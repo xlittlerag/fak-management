@@ -26,6 +26,10 @@ export default function Perfil() {
     f_grad_jodo: '',
   });
   const [loading, setLoading] = useState(true);
+  const [reimpresionModal, setReimpresionModal] = useState(false);
+  const [reimpDisc, setReimpDisc] = useState('KENDO');
+  const [reimpLoading, setReimpLoading] = useState(false);
+  const [reimpMsg, setReimpMsg] = useState('');
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
@@ -262,6 +266,78 @@ export default function Perfil() {
           )}
         </div>
       </div>
+
+      {/* Reimpresión de Diploma */}
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <h3 class="text-lg font-bold mb-4 text-slate-800">Reimpresión de Diploma</h3>
+        <p class="text-sm text-slate-500 mb-4">Solicite una reimpresión de su diploma nacional (FAK) para la disciplina que desee. El pago se realiza a través de Mercado Pago.</p>
+        <button
+          onClick={() => { setReimpresionModal(true); setReimpMsg(''); }}
+          class="px-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors text-sm"
+        >
+          Solicitar Reimpresión
+        </button>
+
+        {reimpMsg && (
+          <p class={`mt-3 text-sm ${reimpMsg.includes('Error') || reimpMsg.includes('No se') ? 'text-red-600' : 'text-green-600'}`}>
+            {reimpMsg}
+          </p>
+        )}
+      </div>
+
+      {reimpresionModal && (
+        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setReimpresionModal(false)}>
+          <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
+            <h3 class="text-lg font-bold text-slate-800 mb-4">Solicitar Reimpresión</h3>
+            <div class="space-y-4">
+              <div>
+                <label class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+                <select
+                  value={reimpDisc}
+                  onChange={(e: Event) => setReimpDisc((e.target as HTMLSelectElement).value)}
+                  class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                >
+                  <option value="KENDO">Kendo</option>
+                  <option value="IAIDO">Iaido</option>
+                  <option value="JODO">Jodo</option>
+                </select>
+              </div>
+              <p class="text-sm text-slate-500">Se reimprimirá el último diploma nacional de <strong>{{ KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo' }[reimpDisc] || reimpDisc}</strong> registrado a su nombre.</p>
+              <button
+                onClick={async () => {
+                  setReimpLoading(true);
+                  setReimpMsg('');
+                  try {
+                    const res = await api.post('/diplomas/reimprimir', { disciplina: reimpDisc });
+                    const { preferenceId } = res.data.preference;
+                    const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+                    mp.checkout({
+                      preference: { id: preferenceId },
+                      render: { container: '#reimp-checkout-container', label: 'Pagar' },
+                    });
+                    setReimpMsg('Redirigiendo al pago...');
+                  } catch (err) {
+                    setReimpMsg(getErrorMessage(err));
+                  } finally {
+                    setReimpLoading(false);
+                  }
+                }}
+                disabled={reimpLoading}
+                class="w-full px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors text-center"
+              >
+                {reimpLoading ? 'Generando pago...' : 'Continuar al pago'}
+              </button>
+              <div id="reimp-checkout-container" />
+            </div>
+            <button
+              onClick={() => setReimpresionModal(false)}
+              class="mt-4 w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors text-sm"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

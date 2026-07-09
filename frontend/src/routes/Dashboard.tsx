@@ -14,6 +14,9 @@ import InscripcionesAdmin from './InscripcionesAdmin';
 import MisInscripciones from './MisInscripciones';
 import EventosDashboard from './EventosDashboard';
 import PreciosExamenAdmin from './PreciosExamenAdmin';
+import Certificados from './Certificados';
+import CertificadosPendientesAdmin from './CertificadosPendientesAdmin';
+import DiplomasAdmin from './DiplomasAdmin';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -44,6 +47,9 @@ export default function Dashboard() {
     { label: 'Configurar Cuota', path: '/dashboard/admin/cuota', roles: ['ADMIN_GENERAL'] },
     { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'] },
     { label: 'Precios de Exámenes', path: '/dashboard/precios-examen', roles: ['ADMIN_GENERAL'] },
+    { label: 'Mis Certificados', path: '/dashboard/certificados', roles: ['BASICO'] },
+    { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
+    { label: 'Diplomas', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
     { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
   ];
 
@@ -61,6 +67,9 @@ export default function Dashboard() {
       '/dashboard/admin/cuota': 'Configurar Cuota',
       '/dashboard/eventos-admin': 'Gestión de Eventos',
       '/dashboard/precios-examen': 'Precios de Exámenes',
+      '/dashboard/certificados': 'Mis Certificados',
+      '/dashboard/certificados-pendientes': 'Certificados Pendientes',
+      '/dashboard/diplomas-admin': 'Gestión de Diplomas',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
     };
     return labels[path] || 'Dashboard';
@@ -139,6 +148,9 @@ export default function Dashboard() {
           {path === '/dashboard/admin/cuota' && <CuotaAdmin />}
           {path === '/dashboard/eventos-admin' && <EventosAdmin />}
           {path === '/dashboard/precios-examen' && <PreciosExamenAdmin />}
+          {path === '/dashboard/certificados' && <Certificados />}
+          {path === '/dashboard/certificados-pendientes' && <CertificadosPendientesAdmin />}
+          {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
         </div>
       </main>

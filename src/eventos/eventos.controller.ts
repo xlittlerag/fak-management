@@ -66,8 +66,8 @@ export class EventosController {
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get('eventos/:id/inscripciones')
-  findInscripciones(@Param('id', ParseIntPipe) id: number) {
-    return this.eventosService.findInscripciones(id);
+  findInscripciones(@Param('id', ParseIntPipe) id: number, @Query('aprobados') aprobados?: string) {
+    return this.eventosService.findInscripciones(id, aprobados === 'true');
   }
 
   @Get('mis-inscripciones')

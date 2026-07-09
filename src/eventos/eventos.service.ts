@@ -285,12 +285,17 @@ export class EventosService {
     return this.formatInscripcion(inscripcion);
   }
 
-  async findInscripciones(eventoId: number) {
+  async findInscripciones(eventoId: number, soloAprobados = false) {
     const evento = await this.prisma.evento.findUnique({ where: { id: eventoId } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
+    const where: Prisma.InscripcionEventoWhereInput = { evento_id: eventoId };
+    if (soloAprobados) {
+      where.estado_aprob = 'APROBADO' as EstadoSolicitud;
+    }
+
     const inscripciones = await this.prisma.inscripcionEvento.findMany({
-      where: { evento_id: eventoId },
+      where,
       include: { usuario: true, evento: true },
       orderBy: { id: 'asc' },
     });

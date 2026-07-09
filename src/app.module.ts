@@ -16,6 +16,8 @@ import { PagosAdminModule } from './pagos/pagos-admin.module';
 import { EventosModule } from './eventos/eventos.module';
 import { PreciosExamenModule } from './precios-examen/precios-examen.module';
 import { FilesModule } from './files/files.module';
+import { CertificadosModule } from './certificados/certificados.module';
+import { DiplomasModule } from './diplomas/diplomas.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -46,6 +48,8 @@ import { RolesGuard } from './auth/guards/roles.guard';
     EventosModule,
     PreciosExamenModule,
     FilesModule,
+    CertificadosModule,
+    DiplomasModule,
   ],
   controllers: [AppController],
   providers: [

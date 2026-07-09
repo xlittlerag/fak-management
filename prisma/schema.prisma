@@ -61,8 +61,10 @@ model Usuario {
   eventos_creados  Evento[]
   historial_grad   HistorialGraduacion[]
   inscripciones    InscripcionEvento[]
-  asociacion       Asociacion            @relation(fields: [asociacion_id], references: [id])
-  dojo             Dojo                  @relation(fields: [dojo_id], references: [id])
+  diplomas_nacionales  DiplomaNacional[]
+  reimpresiones        ReimpresionDiploma[]
+  asociacion           Asociacion            @relation(fields: [asociacion_id], references: [id])
+  dojo                 Dojo                  @relation(fields: [dojo_id], references: [id])
 }
 
 model CertificadoExterno {
@@ -72,6 +74,7 @@ model CertificadoExterno {
   disciplina      Disciplina
   grad_solicitada Graduacion
   estado          EstadoSolicitud @default(PENDIENTE)
+  created_at      DateTime        @default(now())
   usuario         Usuario         @relation(fields: [usuario_id], references: [id])
 }
 
@@ -139,8 +142,9 @@ model InscripcionEvento {
   descripcion_necesidades String?
   necesidades_especiales  Boolean         @default(false)
   pagado_fuera_sistema    Boolean         @default(false)
-  evento                  Evento          @relation(fields: [evento_id], references: [id])
-  usuario                 Usuario         @relation(fields: [usuario_id], references: [id])
+  evento                  Evento            @relation(fields: [evento_id], references: [id])
+  usuario                 Usuario           @relation(fields: [usuario_id], references: [id])
+  diplomas_nacionales     DiplomaNacional[]
 }
 
 model HistorialGraduacion {
@@ -176,6 +180,43 @@ model CuotaGlobal {
   fecha_vencimiento DateTime
 
   @@map("cuotaglobal")
+}
+
+model DiplomaNacional {
+  id              Int                 @id @default(autoincrement())
+  usuario_id      Int
+  url_archivo     String
+  disciplina      Disciplina
+  graduacion      Graduacion
+  inscripcion_id  Int?
+  created_at      DateTime            @default(now())
+  usuario         Usuario             @relation(fields: [usuario_id], references: [id])
+  inscripcion     InscripcionEvento?  @relation(fields: [inscripcion_id], references: [id])
+  reimpresiones   ReimpresionDiploma[]
+
+  @@unique([inscripcion_id, disciplina])
+  @@map("diplomanacional")
+}
+
+model ReimpresionDiploma {
+  id               Int             @id @default(autoincrement())
+  usuario_id       Int
+  diploma_id       Int
+  pagado           Boolean         @default(false)
+  mp_preference_id String?
+  mp_payment_id    String?
+  created_at       DateTime        @default(now())
+  usuario          Usuario         @relation(fields: [usuario_id], references: [id])
+  diploma          DiplomaNacional @relation(fields: [diploma_id], references: [id])
+
+  @@map("reimpresiondiploma")
+}
+
+model ConfigSistema {
+  id                 Int    @id @default(autoincrement())
+  precio_reimpresion Float  @default(5000)
+
+  @@map("configsistema")
 }
 
 enum Rol {
@@ -219,6 +260,7 @@ enum Graduacion {
 
 enum EstadoSolicitud {
   PENDIENTE
+  APROBADO_ASOCIACION
   APROBADO
   RECHAZADO
 }
