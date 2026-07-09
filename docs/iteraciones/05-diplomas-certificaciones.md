@@ -1,5 +1,7 @@
 # Especificación Técnica - Iteración 5: Diplomas, Certificaciones y Reimpresión
 
+> **Estado:** ✅ Implementado (commit `3a0ecf9`)
+
 ## 🎯 Objetivo
 
 Implementar el módulo de gestión de diplomas y certificaciones externas, permitiendo:
@@ -216,15 +218,16 @@ El webhook existente `POST /pagos/webhook` se extiende para parsear este prefijo
 
 ## 7. Criterios de Aceptación (DoD)
 
-- [ ] ADMIN_GENERAL puede cargar diplomas nacionales individualmente (con o sin inscripción vinculada).
-- [ ] ADMIN_GENERAL puede cargar diplomas nacionales por lote desde un evento.
-- [ ] No se permiten diplomas duplicados para la misma inscripción + disciplina.
-- [ ] Usuario puede subir certificaciones externas.
-- [ ] Admin de asociación puede aprobar/rechazar certificaciones externas de su asociación.
-- [ ] ADMIN_GENERAL puede aprobar definitivamente una certificación externa (actualiza graduación).
-- [ ] Usuario puede ver sus propios diplomas nacionales.
-- [ ] Usuario puede solicitar reimpresión de su último diploma nacional por disciplina.
-- [ ] ADMIN_GENERAL puede configurar el precio de reimpresión.
-- [ ] ADMIN_GENERAL puede ver solicitudes de reimpresión con datos del usuario y PDF original.
-- [ ] El webhook de Mercado Pago procesa pagos de reimpresión correctamente.
-- [ ] Mensajes de error en español formal (Usted).
+- [x] ADMIN_GENERAL puede cargar diplomas nacionales individualmente (con o sin inscripción vinculada).
+- [x] ADMIN_GENERAL puede cargar diplomas nacionales por lote desde un evento.
+- [x] No se permiten diplomas duplicados para la misma inscripción + disciplina.
+- [x] Usuario puede subir certificaciones externas.
+- [x] Admin de asociación puede aprobar/rechazar certificaciones externas de su asociación.
+- [x] ADMIN_GENERAL puede aprobar definitivamente una certificación externa (actualiza graduación).
+- [x] Usuario puede ver sus propios diplomas nacionales.
+- [x] Usuario puede solicitar reimpresión de su último diploma nacional por disciplina.
+- [x] ADMIN_GENERAL puede configurar el precio de reimpresión.
+- [x] ADMIN_GENERAL puede ver solicitudes de reimpresión con datos del usuario y PDF original.
+- [x] El webhook de Mercado Pago procesa pagos de reimpresión correctamente.
+- [x] Mensajes de error en español formal (Usted).
+- [x] 21 tests E2E nuevos (129 total, todos pasan).

@@ -66,3 +66,20 @@ podman-compose up -d --build
 
 > **Nota:** Recuerde actualizar las variables de entorno en el archivo `podman-compose.yml` (`JWT_SECRET` y contraseñas de base de datos) antes del despliegue final.
 
+---
+
+## 📋 TODO / Próximos Pasos
+
+| Prioridad | Feature | Estado |
+|---|---|---|
+| 1 | **Módulo de Auditoría** — Registro automático de cambios (quién, qué, cuándo) en todas las entidades críticas | Pendiente |
+| 2 | **RolesGuard** — Implementar lógica RBAC completa (actualmente es un pass-through, la validación se hace por `@Roles()` + `checkEventOwnership()`) | Pendiente |
+| 3 | **Dashboard / Reportes** — Estadísticas de miembros, eventos, ingresos; gráficos | Pendiente |
+| 4 | **Notificaciones** — Sistema de emails automáticos (recordatorios de cuota, inscripciones, resultados de exámenes) | Pendiente |
+| 5 | **Frontend completo** — Rutas/páginas pendientes, refinamiento UX, carga de archivos | Pendiente |
+| 6 | **Infraestructura** — `.env.example`, `podman-compose.yml`, scripts de backup/restore | Pendiente |
+
+### Leyenda
+- ✅ Completado — Iteraciones 1–5
+- 🔜 Pendiente — Planificado, no iniciado
+

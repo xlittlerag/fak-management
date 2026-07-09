@@ -37,9 +37,15 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 3. Run migrations (`npx prisma migrate dev`) before starting
 4. Start backend (`pnpm start:dev`) and frontend (`cd frontend && pnpm dev`)
 
-## Gaps to address
-- Auditoría module (automatic change logging) not implemented
-- RolesGuard is a no-op fallback (RBAC done via @Roles decorator + checkEventOwnership)
-- `.env.example` and `podman-compose.yml` referenced but missing
-- Iteración 5 (diplomas/certificaciones) in progress — see `docs/iteraciones/05-diplomas-certificaciones.md`
+## Completed Iterations
+- **Iteración 1** — API base, auth (JWT/DNI), CRUD asociaciones/dojos/usuarios
+- **Iteración 2** — Frontend Preact + Tailwind, dashboard, perfil, registro
+- **Iteración 3** — Pago cuota federativa (MercadoPago), admin de cuota
+- **Iteración 4** — Eventos e inscripciones (torneo/examen/seminario), visibilidad, permisos
+- **Iteración 5** — Diplomas nacionales, certificaciones externas, reimpresión — see `docs/iteraciones/05-diplomas-certificaciones.md`
+
+## Pending / Next
+- Auditoría module (automatic change logging) — planned
+- RolesGuard proper RBAC logic — planned
+- `.env.example` and `podman-compose.yml` — missing
 - Schema changes use `npx prisma db push` (no migration files)
