@@ -9,6 +9,7 @@ pnpm install                  # install deps
 pnpm run start:dev            # NestJS dev server
 pnpm run build                # compile TypeScript
 pnpm run test:e2e             # Jest E2E tests with supertest
+pnpm run seed                 # seed database with test data
 pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 ```
 
