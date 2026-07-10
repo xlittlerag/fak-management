@@ -48,6 +48,7 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 - **Iteración 4** — Eventos e inscripciones (torneo/examen/seminario), visibilidad, permisos
 - **Iteración 5** — Diplomas nacionales, certificaciones externas, reimpresión — see `docs/iteraciones/05-diplomas-certificaciones.md`
 - **Iteración 6** — Módulo de Auditoría (logging automático de cambios) — see `docs/iteraciones/06-auditoria.md`
+- **Iteración 7** — Mejoras de eliminación de eventos: validación de inscripciones aprobadas (bloquean borrado), transacción para limpiar pendientes, botón "Eliminar permanentemente" dentro del formulario de edición, separación próximos/pasados en frontend — see `docs/iteraciones/07-eliminar-eventos.md`
 
 ## Pending / Next
 - Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos

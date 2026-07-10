@@ -207,7 +207,19 @@ export class EventosService {
     const evento = await this.prisma.evento.findUnique({ where: { id } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     await this.checkEventOwnership(id, user!);
-    await this.prisma.evento.delete({ where: { id } });
+
+    const inscripcionesAprobadas = await this.prisma.inscripcionEvento.findFirst({
+      where: { evento_id: id, estado_aprob: 'APROBADO' as EstadoSolicitud },
+    });
+    if (inscripcionesAprobadas) {
+      throw new BadRequestException('No se puede eliminar el evento porque tiene inscripciones aprobadas');
+    }
+
+    await this.prisma.$transaction([
+      this.prisma.inscripcionEvento.deleteMany({ where: { evento_id: id } }),
+      this.prisma.evento.delete({ where: { id } }),
+    ]);
+
     return { eliminado: true };
   }
 

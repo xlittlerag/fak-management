@@ -162,7 +162,7 @@ describe('Eventos (e2e)', () => {
   });
 
   describe('DELETE /eventos/:id — Eliminar evento', () => {
-    it('debería eliminar un evento', async () => {
+    it('debería eliminar un evento sin inscripciones', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const created = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -184,6 +184,83 @@ describe('Eventos (e2e)', () => {
       await request(app.getHttpServer())
         .get(`/api/eventos/${created.body.id}`)
         .expect(404);
+    });
+
+    it('debería eliminar un evento con inscripciones pendientes (limpiándolas)', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+
+      const evento = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'SEMINARIO',
+          fecha_inicio: '2026-12-01T09:00:00Z',
+          fecha_fin: '2026-12-01T18:00:00Z',
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          disciplina: 'KENDO',
+          costo_inscripcion: 0,
+        });
+
+      await request(app.getHttpServer())
+        .post(`/api/eventos/${evento.body.id}/inscribir`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/api/eventos/${evento.body.id}`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .get(`/api/eventos/${evento.body.id}`)
+        .expect(404);
+
+      const inscripciones = await prisma.inscripcionEvento.findMany({
+        where: { evento_id: evento.body.id },
+      });
+      expect(inscripciones).toHaveLength(0);
+    });
+
+    it('NO debería eliminar un evento con inscripciones aprobadas', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { user, token, asociacionId } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const adminAssoc = await createTestUser(prisma, jwt, {
+        rol: 'ADMIN_ASOCIACION',
+        asociacion_id: asociacionId,
+        estado_pago: true,
+      });
+
+      const evento = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'SEMINARIO',
+          fecha_inicio: '2026-12-01T09:00:00Z',
+          fecha_fin: '2026-12-01T18:00:00Z',
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          disciplina: 'KENDO',
+          costo_inscripcion: 0,
+        });
+
+      const inscripcion = await request(app.getHttpServer())
+        .post(`/api/eventos/${evento.body.id}/inscribir`)
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .patch(`/api/inscripciones/${inscripcion.body.id}/aprobar`)
+        .set('Authorization', `Bearer ${adminAssoc.token}`)
+        .send({ accion: 'APROBAR' })
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .delete(`/api/eventos/${evento.body.id}`)
+        .set('Authorization', `Bearer ${admin.token}`)
+        .expect(400);
+
+      const eventoExiste = await prisma.evento.findUnique({ where: { id: evento.body.id } });
+      expect(eventoExiste).not.toBeNull();
     });
   });
 

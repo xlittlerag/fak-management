@@ -81,6 +81,7 @@ export default function EventosAdmin() {
   const [tableError, setTableError] = useState('');
   const [formError, setFormError] = useState('');
   const [editing, setEditing] = useState<Evento | null | undefined>(undefined);
+  const [showPasados, setShowPasados] = useState(false);
 
   const [form, setForm] = useState({
     tipo: 'TORNEO',
@@ -283,13 +284,15 @@ export default function EventosAdmin() {
     }
   }
 
-  const handleDelete = async (id: number) => {
-    if (!confirm('¿Está seguro de eliminar este evento?')) return;
+  const handleDelete = async () => {
+    if (!editing) return;
+    if (!confirm('¿Está seguro de eliminar permanentemente este evento? Esta acción no se puede deshacer. Si el evento tiene inscripciones pendientes, también serán eliminadas.')) return;
     try {
-      await api.delete(`/eventos/${id}`);
+      await api.delete(`/eventos/${editing.id}`);
+      cancelForm();
       fetchEventos();
-    } catch {
-      alert('Error al eliminar evento');
+    } catch (err) {
+      setFormError(getErrorMessage(err));
     }
   };
 
@@ -314,18 +317,36 @@ export default function EventosAdmin() {
 
   if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const eventosProximos = eventos.filter(ev => new Date(ev.fecha_inicio) >= today);
+  const eventosPasados = eventos.filter(ev => new Date(ev.fecha_inicio) < today);
+  const eventosVisibles = showPasados ? eventosPasados : eventosProximos;
+
   return (
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-slate-800">Gestión de Eventos</h2>
-        {!isFormOpen && (
-          <button
-            onClick={openCreate}
-            class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
-          >
-            Crear Evento
-          </button>
-        )}
+        <h2 class="text-lg font-semibold text-slate-800">
+          {showPasados ? 'Eventos Pasados' : 'Gestión de Eventos'}
+        </h2>
+        <div class="flex gap-2">
+          {!isFormOpen && (
+            <button
+              onClick={() => setShowPasados(!showPasados)}
+              class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+            >
+              {showPasados ? 'Ver próximos' : 'Ver eventos pasados'}
+            </button>
+          )}
+          {!isFormOpen && (
+            <button
+              onClick={openCreate}
+              class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+            >
+              Crear Evento
+            </button>
+          )}
+        </div>
       </div>
 
       {tableError && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{tableError}</div>}
@@ -344,7 +365,7 @@ export default function EventosAdmin() {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-200">
-              {eventos.map(ev => (
+              {eventosVisibles.map(ev => (
                 <tr key={ev.id} class="hover:bg-slate-50">
                   <td class="px-4 py-2 font-medium">{ev.tipo}</td>
                   <td class="px-4 py-2 text-slate-600">
@@ -371,15 +392,16 @@ export default function EventosAdmin() {
                         {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
                           <button onClick={() => handleCerrar(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
                         )}
-                        <button onClick={() => handleDelete(ev.id)} class="text-red-600 hover:underline">Eliminar</button>
                       </>
                     )}
                   </td>
                 </tr>
               ))}
-              {eventos.length === 0 && (
+              {eventosVisibles.length === 0 && (
                 <tr>
-                  <td colspan={6} class="px-4 py-8 text-center text-slate-500">No hay eventos creados.</td>
+                  <td colspan={6} class="px-4 py-8 text-center text-slate-500">
+                    {showPasados ? 'No hay eventos pasados.' : 'No hay eventos próximos.'}
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -755,6 +777,14 @@ export default function EventosAdmin() {
           )}
 
           <div class="flex gap-3 mt-6 pt-4 border-t border-slate-200">
+            {editing && (
+              <button
+                onClick={handleDelete}
+                class="px-6 py-2 bg-red-700 text-white rounded-md font-medium hover:bg-red-800 transition-colors text-sm"
+              >
+                Eliminar permanentemente
+              </button>
+            )}
             <button
               onClick={cancelForm}
               class="px-6 py-2 bg-slate-100 text-slate-700 rounded-md font-medium hover:bg-slate-200 transition-colors text-sm"
