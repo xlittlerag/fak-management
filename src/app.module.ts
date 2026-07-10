@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -37,6 +37,7 @@ import { LoggingInterceptor } from './common/logging.interceptor';
           ? { target: 'pino-pretty' }
           : undefined,
       },
+      forRoutes: [{ path: '/*path', method: RequestMethod.ALL }],
     }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
