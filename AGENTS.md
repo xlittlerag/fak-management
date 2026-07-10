@@ -19,7 +19,7 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
 
 ## Key Conventions
-- **Global guards:** `JwtAuthGuard` (skips non-@Public routes) and `RolesGuard` (currently a no-op fallback)
+- **Global guards:** `JwtAuthGuard` (skips non-@Public routes) and `RolesGuard` (reads `@Roles()` metadata, gates by `user.rol`)
 - **Password masking:** Prisma `omit: { usuario: { password: true } }` — never log or expose passwords
 - **Language:** All error/UX strings in formal Argentine Spanish (usted)
 - **Asociación ID 0:** The federation itself; excluded from views per `docs/core-global.md`
@@ -43,9 +43,11 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 - **Iteración 3** — Pago cuota federativa (MercadoPago), admin de cuota
 - **Iteración 4** — Eventos e inscripciones (torneo/examen/seminario), visibilidad, permisos
 - **Iteración 5** — Diplomas nacionales, certificaciones externas, reimpresión — see `docs/iteraciones/05-diplomas-certificaciones.md`
+- **Iteración 6** — Módulo de Auditoría (logging automático de cambios) — see `docs/iteraciones/06-auditoria.md`
 
 ## Pending / Next
-- Auditoría module (automatic change logging) — planned
-- RolesGuard proper RBAC logic — planned
-- `.env.example` and `podman-compose.yml` — missing
+- Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos
+- Notificaciones — Sistema de emails automáticos
+- Frontend completo — refinamiento UX, carga de archivos
+- Infraestructura — `podman-compose.yml`, scripts de backup/restore
 - Schema changes use `npx prisma db push` (no migration files)

@@ -71,15 +71,14 @@ podman-compose up -d --build
 ## 📋 TODO / Próximos Pasos
 
 | Prioridad | Feature | Estado |
-|---|---|---|
-| 1 | **Módulo de Auditoría** — Registro automático de cambios (quién, qué, cuándo) en todas las entidades críticas | Pendiente |
-| 2 | **RolesGuard** — Implementar lógica RBAC completa (actualmente es un pass-through, la validación se hace por `@Roles()` + `checkEventOwnership()`) | Pendiente |
-| 3 | **Dashboard / Reportes** — Estadísticas de miembros, eventos, ingresos; gráficos | Pendiente |
-| 4 | **Notificaciones** — Sistema de emails automáticos (recordatorios de cuota, inscripciones, resultados de exámenes) | Pendiente |
-| 5 | **Frontend completo** — Rutas/páginas pendientes, refinamiento UX, carga de archivos | Pendiente |
-| 6 | **Infraestructura** — `.env.example`, `podman-compose.yml`, scripts de backup/restore | Pendiente |
+|---|---|---|---|
+| 1 | **Módulo de Auditoría** — Registro automático de cambios (quién, qué, cuándo) en todas las entidades críticas | En progreso |
+| 2 | **Dashboard / Reportes** — Estadísticas de miembros, eventos, ingresos; gráficos | Pendiente |
+| 3 | **Notificaciones** — Sistema de emails automáticos (recordatorios de cuota, inscripciones, resultados de exámenes) | Pendiente |
+| 4 | **Frontend completo** — Rutas/páginas pendientes, refinamiento UX, carga de archivos | Pendiente |
+| 5 | **Infraestructura** — `podman-compose.yml`, scripts de backup/restore | Pendiente |
 
 ### Leyenda
-- ✅ Completado — Iteraciones 1–5
+- ✅ Completado — Iteraciones 1–6
 - 🔜 Pendiente — Planificado, no iniciado
 

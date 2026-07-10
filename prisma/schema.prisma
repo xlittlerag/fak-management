@@ -219,6 +219,24 @@ model ConfigSistema {
   @@map("configsistema")
 }
 
+model AuditLog {
+  id            Int      @id @default(autoincrement())
+  accion        String
+  entidad       String
+  entidad_id    Int
+  usuario_id    Int?
+  datos_previos Json?
+  datos_nuevos  Json?
+  ip            String?
+  user_agent    String?
+  created_at    DateTime @default(now())
+
+  @@index([entidad, entidad_id])
+  @@index([usuario_id])
+  @@index([created_at])
+  @@map("auditlog")
+}
+
 enum Rol {
   ADMIN_GENERAL
   ADMIN_ASOCIACION

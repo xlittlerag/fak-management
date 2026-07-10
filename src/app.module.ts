@@ -18,6 +18,7 @@ import { PreciosExamenModule } from './precios-examen/precios-examen.module';
 import { FilesModule } from './files/files.module';
 import { CertificadosModule } from './certificados/certificados.module';
 import { DiplomasModule } from './diplomas/diplomas.module';
+import { AuditoriaModule } from './auditoria/auditoria.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 
@@ -50,6 +51,7 @@ import { RolesGuard } from './auth/guards/roles.guard';
     FilesModule,
     CertificadosModule,
     DiplomasModule,
+    AuditoriaModule,
   ],
   controllers: [AppController],
   providers: [

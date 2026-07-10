@@ -39,6 +39,7 @@ export async function createTestApp(): Promise<{
 }
 
 export async function cleanupDb(prisma: PrismaService) {
+  await prisma.auditLog.deleteMany();
   await prisma.reimpresionDiploma.deleteMany();
   await prisma.diplomaNacional.deleteMany();
   await prisma.historialGraduacion.deleteMany();

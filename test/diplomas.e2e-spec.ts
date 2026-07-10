@@ -72,8 +72,8 @@ describe('Diplomas (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-07-01T00:00:00Z',
-          fecha_fin: '2026-07-02T00:00:00Z',
+          fecha_inicio: '2027-07-01T00:00:00Z',
+          fecha_fin: '2027-07-02T00:00:00Z',
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           ambito: 'NACIONAL',
           disciplinas: ['KENDO'],
