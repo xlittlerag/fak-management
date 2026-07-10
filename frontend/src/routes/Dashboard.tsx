@@ -4,19 +4,19 @@ import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import type { EventoResumen } from '../types';
-import Pendientes from './Pendientes';
 import Asociaciones from './Asociaciones';
 import Usuarios from './Usuarios';
 import Perfil from './Perfil';
-import CuotaAdmin from './CuotaAdmin';
 import EventosAdmin from './EventosAdmin';
 import InscripcionesAdmin from './InscripcionesAdmin';
 import MisInscripciones from './MisInscripciones';
 import EventosDashboard from './EventosDashboard';
-import PreciosExamenAdmin from './PreciosExamenAdmin';
 import Certificados from './Certificados';
 import CertificadosPendientesAdmin from './CertificadosPendientesAdmin';
 import DiplomasAdmin from './DiplomasAdmin';
+import AuditoriaAdmin from './AuditoriaAdmin';
+import AdminConfig from './AdminConfig';
+import Reimpresiones from './Reimpresiones';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -39,18 +39,57 @@ export default function Dashboard() {
   const menuItems = [
     { label: 'Inicio', path: '/dashboard', roles: ['BASICO', 'ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Mi Perfil', path: '/dashboard/perfil', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
-    { label: 'Usuarios Pendientes', path: '/dashboard/pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Listado de Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
+    { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Ver Eventos', path: '/dashboard/eventos', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
-    { label: 'Inscripciones Pendientes', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Configurar Cuota', path: '/dashboard/admin/cuota', roles: ['ADMIN_GENERAL'] },
+    { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'] },
-    { label: 'Precios de Exámenes', path: '/dashboard/precios-examen', roles: ['ADMIN_GENERAL'] },
     { label: 'Mis Certificados', path: '/dashboard/certificados', roles: ['BASICO'] },
     { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Diplomas', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
     { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
+  ];
+
+  const adminSections = [
+    {
+      title: 'General',
+      items: [
+        { label: 'Inicio', path: '/dashboard', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
+    {
+      title: 'Gestión',
+      items: [
+        { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
+        { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
+    {
+      title: 'Eventos',
+      items: [
+        { label: 'Gestión de Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
+        { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
+    {
+      title: 'Finanzas',
+      items: [
+        { label: 'Configuración', path: '/dashboard/admin/config', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
+    {
+      title: 'Certificaciones',
+      items: [
+        { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_GENERAL'] },
+        { label: 'Diplomas', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
+        { label: 'Reimpresiones', path: '/dashboard/reimpresiones', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
+    {
+      title: 'Auditoría',
+      items: [
+        { label: 'Auditoría', path: '/dashboard/auditoria', roles: ['ADMIN_GENERAL'] },
+      ],
+    },
   ];
 
   const filteredMenu = menuItems.filter(item => item.roles.includes(user.rol));
@@ -59,18 +98,18 @@ export default function Dashboard() {
     if (path === '/dashboard') return 'Inicio';
     const labels: Record<string, string> = {
       '/dashboard/perfil': 'Mi Perfil',
-      '/dashboard/pendientes': 'Usuarios Pendientes',
-      '/dashboard/usuarios': 'Listado de Miembros',
+      '/dashboard/usuarios': 'Miembros',
       '/dashboard/eventos': 'Ver Eventos',
       '/dashboard/mis-inscripciones': 'Mis Inscripciones',
-      '/dashboard/inscripciones': 'Inscripciones Pendientes',
-      '/dashboard/admin/cuota': 'Configurar Cuota',
+      '/dashboard/inscripciones': 'Inscripciones',
+      '/dashboard/admin/config': 'Configuración',
       '/dashboard/eventos-admin': 'Gestión de Eventos',
-      '/dashboard/precios-examen': 'Precios de Exámenes',
       '/dashboard/certificados': 'Mis Certificados',
       '/dashboard/certificados-pendientes': 'Certificados Pendientes',
       '/dashboard/diplomas-admin': 'Gestión de Diplomas',
+      '/dashboard/reimpresiones': 'Solicitudes de Reimpresión',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
+      '/dashboard/auditoria': 'Auditoría',
     };
     return labels[path] || 'Dashboard';
   }
@@ -99,18 +138,33 @@ export default function Dashboard() {
         </div>
         
         <nav class="flex-1 p-4 space-y-1">
-          {filteredMenu.map(item => (
-            <a 
-              key={item.path}
-              href={item.path} 
-              onClick={() => setSidebarOpen(false)}
-              class={`block px-4 py-2 rounded transition-colors ${
-                path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
-              }`}
-            >
-              {item.label}
-            </a>
-          ))}
+          {user.rol === 'ADMIN_GENERAL'
+            ? adminSections.map(section => {
+                const visible = section.items.filter(i => i.roles.includes(user.rol));
+                if (visible.length === 0) return null;
+                return (
+                  <div key={section.title}>
+                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{section.title}</p>
+                    {visible.map(item => (
+                      <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
+                        class={`block px-4 py-1.5 rounded transition-colors ${
+                          path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
+                        }`}>
+                        {item.label}
+                      </a>
+                    ))}
+                  </div>
+                );
+              })
+            : filteredMenu.map(item => (
+                <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
+                  class={`block px-4 py-2 rounded transition-colors ${
+                    path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
+                  }`}>
+                  {item.label}
+                </a>
+              ))
+          }
         </nav>
 
         <div class="p-4 border-t border-slate-800">
@@ -140,18 +194,18 @@ export default function Dashboard() {
         <div class="p-4 sm:p-8">
           {path === '/dashboard' && <DashboardHome />}
           {path === '/dashboard/perfil' && <Perfil />}
-          {path === '/dashboard/pendientes' && <Pendientes />}
           {path === '/dashboard/usuarios' && <Usuarios />}
           {path === '/dashboard/eventos' && <EventosDashboard />}
           {path === '/dashboard/mis-inscripciones' && <MisInscripciones />}
           {path === '/dashboard/inscripciones' && <InscripcionesAdmin />}
-          {path === '/dashboard/admin/cuota' && <CuotaAdmin />}
+          {path === '/dashboard/admin/config' && <AdminConfig />}
           {path === '/dashboard/eventos-admin' && <EventosAdmin />}
-          {path === '/dashboard/precios-examen' && <PreciosExamenAdmin />}
           {path === '/dashboard/certificados' && <Certificados />}
           {path === '/dashboard/certificados-pendientes' && <CertificadosPendientesAdmin />}
           {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
+          {path === '/dashboard/reimpresiones' && <Reimpresiones />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
+          {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
         </div>
       </main>
     </div>

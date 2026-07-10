@@ -1,4 +1,4 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -14,6 +14,7 @@ const MODEL_NAMES = [
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new Logger(PrismaService.name);
   private auditClient: PrismaClient;
   private ctxService: RequestContextService | null = null;
 
@@ -36,7 +37,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     const auditPool = new pg.Pool({
       connectionString: configService.get<string>('DATABASE_URL'),
     });
-    this.auditClient = new PrismaClient({ adapter: new PrismaPg(auditPool) });
+    this.auditClient = new PrismaClient({
+      adapter: new PrismaPg(auditPool),
+      omit: {
+        usuario: {
+          password: true,
+        },
+      },
+    }) as unknown as PrismaClient;
   }
 
   setContextService(ctx: RequestContextService) {
@@ -76,8 +84,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                 const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
                 try {
                   previousState = await ((audit as unknown as Record<string, { findUnique: (opts: { where: Record<string, unknown> }) => Promise<unknown> }>)[modelKey].findUnique({ where }));
-                } catch {
-                  // ignore errors in pre-read
+                } catch (err) {
+                  this.logger.warn(`Pre-read error for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
                 }
               }
             }
@@ -97,8 +105,8 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                 datos_nuevos: operation === 'delete' ? null : result,
               };
               await (audit.auditLog.create as unknown as (args: { data: Record<string, unknown> }) => Promise<unknown>)({ data: auditData });
-            } catch {
-              // audit never blocks the operation
+            } catch (err) {
+              this.logger.error(`Audit write failed for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
             }
 
             return result;

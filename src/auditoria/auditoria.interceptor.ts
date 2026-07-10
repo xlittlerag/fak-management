@@ -22,11 +22,13 @@ export class AuditoriaInterceptor implements NestInterceptor {
 
     return new Observable((subscriber) => {
       this.contextService.run(ctx, () => {
-        next.handle().subscribe({
-          next: (value) => subscriber.next(value),
-          error: (err) => subscriber.error(err),
-          complete: () => subscriber.complete(),
-        });
+        subscriber.add(
+          next.handle().subscribe({
+            next: (value) => subscriber.next(value),
+            error: (err) => subscriber.error(err),
+            complete: () => subscriber.complete(),
+          }),
+        );
       });
     });
   }

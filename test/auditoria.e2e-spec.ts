@@ -234,4 +234,55 @@ describe('Auditoría (e2e)', () => {
       expect(res.body.accion).toBe('CREATE');
     });
   });
+
+  describe('Registro de edición de perfil', () => {
+    it('debería registrar un UPDATE al editar datos personales', async () => {
+      const user = await createTestUser(prisma, jwt);
+
+      const res = await request(app.getHttpServer())
+        .patch('/api/usuarios/perfil')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send({ nombre: 'Nombre Modificado', telefono: '123456789' });
+
+      expect(res.status).toBe(200);
+
+      const log = await prisma.auditLog.findFirst({
+        where: { entidad: 'Usuario', entidad_id: user.user.id, accion: 'UPDATE' },
+        orderBy: { created_at: 'desc' },
+      });
+
+      expect(log).not.toBeNull();
+      expect(log!.usuario_id).toBe(user.user.id);
+
+      const previos = log!.datos_previos as Record<string, unknown> | null;
+      const nuevos = log!.datos_nuevos as Record<string, unknown> | null;
+      expect(previos).not.toBeNull();
+      expect(nuevos).not.toBeNull();
+      expect((previos as Record<string, unknown>).nombre).toBe(user.user.nombre);
+      expect((nuevos as Record<string, unknown>).nombre).toBe('Nombre Modificado');
+    });
+
+    it('no debería incluir el password en los logs de auditoría', async () => {
+      const user = await createTestUser(prisma, jwt);
+
+      await request(app.getHttpServer())
+        .patch('/api/usuarios/perfil')
+        .set('Authorization', `Bearer ${user.token}`)
+        .send({ password: 'NuevaPass123!', telefono: '123456789' });
+
+      const log = await prisma.auditLog.findFirst({
+        where: { entidad: 'Usuario', entidad_id: user.user.id, accion: 'UPDATE' },
+        orderBy: { created_at: 'desc' },
+      });
+
+      expect(log).not.toBeNull();
+
+      const previos = log!.datos_previos as Record<string, unknown> | null;
+      const nuevos = log!.datos_nuevos as Record<string, unknown> | null;
+
+      // password must not appear in either snapshot
+      if (previos) expect(previos).not.toHaveProperty('password');
+      if (nuevos) expect(nuevos).not.toHaveProperty('password');
+    });
+  });
 });
