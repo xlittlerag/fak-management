@@ -20,6 +20,8 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 
 ## Key Conventions
 - **Global guards:** `JwtAuthGuard` (skips non-@Public routes) and `RolesGuard` (reads `@Roles()` metadata, gates by `user.rol`)
+- **Global logging:** `LoggingInterceptor` logs every HTTP request/response with correlation ID (UUID), method, URL, query, headers, body, status, duration. Arrays >20 items truncated. 5xx → error, 4xx → warn, success → info. `X-Correlation-Id` header on responses.
+- **Logger:** Pino via `nestjs-pino` — replaces NestJS default Logger. JSON output in prod, `pino-pretty` in dev. Level from `LOG_LEVEL` env var (default `info`).
 - **Password masking:** Prisma `omit: { usuario: { password: true } }` — never log or expose passwords
 - **Language:** All error/UX strings in formal Argentine Spanish (usted)
 - **Asociación ID 0:** The federation itself; excluded from views per `docs/core-global.md`
