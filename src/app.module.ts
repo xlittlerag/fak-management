@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+import { LoggerModule } from 'nestjs-pino';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { randomUUID } from 'node:crypto';
 import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -21,10 +23,21 @@ import { DiplomasModule } from './diplomas/diplomas.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
+import { LoggingInterceptor } from './common/logging.interceptor';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    LoggerModule.forRoot({
+      pinoHttp: {
+        genReqId: () => randomUUID(),
+        autoLogging: false,
+        level: process.env.LOG_LEVEL ?? 'info',
+        transport: process.env.NODE_ENV !== 'production'
+          ? { target: 'pino-pretty' }
+          : undefined,
+      },
+    }),
     ThrottlerModule.forRoot([{
       ttl: 60000,
       limit: 30,
@@ -67,6 +80,10 @@ import { RolesGuard } from './auth/guards/roles.guard';
     {
       provide: APP_GUARD,
       useClass: RolesGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
 })
