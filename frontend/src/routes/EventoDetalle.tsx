@@ -443,7 +443,7 @@ export default function EventoDetalle() {
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
                     placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
                   <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG)</label>
+                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG/PNG)</label>
                     <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload} class="text-sm" />
                     {archivoMedico && <p class="text-xs text-green-600 mt-1">Archivo subido</p>}
                   </div>

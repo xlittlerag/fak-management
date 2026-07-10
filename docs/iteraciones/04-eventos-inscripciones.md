@@ -72,6 +72,10 @@ Modelo global con precios por graduación para exámenes, administrado por `ADMI
 | `GET`  | `/mis-inscripciones`                 | Lista inscripciones del usuario autenticado.                | Autenticado                    |
 | `PATCH`| `/inscripciones/:id/aprobar`         | Aprueba o rechaza una inscripción.                          | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
 | `POST` | `/inscripciones/:id/pagar`           | Genera preferencia de pago para una inscripción aprobada.   | Autenticado                    |
+| `PATCH`| `/inscripciones/:id`                 | Edita categorías, disciplinas y necesidades especiales.     | Autenticado                    |
+| `DELETE`| `/inscripciones/:id`                | Cancela (baja) la inscripción.                              | Autenticado                    |
+| `POST` | `/inscripciones/:id/pago-manual`     | Admin marca pago recibido fuera de Mercado Pago.            | `ADMIN_ASOCIACION`, `ADMIN_GENERAL` |
+| `POST` | `/eventos/:id/cerrar-inscripciones`  | Cierra inscripciones del torneo manualmente.                | `ADMIN_GENERAL`, `ADMIN_ASOCIACION` |
 
 **Reglas de Negocio:**
 - El usuario debe estar activo (`estado_reg = APROBADO` y `estado_pago = true`). Si no existe `CuotaGlobal` configurada, se salta el chequeo de `estado_pago`.
@@ -81,6 +85,10 @@ Modelo global con precios por graduación para exámenes, administrado por `ADMI
 - La inscripción se crea en estado `PENDIENTE`.
 - Luego de aprobada, el usuario debe pagar para confirmar.
 - Si `costo_inscripcion = 0`, el pago es automático (gratuito).
+- **Editar inscripción** (`PATCH /inscripciones/:id`): permite cambiar categorías, disciplinas y necesidades especiales mientras esté dentro de la fecha límite real y las inscripciones sigan abiertas.
+- **Baja de inscripción** (`DELETE /inscripciones/:id`): permite cancelar la inscripción mientras esté dentro de la fecha límite real.
+- **Pago manual** (`POST /inscripciones/:id/pago-manual`): el admin marca el pago como recibido fuera del sistema. Solo disponible si el evento tiene `pago_fuera_sistema = true`. No requiere interacción con Mercado Pago.
+- **Cerrar inscripciones** (`POST /eventos/:id/cerrar-inscripciones`): setea `inscripciones_abiertas = false` en el torneo. Impide nuevas inscripciones y modificaciones.
 
 ## 3. Integración con Mercado Pago
 
@@ -120,20 +128,24 @@ El webhook de Mercado Pago en `POST /pagos/webhook` ahora también procesa refer
 | `fecha_fin`   | DateTime | Fecha de fin (sin hora)               |
 | `datos_lugar` | Json     | `{ direccion, provincia }`            |
 | `publicado`   | Boolean  | Modo draft vs público                 |
+| `archivos_info`| Json?   | Archivos adjuntos de información (reglamentos, instructivos) |
 
 ### `Torneo` (1:1 con Evento, solo si `tipo = TORNEO`)
 
-| Campo                 | Tipo     | Descripción                          |
-| --------------------- | -------- | ------------------------------------ |
-| `id`                  | Int (PK) | Autoincremental                      |
-| `evento_id`           | Int (FK) | Relación 1:1 con Evento (onDelete: Cascade) |
-| `disciplina`          | String   | KENDO, IAIDO o JODO                  |
-| `costo_inscripcion`   | Float    | Precio fijo (0 = gratuito)           |
-| `categorias`          | Json     | Array de objetos de categoría        |
-| `inscripcion_multiple`| Boolean  | Default false                        |
-| `grad_min`            | String?  | Graduación mínima para inscripción   |
-| `grad_max`            | String?  | Graduación máxima para inscripción   |
-| `info_adicional`      | String?  | Texto libre opcional                 |
+| Campo                     | Tipo      | Descripción                          |
+| ------------------------- | --------- | ------------------------------------ |
+| `id`                      | Int (PK)  | Autoincremental                      |
+| `evento_id`               | Int (FK)  | Relación 1:1 con Evento (onDelete: Cascade) |
+| `disciplina`              | String    | KENDO, IAIDO o JODO                  |
+| `costo_inscripcion`       | Float     | Precio fijo (0 = gratuito)           |
+| `categorias`              | Json      | Array de objetos de categoría        |
+| `inscripcion_multiple`    | Boolean   | Default false                        |
+| `grad_min`                | String?   | Graduación mínima para inscripción   |
+| `grad_max`                | String?   | Graduación máxima para inscripción   |
+| `info_adicional`          | String?   | Texto libre opcional                 |
+| `fecha_limite_informativa`| DateTime? | Fecha límite informativa             |
+| `fecha_limite_real`       | DateTime? | Fecha límite real (corta inscripciones y modificaciones) |
+| `inscripciones_abiertas`  | Boolean   | Permite abrir/cerrar inscripciones manualmente. Default true |
 
 ### `Examen` (1:1 con Evento, solo si `tipo = EXAMEN`)
 
@@ -165,15 +177,19 @@ El webhook de Mercado Pago en `POST /pagos/webhook` ahora también procesa refer
 
 ### `InscripcionEvento`
 
-| Campo           | Tipo            | Descripción                             |
-| --------------- | --------------- | --------------------------------------- |
-| `id`            | Int (PK)        | Autoincremental                         |
-| `usuario_id`    | Int (FK)        | Referencia al usuario                   |
-| `evento_id`     | Int (FK)        | Referencia al evento                    |
-| `categoria_grad`| Json            | Array de categorías/graduaciones        |
-| `disciplinas`   | Json?           | Array de disciplinas (solo exámenes)    |
-| `estado_aprob`  | Enum            | PENDIENTE / APROBADO / RECHAZADO        |
-| `pagado`        | Boolean         | Indica si el pago fue realizado         |
+| Campo                     | Tipo            | Descripción                             |
+| ------------------------- | --------------- | --------------------------------------- |
+| `id`                      | Int (PK)        | Autoincremental                         |
+| `usuario_id`              | Int (FK)        | Referencia al usuario                   |
+| `evento_id`               | Int (FK)        | Referencia al evento                    |
+| `categoria_grad`          | Json            | Array de categorías/graduaciones        |
+| `disciplinas`             | Json?           | Array de disciplinas (solo exámenes)    |
+| `estado_aprob`            | Enum            | PENDIENTE / APROBADO / RECHAZADO        |
+| `pagado`                  | Boolean         | Indica si el pago fue realizado         |
+| `archivo_medico_url`      | String?         | URL del certificado médico subido       |
+| `necesidades_especiales`  | Boolean         | Indica si el usuario tiene necesidades especiales |
+| `descripcion_necesidades` | String?         | Descripción de las necesidades especiales |
+| `pagado_fuera_sistema`    | Boolean         | Pago registrado manualmente fuera de MP |
 
 ## 5. DTOs
 
@@ -215,8 +231,11 @@ class CreateEventoDto {
 
 ```typescript
 class InscribirEventoDto {
-  categorias?: string[];  // Array de nombres de categorías (TORNEO/SEMINARIO)
-  disciplinas?: string[]; // Solo para exámenes — el backend auto-computa categorias
+  categorias?: string[];         // Array de nombres de categorías (TORNEO/SEMINARIO)
+  disciplinas?: string[];        // Solo para exámenes — el backend auto-computa categorias
+  archivo_medico_url?: string;   // URL del certificado médico (opcional)
+  necesidades_especiales?: boolean;  // Flag de necesidades especiales
+  descripcion_necesidades?: string;  // Descripción (requerido si necesidades_especiales es true)
 }
 ```
 

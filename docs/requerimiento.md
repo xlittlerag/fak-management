@@ -124,6 +124,21 @@ Cuenta dedicada y centralizada.
 6. Una vez pagado, el usuario queda inscripto definitivamente.
 7. Para Exámenes, el costo varía según la graduación a rendir (precios globales fijados por el administrador general).
 
+### 4\. Gestión de la inscripción
+
+- El usuario puede **adjuntar un certificado médico** al momento de inscribirse (archivo PDF, JPG o PNG).
+- El usuario puede **indicar necesidades especiales** al inscribirse.
+- El usuario puede **editar su inscripción** (categorías, disciplinas, necesidades especiales) hasta la fecha límite real del evento.
+- El usuario puede **cancelar su inscripción** hasta la fecha límite real del evento.
+- El administrador de la asociación o general puede **registrar un pago de inscripción recibido fuera del sistema** (ej: transferencia bancaria, pago presencial).
+- El administrador puede **cerrar inscripciones de un torneo** manualmente en cualquier momento.
+
+### 5\. Datos adicionales del evento
+
+- Los torneos tienen **fecha límite real** que corta automáticamente las inscripciones y modificaciones.
+- El administrador puede **cerrar inscripciones** manualmente con un botón en la gestión del evento.
+- El evento puede contener **archivos adjuntos** con información adicional (reglamentos, instructivos, etc.).
+
 ### 4\. Mesas examinadoras (iteración futura)
 
 - Permitir la carga de aprobados y desaprobados por instancia de examen (práctico → kata → escrito).
@@ -133,6 +148,30 @@ Cuenta dedicada y centralizada.
 - Al cargar el resultado de un candidato:
   - Si solo hay una mesa para su graduación, se asigna automáticamente.
   - Si hay dos o más mesas compatibles, el administrador general debe seleccionar la mesa.
+
+---
+
+## Archivos
+
+El sistema permite la carga de archivos en los siguientes contextos:
+
+- **Diplomas nacionales:** el administrador general sube el PDF del diploma emitido por la FAK.
+- **Certificaciones externas:** el usuario sube el PDF o imagen de su diploma extranjero.
+- **Certificados médicos:** el usuario puede adjuntar un certificado médico al inscribirse en un evento.
+
+### Formatos aceptados
+
+- PDF (`.pdf`)
+- JPG (`.jpg`, `.jpeg`)
+- PNG (`.png`)
+
+### Tamaño máximo
+
+10 MB por archivo.
+
+### Almacenamiento
+
+Los archivos se almacenan en el servidor con un nombre único generado automáticamente y se sirven de forma estática. No se permite el listado del directorio de archivos.
 
 ---
 

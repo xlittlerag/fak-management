@@ -194,7 +194,7 @@ export default function MisInscripciones() {
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
                         placeholder="Describa la necesidad especial" />
                       <div>
-                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (PDF/JPG)</label>
+                        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (PDF/JPG/PNG)</label>
                         <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload} class="text-sm" />
                         {editFileUrl && <p class="text-xs text-green-600 mt-1">Archivo subido: {editFileUrl}</p>}
                       </div>
