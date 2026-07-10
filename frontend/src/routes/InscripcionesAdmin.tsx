@@ -121,20 +121,20 @@ export default function InscripcionesAdmin() {
                     <td class="px-6 py-4 text-right space-x-2">
                       <button
                         onClick={() => handleAction(ins.id, 'APROBAR')}
-                        class="px-3 py-1 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors"
+                        class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                       >
                         Aprobar
                       </button>
                       <button
                         onClick={() => handleAction(ins.id, 'RECHAZAR')}
-                        class="px-3 py-1 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 transition-colors"
+                        class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                       >
                         Rechazar
                       </button>
                       {!ins.pagado && (
                         <button
                           onClick={() => handlePagoManual(ins.id)}
-                          class="px-3 py-1 bg-orange-600 text-white rounded text-sm font-medium hover:bg-orange-700 transition-colors"
+                          class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
                         >
                           Pago manual
                         </button>

@@ -273,104 +273,106 @@ function DashboardHome() {
         <p class="text-slate-600">Este es su panel de control.</p>
       </div>
 
-      {loadingCuota ? (
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <p class="text-slate-400">Cargando información de cuota...</p>
-        </div>
-      ) : cuota && cuota.monto_actual !== null ? (
-        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100">
-            <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
+      <div class="md:grid md:grid-cols-2 gap-6 space-y-6 md:space-y-0">
+        {loadingCuota ? (
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <p class="text-slate-400">Cargando información de cuota...</p>
           </div>
-          <div class="px-6 py-4 space-y-3">
-            <div class="flex justify-between items-center">
-              <span class="text-slate-600">Monto anual</span>
-              <span class="font-semibold text-slate-900">{formatMoney(cuota.monto_actual)}</span>
+        ) : cuota && cuota.monto_actual !== null ? (
+          <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+              <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
             </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-600">Fecha de vencimiento</span>
-              <span class="text-slate-900">{formatDate(cuota.fecha_vencimiento)}</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-slate-600">Estado</span>
-              {cuota.usuario_tiene_pago ? (
-                <span class="inline-flex items-center gap-1 text-green-700 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
-                  <span class="w-2 h-2 bg-green-500 rounded-full" />
-                  Al día
-                </span>
-              ) : (
-                <span class="inline-flex items-center gap-1 text-red-700 bg-red-50 px-3 py-1 rounded-full text-sm font-medium">
-                  <span class="w-2 h-2 bg-red-500 rounded-full" />
-                  Adeuda
-                </span>
+            <div class="px-6 py-4 space-y-3">
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Monto anual</span>
+                <span class="font-semibold text-slate-900">{formatMoney(cuota.monto_actual)}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Fecha de vencimiento</span>
+                <span class="text-slate-900">{formatDate(cuota.fecha_vencimiento)}</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="text-slate-600">Estado</span>
+                {cuota.usuario_tiene_pago ? (
+                  <span class="inline-flex items-center gap-1 text-green-700 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
+                    <span class="w-2 h-2 bg-green-500 rounded-full" />
+                    Al día
+                  </span>
+                ) : (
+                  <span class="inline-flex items-center gap-1 text-red-700 bg-red-50 px-3 py-1 rounded-full text-sm font-medium">
+                    <span class="w-2 h-2 bg-red-500 rounded-full" />
+                    Adeuda
+                  </span>
+                )}
+              </div>
+
+              {cuota.esta_vencida && !cuota.usuario_tiene_pago && (
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                  Su cuota se encuentra vencida. Realice el pago para reactivar su cuenta.
+                </div>
+              )}
+
+              {checkoutError && (
+                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
+                  {checkoutError}
+                </div>
+              )}
+
+              {!cuota.usuario_tiene_pago && (
+                <div id="mp-checkout-container">
+                  <button
+                    onClick={handlePay}
+                    disabled={loadingPreference}
+                    class="bg-blue-600 text-white px-8 py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
+                  >
+                    {loadingPreference ? 'Generando pago...' : 'Pagar con Mercado Pago'}
+                  </button>
+                </div>
               )}
             </div>
+          </div>
+        ) : cuota ? (
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
+            <p class="text-slate-400 mt-2">La cuota federativa aún no ha sido configurada.</p>
+          </div>
+        ) : null}
 
-            {cuota.esta_vencida && !cuota.usuario_tiene_pago && (
-              <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-                Su cuota se encuentra vencida. Realice el pago para reactivar su cuenta.
-              </div>
-            )}
-
-            {checkoutError && (
-              <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-                {checkoutError}
-              </div>
-            )}
-
-            {!cuota.usuario_tiene_pago && (
-              <div id="mp-checkout-container">
+        {loadingProximos ? (
+          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
+            <p class="text-slate-400">Cargando próximos eventos...</p>
+          </div>
+        ) : proximos.length > 0 ? (
+          <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100">
+              <h4 class="font-semibold text-slate-800">Próximos Eventos</h4>
+            </div>
+            <div class="divide-y divide-slate-100">
+              {proximos.map((ev: EventoResumen) => (
                 <button
-                  onClick={handlePay}
-                  disabled={loadingPreference}
-                  class="w-full bg-blue-600 text-white py-3 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
+                  key={ev.id}
+                  onClick={() => route('/dashboard/eventos')}
+                  class="w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors"
                 >
-                  {loadingPreference ? 'Generando pago...' : 'Pagar con Mercado Pago'}
+                  <div class="flex justify-between items-center">
+                    <span class="font-medium text-slate-900">{ev.tipo}</span>
+                    <span class="text-sm text-slate-500">
+                      {new Date(ev.fecha_inicio).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                    </span>
+                  </div>
+                  {ev.datos_lugar && (
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      {ev.datos_lugar.direccion || ''}
+                      {ev.datos_lugar.provincia ? ` - ${ev.datos_lugar.provincia}` : ''}
+                    </p>
+                  )}
                 </button>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        </div>
-      ) : cuota ? (
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
-          <p class="text-slate-400 mt-2">La cuota federativa aún no ha sido configurada.</p>
-        </div>
-      ) : null}
-
-      {loadingProximos ? (
-        <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-          <p class="text-slate-400">Cargando próximos eventos...</p>
-        </div>
-      ) : proximos.length > 0 ? (
-        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-          <div class="px-6 py-4 border-b border-slate-100">
-            <h4 class="font-semibold text-slate-800">Próximos Eventos</h4>
-          </div>
-          <div class="divide-y divide-slate-100">
-            {proximos.map((ev: EventoResumen) => (
-              <button
-                key={ev.id}
-                onClick={() => route('/dashboard/eventos')}
-                class="w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors"
-              >
-                <div class="flex justify-between items-center">
-                  <span class="font-medium text-slate-900">{ev.tipo}</span>
-                  <span class="text-sm text-slate-500">
-                    {new Date(ev.fecha_inicio).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
-                  </span>
-                </div>
-                {ev.datos_lugar && (
-                  <p class="text-xs text-slate-400 mt-0.5">
-                    {ev.datos_lugar.direccion || ''}
-                    {ev.datos_lugar.provincia ? ` - ${ev.datos_lugar.provincia}` : ''}
-                  </p>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      ) : null}
+        ) : null}
+      </div>
     </div>
   );
 }

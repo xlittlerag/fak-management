@@ -332,9 +332,9 @@ function PendientesAprobacion() {
                 <td class="px-6 py-4 text-sm text-slate-600">{user.asociacion.nombre}</td>
                 <td class="px-6 py-4 text-right space-x-2">
                   <button onClick={() => handleAction(user.id, 'APROBAR')}
-                    class="px-3 py-1 bg-green-600 text-white rounded text-sm font-medium hover:bg-green-700 transition-colors">Aprobar</button>
+                    class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors">Aprobar</button>
                   <button onClick={() => handleAction(user.id, 'RECHAZAR')}
-                    class="px-3 py-1 bg-red-600 text-white rounded text-sm font-medium hover:bg-red-700 transition-colors">Rechazar</button>
+                    class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors">Rechazar</button>
                 </td>
               </tr>
             ))

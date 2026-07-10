@@ -128,14 +128,14 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-asociacion')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-green-600 text-white rounded text-[10px] font-medium hover:bg-green-700 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
                             >
                               Aprobar
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-red-600 text-white rounded text-[10px] font-medium hover:bg-red-700 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
                             >
                               Rechazar
                             </button>
@@ -146,14 +146,14 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-general')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-green-600 text-white rounded text-[10px] font-medium hover:bg-green-700 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
                             >
                               Aprobar Definitivamente
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-red-600 text-white rounded text-[10px] font-medium hover:bg-red-700 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
                             >
                               Rechazar
                             </button>
