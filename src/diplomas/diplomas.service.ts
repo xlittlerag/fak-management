@@ -3,18 +3,19 @@ import { PrismaService } from '../prisma/prisma.service';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
-import { CreateDiplomaLoteDto } from './dto/create-diploma.dto';
 import { ReimprimirDto } from './dto/reimprimir.dto';
 import { UpdateConfigDto } from './dto/update-config.dto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class DiplomasService {
   constructor(
     private prisma: PrismaService,
     private mercadopagoService: MercadoPagoService,
+    private filesService: FilesService,
   ) {}
 
-  async create(dto: CreateDiplomaDto) {
+  async create(file: Express.Multer.File, dto: CreateDiplomaDto) {
     let graduacion = dto.graduacion;
 
     if (dto.inscripcion_id) {
@@ -41,10 +42,12 @@ export class DiplomasService {
 
     if (!graduacion) throw new BadRequestException('La graduación es requerida');
 
+    const url_archivo = await this.filesService.upload(file);
+
     return this.prisma.diplomaNacional.create({
       data: {
         usuario_id: dto.usuario_id,
-        url_archivo: dto.url_archivo,
+        url_archivo,
         disciplina: dto.disciplina as any,
         graduacion: graduacion as any,
         inscripcion_id: dto.inscripcion_id ?? null,
@@ -55,9 +58,9 @@ export class DiplomasService {
     });
   }
 
-  async createLote(dto: CreateDiplomaLoteDto, archivos: { usuario_id: number; disciplina: string; url_archivo: string }[]) {
+  async createLote(evento_id: number, files: Express.Multer.File[], archivosMeta: string) {
     const evento = await this.prisma.evento.findUnique({
-      where: { id: dto.evento_id },
+      where: { id: evento_id },
       include: {
         inscripciones: {
           where: { estado_aprob: 'APROBADO' },
@@ -66,29 +69,37 @@ export class DiplomasService {
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
+    const metas: { usuario_id: number; disciplina: string }[] = JSON.parse(archivosMeta);
+    if (files.length !== metas.length) {
+      throw new BadRequestException('La cantidad de archivos no coincide con los metadatos');
+    }
+
     const errors: string[] = [];
     const created: any[] = [];
 
-    for (const archivo of archivos) {
+    for (let i = 0; i < metas.length; i++) {
+      const meta = metas[i];
+      const file = files[i];
       const inscripcion = evento.inscripciones.find(
-        (i) => i.usuario_id === archivo.usuario_id,
+        (ins) => ins.usuario_id === meta.usuario_id,
       );
       if (!inscripcion) {
-        errors.push(`Usuario ${archivo.usuario_id}: no tiene inscripción aprobada en este evento`);
+        errors.push(`Usuario ${meta.usuario_id}: no tiene inscripción aprobada en este evento`);
         continue;
       }
       const categorias = inscripcion.categoria_grad as Record<string, string>;
-      const graduacion = categorias?.[archivo.disciplina];
+      const graduacion = categorias?.[meta.disciplina];
       if (!graduacion) {
-        errors.push(`Usuario ${archivo.usuario_id}: no se encontró graduación para ${archivo.disciplina}`);
+        errors.push(`Usuario ${meta.usuario_id}: no se encontró graduación para ${meta.disciplina}`);
         continue;
       }
       try {
+        const url_archivo = await this.filesService.upload(file);
         const diploma = await this.prisma.diplomaNacional.create({
           data: {
-            usuario_id: archivo.usuario_id,
-            url_archivo: archivo.url_archivo,
-            disciplina: archivo.disciplina as any,
+            usuario_id: meta.usuario_id,
+            url_archivo,
+            disciplina: meta.disciplina as any,
             graduacion: graduacion as any,
             inscripcion_id: inscripcion.id,
           },
@@ -96,9 +107,9 @@ export class DiplomasService {
         created.push(diploma);
       } catch (e: any) {
         if (e.code === 'P2002') {
-          errors.push(`Usuario ${archivo.usuario_id} - ${archivo.disciplina}: ya existe un diploma`);
+          errors.push(`Usuario ${meta.usuario_id} - ${meta.disciplina}: ya existe un diploma`);
         } else {
-          errors.push(`Usuario ${archivo.usuario_id} - ${archivo.disciplina}: ${e.message}`);
+          errors.push(`Usuario ${meta.usuario_id} - ${meta.disciplina}: ${e.message}`);
         }
       }
     }

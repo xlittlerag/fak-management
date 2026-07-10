@@ -46,7 +46,9 @@ describe('Certificados (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${token}`)
-        .send({ url_archivo: '/uploads/test.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test-content'), 'test.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
       expect(res.status).toBe(201);
       expect(res.body.estado).toBe('PENDIENTE');
     });
@@ -56,7 +58,8 @@ describe('Certificados (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${token}`)
-        .send({ disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
       expect(res.status).toBe(400);
     });
   });
@@ -69,12 +72,16 @@ describe('Certificados (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({ url_archivo: '/uploads/u1.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'u1.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user2.token}`)
-        .send({ url_archivo: '/uploads/u2.pdf', disciplina: 'IAIDO', grad_solicitada: 'DAN_2' });
+        .attach('file', Buffer.from('test'), 'u2.pdf')
+        .field('disciplina', 'IAIDO')
+        .field('grad_solicitada', 'DAN_2');
 
       const res = await request(app.getHttpServer())
         .get('/api/certificados')
@@ -94,12 +101,16 @@ describe('Certificados (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user1.token}`)
-        .send({ url_archivo: '/uploads/u1.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'u1.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user2.token}`)
-        .send({ url_archivo: '/uploads/u2.pdf', disciplina: 'IAIDO', grad_solicitada: 'DAN_2' });
+        .attach('file', Buffer.from('test'), 'u2.pdf')
+        .field('disciplina', 'IAIDO')
+        .field('grad_solicitada', 'DAN_2');
 
       const res = await request(app.getHttpServer())
         .get('/api/certificados')
@@ -119,7 +130,9 @@ describe('Certificados (e2e)', () => {
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/t.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       const res = await request(app.getHttpServer())
         .patch(`/api/certificados/${certRes.body.id}/aprobar-asociacion`)
@@ -137,7 +150,9 @@ describe('Certificados (e2e)', () => {
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/t.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       await request(app.getHttpServer())
         .patch(`/api/certificados/${certRes.body.id}/aprobar-asociacion`)
@@ -161,7 +176,9 @@ describe('Certificados (e2e)', () => {
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/t.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       await request(app.getHttpServer())
         .patch(`/api/certificados/${certRes.body.id}/aprobar-asociacion`)
@@ -189,7 +206,9 @@ describe('Certificados (e2e)', () => {
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/t.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       const res = await request(app.getHttpServer())
         .patch(`/api/certificados/${certRes.body.id}/aprobar-general`)
@@ -208,7 +227,9 @@ describe('Certificados (e2e)', () => {
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/t.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1');
 
       const res = await request(app.getHttpServer())
         .patch(`/api/certificados/${certRes.body.id}/rechazar`)

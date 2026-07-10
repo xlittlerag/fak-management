@@ -74,7 +74,7 @@ export default function EventoDetalle() {
   const [selDisciplinas, setSelDisciplinas] = useState<string[]>([]);
   const [necesidadesEsp, setNecesidadesEsp] = useState(false);
   const [descNecesidades, setDescNecesidades] = useState('');
-  const [archivoMedico, setArchivoMedico] = useState('');
+  const [medicoFile, setMedicoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
@@ -96,21 +96,6 @@ export default function EventoDetalle() {
       .finally(() => setLoading(false));
   }, [eventoId, user]);
 
-  const handleUpload = async (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    const fd = new FormData();
-    fd.append('file', input.files[0]);
-    try {
-      const res = await api.post('/files/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setArchivoMedico(res.data.url);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
-  };
-
   const handleInscribir = async () => {
     setInscribiendo(true);
     setError('');
@@ -120,7 +105,6 @@ export default function EventoDetalle() {
         disciplinas?: string[];
         necesidades_especiales?: boolean;
         descripcion_necesidades?: string;
-        archivo_medico_url?: string;
       } = {};
       if (evento?.tipo === 'EXAMEN') {
         if (selDisciplinas.length > 0) body.disciplinas = selDisciplinas;
@@ -129,9 +113,17 @@ export default function EventoDetalle() {
       }
       body.necesidades_especiales = necesidadesEsp;
       if (necesidadesEsp && descNecesidades) body.descripcion_necesidades = descNecesidades;
-      if (necesidadesEsp && archivoMedico) body.archivo_medico_url = archivoMedico;
       const res = await api.post(`/eventos/${eventoId}/inscribir`, body);
       setInscripcion(res.data);
+
+      if (medicoFile) {
+        const fd = new FormData();
+        fd.append('archivo_medico', medicoFile);
+        await api.patch(`/inscripciones/${res.data.id}/archivo-medico`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
       setSuccess('Se ha inscripto correctamente al evento');
     } catch (err) {
       setError(getErrorMessage(err));
@@ -444,8 +436,8 @@ export default function EventoDetalle() {
                     placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
                   <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG/PNG)</label>
-                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload} class="text-sm" />
-                    {archivoMedico && <p class="text-xs text-green-600 mt-1">Archivo subido</p>}
+                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setMedicoFile((e.target as HTMLInputElement).files?.[0] || null)} class="text-sm" />
+                    {medicoFile && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {medicoFile.name}</p>}
                   </div>
                 </>
               )}

@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Body, Param, Req, ParseIntPipe, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Body, Param, Req, ParseIntPipe, Query, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
+import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { DiplomasService } from './diplomas.service';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
 import { CreateDiplomaLoteDto } from './dto/create-diploma.dto';
@@ -8,20 +9,31 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 import type { Request } from 'express';
 
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+
 @Controller()
 export class DiplomasController {
   constructor(private readonly diplomasService: DiplomasService) {}
 
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas')
-  create(@Body() dto: CreateDiplomaDto) {
-    return this.diplomasService.create(dto);
+  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }))
+  create(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: CreateDiplomaDto,
+  ) {
+    return this.diplomasService.create(file, dto);
   }
 
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas/lote')
-  createLote(@Body() dto: CreateDiplomaLoteDto) {
-    return this.diplomasService.createLote(dto, dto.archivos);
+  @UseInterceptors(FilesInterceptor('files', 50, { limits: { fileSize: MAX_FILE_SIZE } }))
+  createLote(
+    @UploadedFiles() files: Express.Multer.File[],
+    @Body('evento_id') evento_id: string,
+    @Body('archivos_meta') archivosMeta: string,
+  ) {
+    return this.diplomasService.createLote(parseInt(evento_id), files, archivosMeta);
   }
 
   @Roles(Rol.ADMIN_GENERAL)

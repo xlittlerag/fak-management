@@ -47,7 +47,10 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/diploma.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test-content'), 'diploma.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
 
       expect(res.status).toBe(201);
       expect(res.body.disciplina).toBe('KENDO');
@@ -59,7 +62,10 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ url_archivo: '/uploads/d.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
       expect(res.status).toBe(403);
     });
 
@@ -93,12 +99,10 @@ describe('Diplomas (e2e)', () => {
       const res1 = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({
-          url_archivo: '/uploads/d1.pdf',
-          usuario_id: user.user.id,
-          disciplina: 'KENDO',
-          inscripcion_id: inscRes.body.id,
-        });
+        .attach('file', Buffer.from('test'), 'd1.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('inscripcion_id', String(inscRes.body.id));
 
       expect(res1.status).toBe(201);
       expect(res1.body.graduacion).toBe('DAN_1');
@@ -106,12 +110,10 @@ describe('Diplomas (e2e)', () => {
       const res2 = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({
-          url_archivo: '/uploads/d2.pdf',
-          usuario_id: user.user.id,
-          disciplina: 'KENDO',
-          inscripcion_id: inscRes.body.id,
-        });
+        .attach('file', Buffer.from('test'), 'd2.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('inscripcion_id', String(inscRes.body.id));
 
       expect(res2.status).toBe(409);
     });
@@ -154,13 +156,13 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas/lote')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({
-          evento_id: eventoRes.body.id,
-          archivos: [
-            { usuario_id: user1.user.id, disciplina: 'KENDO', url_archivo: '/uploads/u1.pdf' },
-            { usuario_id: user2.user.id, disciplina: 'KENDO', url_archivo: '/uploads/u2.pdf' },
-          ],
-        });
+        .attach('files', Buffer.from('test'), 'u1.pdf')
+        .attach('files', Buffer.from('test'), 'u2.pdf')
+        .field('evento_id', String(eventoRes.body.id))
+        .field('archivos_meta', JSON.stringify([
+          { usuario_id: user1.user.id, disciplina: 'KENDO' },
+          { usuario_id: user2.user.id, disciplina: 'KENDO' },
+        ]));
 
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(2);
@@ -186,12 +188,11 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas/lote')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({
-          evento_id: eventoRes.body.id,
-          archivos: [
-            { usuario_id: user.user.id, disciplina: 'KENDO', url_archivo: '/uploads/u.pdf' },
-          ],
-        });
+        .attach('files', Buffer.from('test'), 'u.pdf')
+        .field('evento_id', String(eventoRes.body.id))
+        .field('archivos_meta', JSON.stringify([
+          { usuario_id: user.user.id, disciplina: 'KENDO' },
+        ]));
 
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(0);
@@ -207,12 +208,18 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/d.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
 
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/d2.pdf', usuario_id: user.user.id, disciplina: 'IAIDO', graduacion: 'DAN_2' });
+        .attach('file', Buffer.from('test'), 'd2.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'IAIDO')
+        .field('graduacion', 'DAN_2');
 
       const res = await request(app.getHttpServer())
         .get('/api/admin/diplomas')
@@ -231,7 +238,10 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/d.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
 
       const res = await request(app.getHttpServer())
         .get('/api/mis-diplomas')
@@ -272,7 +282,10 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/d.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
 
       const res = await request(app.getHttpServer())
         .post('/api/diplomas/reimprimir')
@@ -302,7 +315,10 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ url_archivo: '/uploads/d.pdf', usuario_id: user.user.id, disciplina: 'KENDO', graduacion: 'DAN_1' });
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
 
       await request(app.getHttpServer())
         .post('/api/diplomas/reimprimir')

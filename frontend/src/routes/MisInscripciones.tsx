@@ -25,7 +25,7 @@ export default function MisInscripciones() {
   const [editCats, setEditCats] = useState<string[]>([]);
   const [editNecesidades, setEditNecesidades] = useState(false);
   const [editDescNecesidades, setEditDescNecesidades] = useState('');
-  const [editFileUrl, setEditFileUrl] = useState('');
+  const [editFile, setEditFile] = useState<File | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -69,7 +69,7 @@ export default function MisInscripciones() {
     setEditCats([...ins.categorias]);
     setEditNecesidades(ins.necesidades_especiales);
     setEditDescNecesidades(ins.descripcion_necesidades || '');
-    setEditFileUrl(ins.archivo_medico_url || '');
+    setEditFile(null);
     setMsg('');
   };
 
@@ -80,9 +80,17 @@ export default function MisInscripciones() {
         categorias: editCats,
         necesidades_especiales: editNecesidades,
         descripcion_necesidades: editDescNecesidades || undefined,
-        archivo_medico_url: editFileUrl || undefined,
       });
       setMsg(res.data.mensaje || 'Inscripción modificada');
+
+      if (editFile) {
+        const fd = new FormData();
+        fd.append('archivo_medico', editFile);
+        await api.patch(`/inscripciones/${inscripcionId}/archivo-medico`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
+
       setEditingId(null);
       fetchInscripciones();
     } catch (err) {
@@ -98,21 +106,6 @@ export default function MisInscripciones() {
       const res = await api.delete(`/inscripciones/${inscripcionId}`);
       setMsg(res.data.mensaje || 'Se ha dado de baja del evento');
       fetchInscripciones();
-    } catch (err) {
-      setMsg(getErrorMessage(err));
-    }
-  };
-
-  const handleUpload = async (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    const formData = new FormData();
-    formData.append('file', input.files[0]);
-    try {
-      const res = await api.post('/files/upload', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setEditFileUrl(res.data.url);
     } catch (err) {
       setMsg(getErrorMessage(err));
     }
@@ -195,8 +188,8 @@ export default function MisInscripciones() {
                         placeholder="Describa la necesidad especial" />
                       <div>
                         <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (PDF/JPG/PNG)</label>
-                        <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload} class="text-sm" />
-                        {editFileUrl && <p class="text-xs text-green-600 mt-1">Archivo subido: {editFileUrl}</p>}
+                        <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setEditFile((e.target as HTMLInputElement).files?.[0] || null)} class="text-sm" />
+                        {editFile && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {editFile.name}</p>}
                       </div>
                     </>
                   )}

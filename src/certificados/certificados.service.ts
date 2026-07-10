@@ -3,16 +3,21 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EstadoSolicitud, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateCertificadoDto } from './dto/create-certificado.dto';
+import { FilesService } from '../files/files.service';
 
 @Injectable()
 export class CertificadosService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private filesService: FilesService,
+  ) {}
 
-  async create(dto: CreateCertificadoDto, user: AuthUser) {
+  async create(file: Express.Multer.File, dto: CreateCertificadoDto, user: AuthUser) {
+    const url_archivo = await this.filesService.upload(file);
     return this.prisma.certificadoExterno.create({
       data: {
         usuario_id: user.id,
-        url_archivo: dto.url_archivo,
+        url_archivo,
         disciplina: dto.disciplina as any,
         grad_solicitada: dto.grad_solicitada as any,
         estado: 'PENDIENTE',

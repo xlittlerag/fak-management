@@ -5,6 +5,7 @@ import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { PreciosExamenService } from '../precios-examen/precios-examen.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
+import { FilesService } from '../files/files.service';
 import { CreateEventoDto, RangoExamenDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
@@ -57,6 +58,7 @@ export class EventosService {
     private mercadopagoService: MercadoPagoService,
     private preciosExamenService: PreciosExamenService,
     private feeConfigService: FeeConfigService,
+    private filesService: FilesService,
   ) {}
 
   private get includeSub() {
@@ -277,7 +279,6 @@ export class EventosService {
         estado_aprob: EstadoSolicitud.PENDIENTE,
         necesidades_especiales: dto?.necesidades_especiales ?? false,
         descripcion_necesidades: dto?.descripcion_necesidades ?? null,
-        archivo_medico_url: dto?.archivo_medico_url ?? null,
       },
       include: { evento: true, usuario: true },
     });
@@ -410,7 +411,6 @@ export class EventosService {
 
     if (dto.necesidades_especiales !== undefined) data.necesidades_especiales = dto.necesidades_especiales;
     if (dto.descripcion_necesidades !== undefined) data.descripcion_necesidades = dto.descripcion_necesidades;
-    if (dto.archivo_medico_url !== undefined) data.archivo_medico_url = dto.archivo_medico_url;
 
     await this.prisma.inscripcionEvento.update({
       where: { id: inscripcionId },
@@ -418,6 +418,23 @@ export class EventosService {
     });
 
     return { modificado: true, mensaje: 'Si aplicaran devoluciones, comuníquese con el organizador del evento.' };
+  }
+
+  async subirArchivoMedico(inscripcionId: number, file: Express.Multer.File, user: AuthUser) {
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+    });
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+    if (inscripcion.usuario_id !== user.id) {
+      throw new ForbiddenException('Esta inscripción no le pertenece');
+    }
+
+    const url_archivo = await this.filesService.upload(file);
+    await this.prisma.inscripcionEvento.update({
+      where: { id: inscripcionId },
+      data: { archivo_medico_url: url_archivo },
+    });
+    return { archivo_medico_url: url_archivo };
   }
 
   async bajaInscripcion(inscripcionId: number, usuarioId: number) {

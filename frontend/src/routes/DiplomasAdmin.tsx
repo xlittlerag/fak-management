@@ -21,14 +21,12 @@ export default function DiplomasAdmin() {
   const [disciplina, setDisciplina] = useState('KENDO');
   const [graduacion, setGraduacion] = useState('KYU_3');
   const [inscripcionId, setInscripcionId] = useState<number | undefined>();
-  const [fileUrl, setFileUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [eventos, setEventos] = useState<{ id: number; tipo: string; fecha_inicio: string }[]>([]);
   const [eventoId, setEventoId] = useState<number | null>(null);
   const [inscripciones, setInscripciones] = useState<any[]>([]);
-  const [loteArchivos, setLoteArchivos] = useState<Record<string, string>>({});
-  const [loteUploading, setLoteUploading] = useState<number | null>(null);
+  const [loteFiles, setLoteFiles] = useState<Record<string, File>>({});
   const [msg, setMsg] = useState('');
 
   useEffect(() => {
@@ -36,39 +34,23 @@ export default function DiplomasAdmin() {
     api.get('/eventos/admin').then(res => setEventos(res.data)).catch(() => {});
   }, []);
 
-  const handleUpload = async (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append('file', input.files[0]);
-      const res = await api.post('/files/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setFileUrl(res.data.url);
-    } catch (err) {
-      setMsg(getErrorMessage(err));
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmitIndividual = async (e: Event) => {
     e.preventDefault();
     if (!usuarioId) { setMsg('Debe seleccionar un usuario'); return; }
-    if (!fileUrl) { setMsg('Debe subir un archivo PDF'); return; }
+    if (!file) { setMsg('Debe seleccionar un archivo'); return; }
     setSaving(true);
     try {
-      await api.post('/admin/diplomas', {
-        url_archivo: fileUrl,
-        usuario_id: usuarioId,
-        disciplina,
-        graduacion: inscripcionId ? undefined : graduacion,
-        inscripcion_id: inscripcionId || undefined,
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('usuario_id', String(usuarioId));
+      fd.append('disciplina', disciplina);
+      if (inscripcionId) fd.append('inscripcion_id', String(inscripcionId));
+      if (!inscripcionId) fd.append('graduacion', graduacion);
+      await api.post('/admin/diplomas', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
       setMsg('Diploma cargado correctamente');
-      setFileUrl('');
+      setFile(null);
       setInscripcionId(undefined);
     } catch (err) {
       setMsg(getErrorMessage(err));
@@ -87,46 +69,38 @@ export default function DiplomasAdmin() {
     }
   };
 
-  const handleUploadLote = async (e: Event, userId: number, disc: string) => {
+  const handleSelectLoteFile = (e: Event, userId: number, disc: string) => {
     const input = e.target as HTMLInputElement;
     if (!input.files?.length) return;
-    setLoteUploading(userId);
-    try {
-      const fd = new FormData();
-      fd.append('file', input.files[0]);
-      const res = await api.post('/files/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      const key = `${userId}_${disc}`;
-      setLoteArchivos(prev => {
-        const next = { ...prev };
-        next[key] = res.data.url;
-        return next;
-      });
-    } catch (err) {
-      setMsg(getErrorMessage(err));
-    } finally {
-      setLoteUploading(null);
-    }
+    const key = `${userId}_${disc}`;
+    setLoteFiles(prev => ({ ...prev, [key]: input.files![0] }));
   };
 
   const handleSubmitLote = async () => {
     if (!eventoId) { setMsg('Debe seleccionar un evento'); return; }
-    const archivos = Object.entries(loteArchivos).map(([key, url]) => {
-      const [uid, disc] = key.split('_');
-      return { usuario_id: parseInt(uid), disciplina: disc, url_archivo: url };
-    });
-    if (archivos.length === 0) { setMsg('Debe subir al menos un archivo'); return; }
+    const entries = Object.entries(loteFiles);
+    if (entries.length === 0) { setMsg('Debe seleccionar al menos un archivo'); return; }
     setSaving(true);
     try {
-      const res = await api.post('/admin/diplomas/lote', { evento_id: eventoId, archivos });
+      const fd = new FormData();
+      fd.append('evento_id', String(eventoId));
+      const metas: { usuario_id: number; disciplina: string }[] = [];
+      entries.forEach(([key, f]) => {
+        const [uid, disc] = key.split('_');
+        metas.push({ usuario_id: parseInt(uid), disciplina: disc });
+        fd.append('files', f);
+      });
+      fd.append('archivos_meta', JSON.stringify(metas));
+      const res = await api.post('/admin/diplomas/lote', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       const errs = res.data.errors;
       if (errs.length > 0) {
         setMsg(`Creados ${res.data.created}. Errores: ${errs.join('; ')}`);
       } else {
         setMsg(`${res.data.created} diplomas cargados correctamente`);
       }
-      setLoteArchivos({});
+      setLoteFiles({});
       setInscripciones([]);
     } catch (err) {
       setMsg(getErrorMessage(err));
@@ -203,12 +177,11 @@ export default function DiplomasAdmin() {
           </div>
           <div>
             <label class="block text-sm font-medium text-slate-700 mb-1">Archivo del diploma (PDF/JPG/PNG)</label>
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={handleUpload}
+            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setFile((e.target as HTMLInputElement).files?.[0] || null)}
               class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" />
-            {uploading && <p class="text-xs text-slate-400 mt-1">Subiendo archivo...</p>}
-            {fileUrl && <p class="text-xs text-green-600 mt-1">Archivo listo: {fileUrl.split('/').pop()}</p>}
+            {file && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {file.name}</p>}
           </div>
-          <button type="submit" disabled={saving || uploading || !usuarioId || !fileUrl}
+          <button type="submit" disabled={saving || !usuarioId || !file}
             class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors">
             {saving ? 'Cargando...' : 'Cargar Diploma'}
           </button>
@@ -247,14 +220,13 @@ export default function DiplomasAdmin() {
                         <td class="px-3 py-2">{ins.usuario?.nombre} {ins.usuario?.apellido} ({ins.usuario?.dni})</td>
                         <td class="px-3 py-2">{DISC_LABEL[disc] || disc}</td>
                         <td class="px-3 py-2">
-                          {loteArchivos[`${ins.usuario_id}_${disc}`] ? (
-                            <span class="text-green-600 text-[10px]">Subido</span>
+                          {loteFiles[`${ins.usuario_id}_${disc}`] ? (
+                            <span class="text-green-600 text-[10px]">Seleccionado: {loteFiles[`${ins.usuario_id}_${disc}`].name}</span>
                           ) : (
                             <input type="file" accept=".jpg,.jpeg,.png,.pdf"
-                              onChange={(e: Event) => handleUploadLote(e, ins.usuario_id, disc)}
+                              onChange={(e: Event) => handleSelectLoteFile(e, ins.usuario_id, disc)}
                               class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700" />
                           )}
-                          {loteUploading === ins.usuario_id && <span class="text-[10px] text-slate-400 ml-1">Subiendo...</span>}
                         </td>
                       </tr>
                     ));
@@ -263,10 +235,10 @@ export default function DiplomasAdmin() {
               </table>
             </div>
           )}
-          {Object.keys(loteArchivos).length > 0 && (
+          {Object.keys(loteFiles).length > 0 && (
             <button onClick={handleSubmitLote} disabled={saving}
               class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors">
-              {saving ? 'Cargando...' : `Cargar ${Object.keys(loteArchivos).length} diploma(s)`}
+              {saving ? 'Cargando...' : `Cargar ${Object.keys(loteFiles).length} diploma(s)`}
             </button>
           )}
         </div>

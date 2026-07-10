@@ -38,8 +38,7 @@ export default function Certificados() {
   const [error, setError] = useState('');
   const [disciplina, setDisciplina] = useState('KENDO');
   const [gradSolicitada, setGradSolicitada] = useState('KYU_3');
-  const [fileUrl, setFileUrl] = useState('');
-  const [uploading, setUploading] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -50,34 +49,21 @@ export default function Certificados() {
       .finally(() => setLoading(false));
   }, []);
 
-  const handleUpload = async (e: Event) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    setUploading(true);
-    setMsg('');
-    try {
-      const fd = new FormData();
-      fd.append('file', input.files[0]);
-      const res = await api.post('/files/upload', fd, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-      setFileUrl(res.data.url);
-    } catch (err) {
-      setMsg(getErrorMessage(err));
-    } finally {
-      setUploading(false);
-    }
-  };
-
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
-    if (!fileUrl) { setMsg('Debe subir un archivo PDF del diploma'); return; }
+    if (!file) { setMsg('Debe seleccionar un archivo'); return; }
     setSaving(true);
     setMsg('');
     try {
-      await api.post('/certificados', { url_archivo: fileUrl, disciplina, grad_solicitada: gradSolicitada });
+      const fd = new FormData();
+      fd.append('file', file);
+      fd.append('disciplina', disciplina);
+      fd.append('grad_solicitada', gradSolicitada);
+      await api.post('/certificados', fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
       setMsg('Certificación enviada correctamente');
-      setFileUrl('');
+      setFile(null);
       setDisciplina('KENDO');
       setGradSolicitada('KYU_3');
       const res = await api.get('/certificados');
@@ -137,15 +123,14 @@ export default function Certificados() {
             <input
               type="file"
               accept=".jpg,.jpeg,.png,.pdf"
-              onChange={handleUpload}
+              onChange={(e: Event) => setFile((e.target as HTMLInputElement).files?.[0] || null)}
               class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
             />
-            {uploading && <p class="text-xs text-slate-400 mt-1">Subiendo archivo...</p>}
-            {fileUrl && <p class="text-xs text-green-600 mt-1">Archivo subido: {fileUrl.split('/').pop()}</p>}
+            {file && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {file.name}</p>}
           </div>
           <button
             type="submit"
-            disabled={saving || uploading || !fileUrl}
+            disabled={saving || !file}
             class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
           >
             {saving ? 'Enviando...' : 'Solicitar Certificación'}

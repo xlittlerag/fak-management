@@ -18,8 +18,4 @@ export class InscribirEventoDto {
   @IsOptional()
   @IsString()
   descripcion_necesidades?: string;
-
-  @IsOptional()
-  @IsString()
-  archivo_medico_url?: string;
 }

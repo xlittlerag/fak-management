@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Req, ParseIntPipe, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Req, ParseIntPipe, HttpCode, HttpStatus, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
@@ -7,6 +8,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { Rol } from '@prisma/client';
 import type { Request } from 'express';
+
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 @Controller()
 export class EventosController {
@@ -101,6 +104,17 @@ export class EventosController {
     @Body() dto: InscribirEventoDto,
   ) {
     return this.eventosService.editarInscripcion(id, req.user!.id, dto);
+  }
+
+  @Patch('inscripciones/:id/archivo-medico')
+  @UseInterceptors(FileInterceptor('archivo_medico', { limits: { fileSize: MAX_FILE_SIZE } }))
+  @HttpCode(HttpStatus.OK)
+  subirArchivoMedico(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: Request,
+  ) {
+    return this.eventosService.subirArchivoMedico(id, file, req.user!);
   }
 
   @Delete('inscripciones/:id')
