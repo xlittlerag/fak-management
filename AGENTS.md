@@ -25,6 +25,7 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 - **Password masking:** Prisma `omit: { usuario: { password: true } }` — never log or expose passwords
 - **Language:** All error/UX strings in formal Argentine Spanish (usted)
 - **Asociación ID 0:** The federation itself; excluded from views per `docs/core-global.md`
+- **File uploads:** No standalone upload endpoint. Files are uploaded inline as multipart in the record's creation/update endpoint. `FilesService` is an injectable infrastructure service used internally. `FileInterceptor` with `limits: { fileSize: 10MB }` on every endpoint that accepts files.
 
 ## Testing
 - E2E tests live in `test/` and use `supertest` + `createTestApp()` bootstrap
