@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
+import { Spinner } from '../components/Spinner';
 import api from '../services/api';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { getErrorMessage } from '../lib/error';
 
 interface Inscripcion {
@@ -28,6 +30,7 @@ export default function MisInscripciones() {
   const [editFile, setEditFile] = useState<File | null>(null);
   const [savingEdit, setSavingEdit] = useState(false);
   const [msg, setMsg] = useState('');
+  const [confirmBaja, setConfirmBaja] = useState<number | null>(null);
 
   useEffect(() => {
     fetchInscripciones();
@@ -58,7 +61,7 @@ export default function MisInscripciones() {
         render: { container: `#mp-checkout-${inscripcionId}`, label: 'Pagar' },
       });
     } catch (err) {
-      alert(getErrorMessage(err));
+      setMsg(getErrorMessage(err));
     } finally {
       setPayingId(null);
     }
@@ -101,7 +104,6 @@ export default function MisInscripciones() {
   };
 
   const handleBaja = async (inscripcionId: number) => {
-    if (!confirm('¿Está seguro de darse de baja de este evento?')) return;
     try {
       const res = await api.delete(`/inscripciones/${inscripcionId}`);
       setMsg(res.data.mensaje || 'Se ha dado de baja del evento');
@@ -120,7 +122,7 @@ export default function MisInscripciones() {
     return labels[estado] || estado;
   }
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (loading) return <Spinner text="Cargando inscripciones..." />;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   return (
@@ -197,7 +199,7 @@ export default function MisInscripciones() {
                     <button onClick={() => setEditingId(null)}
                       class="px-4 py-1.5 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200">Cancelar</button>
                     <button onClick={() => handleSaveEdit(ins.id)} disabled={savingEdit}
-                      class="px-4 py-1.5 bg-slate-900 text-white rounded text-sm hover:bg-slate-800 disabled:opacity-50">
+                      class="px-4 py-1.5 bg-slate-900 text-white rounded text-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">
                       {savingEdit ? 'Guardando...' : 'Guardar'}
                     </button>
                   </div>
@@ -209,7 +211,7 @@ export default function MisInscripciones() {
                       class="text-xs text-blue-600 hover:underline">Editar</button>
                   )}
                   {ins.estado_aprob !== 'RECHAZADO' && (
-                    <button onClick={() => handleBaja(ins.id)}
+                    <button onClick={() => setConfirmBaja(ins.id)}
                       class="text-xs text-red-600 hover:underline">Darse de baja</button>
                   )}
                 </div>
@@ -220,7 +222,7 @@ export default function MisInscripciones() {
                   <button
                     onClick={() => handlePagar(ins.id)}
                     disabled={payingId === ins.id}
-                    class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+                    class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                   >
                     {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
                   </button>
@@ -232,6 +234,17 @@ export default function MisInscripciones() {
             </div>
           ))}
         </div>
+      )}
+      {confirmBaja !== null && (
+        <ConfirmModal
+          isOpen={true}
+          onClose={() => setConfirmBaja(null)}
+          onConfirm={() => handleBaja(confirmBaja)}
+          title="Darse de baja"
+          message="¿Está seguro de darse de baja de este evento?"
+          confirmText="Darme de baja"
+          danger
+        />
       )}
     </div>
   );

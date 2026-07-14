@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
+import { Spinner } from '../components/Spinner';
 import { getErrorMessage } from '../lib/error';
 
 export default function Perfil() {
@@ -108,7 +109,7 @@ export default function Perfil() {
     return '';
   };
 
-  if (loading) return <div>Cargando...</div>;
+  if (loading) return <Spinner />;
 
   const getGradLabel = (val: string) => {
     return GRADUACIONES.find(g => g.value === val || g.value === val.split('_').reverse().join('_'))?.label || val;
@@ -226,7 +227,7 @@ export default function Perfil() {
             <button 
               type="submit" 
               disabled={saving}
-              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </button>
@@ -323,7 +324,7 @@ export default function Perfil() {
                   }
                 }}
                 disabled={reimpLoading}
-                class="w-full px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors text-center"
+                class="w-full px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
               >
                 {reimpLoading ? 'Generando pago...' : 'Continuar al pago'}
               </button>

@@ -182,7 +182,7 @@ export default function DiplomasAdmin() {
             {file && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {file.name}</p>}
           </div>
           <button type="submit" disabled={saving || !usuarioId || !file}
-            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors">
+            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {saving ? 'Cargando...' : 'Cargar Diploma'}
           </button>
         </form>
@@ -237,7 +237,7 @@ export default function DiplomasAdmin() {
           )}
           {Object.keys(loteFiles).length > 0 && (
             <button onClick={handleSubmitLote} disabled={saving}
-              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors">
+              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {saving ? 'Cargando...' : `Cargar ${Object.keys(loteFiles).length} diploma(s)`}
             </button>
           )}

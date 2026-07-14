@@ -10,6 +10,7 @@ export default function Login() {
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
   const isRegistered = new URLSearchParams(url.split('?')[1]).get('registered') === 'true';
@@ -36,7 +37,8 @@ export default function Login() {
     }
     try {
       await api.post('/auth/reset-password/request', { dni });
-      setError('Solicitud de blanqueo enviada. Aguarde la aprobación administrativa.');
+      setSuccess('Solicitud de blanqueo enviada. Aguarde la aprobación administrativa.');
+      setError('');
     } catch {
       setError('Error al solicitar el blanqueo.');
     }
@@ -50,6 +52,12 @@ export default function Login() {
         {isRegistered && !error && (
           <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded text-sm">
             Registro exitoso. Su cuenta aguarda la aprobación del administrador de su asociación.
+          </div>
+        )}
+
+        {success && (
+          <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded text-sm">
+            {success}
           </div>
         )}
 

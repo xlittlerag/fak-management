@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { Spinner } from '../components/Spinner';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -167,7 +168,7 @@ export default function EventoDetalle() {
     return labels[estado] || estado;
   }
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (loading) return <Spinner text="Cargando evento..." />;
   if (!evento) return <div class="p-8 text-red-600">Evento no encontrado</div>;
 
   const categorias: Array<{ nombre: string }> = evento.torneo?.categorias || [];
@@ -447,7 +448,7 @@ export default function EventoDetalle() {
           <button
             onClick={handleInscribir}
             disabled={inscribiendo}
-            class="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors text-sm"
+            class="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
           >
             {inscribiendo ? 'Inscribiendo...' : 'Inscribirme'}
           </button>

@@ -62,7 +62,7 @@ export default function Reimpresiones() {
                     <td class="px-4 py-2">{GRADUACIONES.find(g => g.value === r.diploma.graduacion)?.label || r.diploma.graduacion}</td>
                     <td class="px-4 py-2">
                       <span class={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                        r.pagado ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                        r.pagado ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
                       }`}>
                         {r.pagado ? 'Pagado' : 'Pendiente'}
                       </span>

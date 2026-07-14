@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { Spinner } from '../components/Spinner';
+import { Pagination } from '../components/Pagination';
 import { getErrorMessage } from '../lib/error';
 import { GRADUACIONES } from '../constants';
 
@@ -16,7 +18,7 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 const ESTADO_COLORS: Record<string, string> = {
-  PENDIENTE: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  PENDIENTE: 'bg-amber-50 text-amber-700 border-amber-200',
   APROBADO_ASOCIACION: 'bg-blue-50 text-blue-700 border-blue-200',
   APROBADO: 'bg-green-50 text-green-700 border-green-200',
   RECHAZADO: 'bg-red-50 text-red-700 border-red-200',
@@ -39,6 +41,9 @@ export default function CertificadosPendientesAdmin() {
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
   const [processing, setProcessing] = useState<number | null>(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 30;
 
   const fetchData = () => {
     setLoading(true);
@@ -67,7 +72,14 @@ export default function CertificadosPendientesAdmin() {
   const isAdminGeneral = user?.rol === 'ADMIN_GENERAL';
   const isAdminAsociacion = user?.rol === 'ADMIN_ASOCIACION';
 
-  if (loading) return <div class="text-slate-400">Cargando certificaciones pendientes...</div>;
+  const query = search.toLowerCase();
+  const filtered = certificados.filter(c =>
+    !query || c.usuario.nombre.toLowerCase().includes(query) || c.usuario.apellido.toLowerCase().includes(query) || c.usuario.dni.includes(query)
+  );
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
+  const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  if (loading) return <Spinner text="Cargando certificaciones..." />;
   if (error) return <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>;
 
   return (
@@ -82,11 +94,19 @@ export default function CertificadosPendientesAdmin() {
         </div>
       )}
 
+      <input
+        type="text"
+        value={search}
+        onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
+        placeholder="Buscar por nombre, apellido o DNI..."
+        class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+      />
+
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
         <div class="px-6 py-4 border-b border-slate-100">
           <h3 class="font-semibold text-slate-800">Certificaciones Externas</h3>
         </div>
-        {certificados.length === 0 ? (
+        {filtered.length === 0 ? (
           <div class="px-6 py-8 text-center text-slate-400">No hay certificaciones registradas.</div>
         ) : (
           <div class="overflow-x-auto">
@@ -104,7 +124,7 @@ export default function CertificadosPendientesAdmin() {
                 </tr>
               </thead>
               <tbody>
-                {certificados.map(c => (
+                {paged.map(c => (
                   <tr key={c.id} class="border-b border-slate-100 hover:bg-slate-50">
                     <td class="px-4 py-2 font-medium">{c.usuario.nombre} {c.usuario.apellido}</td>
                     <td class="px-4 py-2 text-slate-500">{c.usuario.dni}</td>
@@ -128,14 +148,14 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-asociacion')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Aprobar
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Rechazar
                             </button>
@@ -146,14 +166,14 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-general')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Aprobar Definitivamente
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50"
+                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Rechazar
                             </button>
@@ -177,6 +197,8 @@ export default function CertificadosPendientesAdmin() {
           </div>
         )}
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
     </div>
   );
 }

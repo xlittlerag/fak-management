@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
+import { Spinner } from '../components/Spinner';
 import { getErrorMessage } from '../lib/error';
 import { Modal } from '../components/Modal';
 
@@ -83,7 +84,7 @@ export default function AuditoriaAdmin() {
     JSON.stringify(obj, null, 2);
 
   if (loading && !data) {
-    return <div class="text-slate-400">Cargando...</div>;
+    return <Spinner text="Cargando auditoría..." />;
   }
 
   return (

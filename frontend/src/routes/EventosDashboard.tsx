@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { Spinner } from '../components/Spinner';
 import { getErrorMessage } from '../lib/error';
 import { useAuth } from '../context/AuthContext';
 import type { CategoriaDef } from '../types';
@@ -72,6 +73,9 @@ export default function EventosDashboard() {
   const [payingId, setPayingId] = useState<number | null>(null);
   const [categorias, setCategorias] = useState<Record<number, string[]>>({});
   const [selectedDisciplinas, setSelectedDisciplinas] = useState<Record<number, string[]>>({});
+  const [necesidadesEsp, setNecesidadesEsp] = useState<Record<number, boolean>>({});
+  const [descNecesidades, setDescNecesidades] = useState<Record<number, string>>({});
+  const [medicoFile, setMedicoFile] = useState<Record<number, File | null>>({});
 
   useEffect(() => {
     Promise.all([
@@ -102,11 +106,23 @@ export default function EventosDashboard() {
       if (evento?.tipo === 'EXAMEN') {
         const disc = selectedDisciplinas[eventoId];
         if (disc?.length) body.disciplinas = disc;
+        if (necesidadesEsp[eventoId]) {
+          body.necesidades_especiales = true;
+          if (descNecesidades[eventoId]) body.descripcion_necesidades = descNecesidades[eventoId];
+        }
       } else {
         const cats = categorias[eventoId] || [];
         if (cats.length > 0) body.categorias = cats;
       }
       const res = await api.post(`/eventos/${eventoId}/inscribir`, body);
+      const file = medicoFile[eventoId];
+      if (file) {
+        const fd = new FormData();
+        fd.append('archivo_medico', file);
+        await api.patch(`/inscripciones/${res.data.id}/archivo-medico`, fd, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+      }
       setInscripciones(prev => [...prev, res.data]);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -154,7 +170,7 @@ export default function EventosDashboard() {
     return map[ins.estado_aprob] || { label: ins.estado_aprob, cls: 'bg-slate-50 text-slate-700' };
   }
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando eventos...</div>;
+  if (loading) return <Spinner text="Cargando eventos..." />;
 
   const upcoming = eventos.filter(e => new Date(e.fecha_inicio) > new Date());
 
@@ -332,13 +348,42 @@ export default function EventosDashboard() {
                             }, 0).toLocaleString('es-AR')}
                           </p>
                         )}
+
+                        <div class="border-t border-slate-100 pt-4 space-y-3">
+                          <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" checked={necesidadesEsp[evento.id] || false}
+                              onChange={(e: Event) => {
+                                const checked = (e.target as HTMLInputElement).checked;
+                                setNecesidadesEsp(prev => ({ ...prev, [evento.id]: checked }));
+                                if (!checked) {
+                                  setDescNecesidades(prev => { const n = { ...prev }; delete n[evento.id]; return n; });
+                                  setMedicoFile(prev => { const n = { ...prev }; delete n[evento.id]; return n; });
+                                }
+                              }}
+                              class="w-4 h-4" />
+                            <span class="text-sm text-slate-700">Declaro tener una dificultad que requiere consideración especial</span>
+                          </label>
+                          {necesidadesEsp[evento.id] && (
+                            <>
+                              <textarea value={descNecesidades[evento.id] || ''}
+                                onInput={(e: Event) => setDescNecesidades(prev => ({ ...prev, [evento.id]: (e.target as HTMLTextAreaElement).value }))}
+                                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
+                                placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
+                              <div>
+                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG/PNG)</label>
+                                <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setMedicoFile(prev => ({ ...prev, [evento.id]: (e.target as HTMLInputElement).files?.[0] || null }))} class="text-sm" />
+                                {medicoFile[evento.id] && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {medicoFile[evento.id]!.name}</p>}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
 
                     <button
                       onClick={() => handleInscribir(evento.id)}
                       disabled={inscribiendo[evento.id]}
-                      class="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors text-sm"
+                      class="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
                       {inscribiendo[evento.id] ? 'Inscribiendo...' : 'Inscribirme'}
                     </button>
@@ -348,7 +393,7 @@ export default function EventosDashboard() {
                     <button
                       onClick={() => handlePagar(ins)}
                       disabled={payingId === ins.id}
-                      class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors text-sm"
+                      class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
                       {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
                     </button>

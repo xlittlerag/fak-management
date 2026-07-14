@@ -17,7 +17,7 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 const ESTADO_COLORS: Record<string, string> = {
-  PENDIENTE: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+  PENDIENTE: 'bg-amber-50 text-amber-700 border-amber-200',
   APROBADO_ASOCIACION: 'bg-blue-50 text-blue-700 border-blue-200',
   APROBADO: 'bg-green-50 text-green-700 border-green-200',
   RECHAZADO: 'bg-red-50 text-red-700 border-red-200',
@@ -131,7 +131,7 @@ export default function Certificados() {
           <button
             type="submit"
             disabled={saving || !file}
-            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 transition-colors"
+            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving ? 'Enviando...' : 'Solicitar Certificación'}
           </button>

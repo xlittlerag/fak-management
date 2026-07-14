@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
+import { Spinner } from '../components/Spinner';
 import api from '../services/api';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { getErrorMessage } from '../lib/error';
 
 interface Dojo {
@@ -21,6 +23,7 @@ export default function Asociaciones() {
   const [newDojoNombre, setNewDojoNombre] = useState('');
   const [editingDojoId, setEditingDojoId] = useState<number | null>(null);
   const [editingDojoNombre, setEditingDojoNombre] = useState('');
+  const [confirmDeleteDojo, setConfirmDeleteDojo] = useState<number | null>(null);
 
   useEffect(() => {
     fetchAsociaciones();
@@ -48,7 +51,7 @@ export default function Asociaciones() {
       setNewDojoNombre('');
       fetchAsociaciones();
     } catch {
-      alert('Error al crear dojo');
+      setError('Error al crear dojo');
     }
   };
 
@@ -58,21 +61,20 @@ export default function Asociaciones() {
       setEditingDojoId(null);
       fetchAsociaciones();
     } catch {
-      alert('Error al actualizar dojo');
+      setError('Error al actualizar dojo');
     }
   };
 
   const handleDeleteDojo = async (id: number) => {
-    if (!confirm('¿Seguro?')) return;
     try {
       await api.delete(`/dojos/${id}`);
       fetchAsociaciones();
     } catch (err) {
-      alert(getErrorMessage(err));
+      setError(getErrorMessage(err));
     }
   };
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (loading) return <Spinner text="Cargando asociaciones..." />;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   return (
@@ -124,7 +126,7 @@ export default function Asociaciones() {
                                     ) : (
                                     <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-slate-600 hover:underline text-xs px-2 py-1 bg-slate-100 rounded">Editar</button>
                                     )}
-                                    <button onClick={() => handleDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs px-2 py-1 bg-red-50 rounded">Eliminar</button>
+                                    <button onClick={() => setConfirmDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs px-2 py-1 bg-red-50 rounded">Eliminar</button>
                                 </div>
                                 </li>
                             ))}
@@ -154,6 +156,17 @@ export default function Asociaciones() {
           </tbody>
         </table>
       </div>
+      {confirmDeleteDojo !== null && (
+        <ConfirmModal
+          isOpen={true}
+          onClose={() => setConfirmDeleteDojo(null)}
+          onConfirm={() => handleDeleteDojo(confirmDeleteDojo)}
+          title="Eliminar dojo"
+          message="¿Está seguro de eliminar este dojo?"
+          confirmText="Eliminar"
+          danger
+        />
+      )}
     </div>
   );
 }

@@ -3,6 +3,8 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { GRADUACIONES, SEXOS } from '../constants';
 import { Modal } from '../components/Modal';
+import { Spinner } from '../components/Spinner';
+import { Pagination } from '../components/Pagination';
 import { getErrorMessage } from '../lib/error';
 
 interface User {
@@ -74,6 +76,7 @@ function ListadoMiembros() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [viewingUser, setViewingUser] = useState<User | null>(null);
   const [page, setPage] = useState(0);
+  const [search, setSearch] = useState('');
   const [gradForm, setGradForm] = useState<GradForm>({
     grad_kendo: '', f_grad_kendo: '',
     grad_iaido: '', f_grad_iaido: '',
@@ -81,6 +84,12 @@ function ListadoMiembros() {
   });
 
   const PAGE_SIZE = 50;
+  const hasMore = users.length >= PAGE_SIZE;
+  const filteredUsers = search
+    ? users.filter(u =>
+        `${u.nombre} ${u.apellido} ${u.dni}`.toLowerCase().includes(search.toLowerCase())
+      )
+    : users;
 
   useEffect(() => {
     fetchUsers();
@@ -100,10 +109,9 @@ function ListadoMiembros() {
   const handleUpdateRol = async (id: number, rol: string) => {
     try {
       await api.patch(`/usuarios/${id}/rol`, { rol });
-      alert('Rol actualizado correctamente');
       fetchUsers();
     } catch {
-      alert('Error al actualizar el rol');
+      setError('Error al actualizar el rol');
     }
   };
 
@@ -126,7 +134,7 @@ function ListadoMiembros() {
       setEditingUser(null);
       fetchUsers();
     } catch {
-      alert('Error al actualizar graduación');
+      setError('Error al actualizar graduación');
     }
   };
 
@@ -138,15 +146,24 @@ function ListadoMiembros() {
     return SEXOS.find(s => s.value === val)?.label || val;
   };
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (loading) return <Spinner />;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   const isAdminGeneral = currentUser?.rol === 'ADMIN_GENERAL';
 
   return (
     <>
+      <div class="mb-4">
+        <input
+          type="text"
+          value={search}
+          onInput={(e: Event) => setSearch((e.target as HTMLInputElement).value)}
+          placeholder="Buscar por nombre, apellido o DNI..."
+          class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        />
+      </div>
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-        {users.length === 0 ? (
+        {filteredUsers.length === 0 ? (
           <div class="p-8 text-center text-slate-500">No se encontraron usuarios.</div>
         ) : (
         <div class="overflow-x-auto">
@@ -161,7 +178,7 @@ function ListadoMiembros() {
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-200">
-            {users.map(user => (
+            {filteredUsers.map(user => (
               <tr key={user.id} class="hover:bg-slate-50">
                 <td class="px-4 py-2 font-medium">{user.nombre} {user.apellido}<div class="text-[10px] text-slate-400">{user.dni}</div></td>
                 <td class="px-4 py-2 text-slate-600">{user.dojo?.nombre || '-'}</td>
@@ -198,22 +215,8 @@ function ListadoMiembros() {
         )}
       </div>
 
-      <div class="flex justify-between items-center text-sm text-slate-600">
-        <button
-          onClick={() => setPage(p => Math.max(0, p - 1))}
-          disabled={page === 0}
-          class="px-4 py-2 bg-white border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Página anterior
-        </button>
-        <span>Página {page + 1}</span>
-        <button
-          onClick={() => setPage(p => p + 1)}
-          disabled={users.length < PAGE_SIZE}
-          class="px-4 py-2 bg-white border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Página siguiente
-        </button>
+      <div class="mt-4">
+        <Pagination page={page} hasNext={hasMore} onPageChange={setPage} />
       </div>
 
       {viewingUser !== null && (
@@ -299,11 +302,11 @@ function PendientesAprobacion() {
       await api.patch(`/usuarios/${id}/aprobacion`, { accion });
       setUsers(users.filter(u => u.id !== id));
     } catch {
-      alert('Error al procesar la acción');
+      setError('Error al procesar la acción');
     }
   };
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando...</div>;
+  if (loading) return <div class="p-8"><Spinner text="Cargando usuarios pendientes..." /></div>;
   if (error) return <div class="p-8 text-red-600">{error}</div>;
 
   return (
