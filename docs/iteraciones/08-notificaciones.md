@@ -1,6 +1,6 @@
 # Especificación Técnica - Iteración 8: Notificaciones por Email
 
-> **Estado:** En progreso (sprint activo)
+> **Estado:** Completado
 
 ## Objetivo
 

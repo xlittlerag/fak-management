@@ -1,6 +1,6 @@
 # Especificación Técnica - Iteración 6: Módulo de Auditoría
 
-> **Estado:** En progreso (sprint activo)
+> **Estado:** Completado
 
 ## Objetivo
 

@@ -14,7 +14,7 @@ pnpm run seed                 # seed database with test data
 
 ## Architecture
 - **Backend:** NestJS (v11+) + Prisma 7.8 + SQLite
-- **Frontend:** Preact + Vite + Tailwind v4 (directory exists, not yet implemented in this repo)
+- **Frontend:** Preact + Vite + Tailwind v4 (fully implemented — see frontend/ directory)
 - **Auth:** JWT with DNI-based login; bcrypt passwords
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
 
@@ -48,10 +48,10 @@ pnpm run seed                 # seed database with test data
 - **Iteración 5** — Diplomas nacionales, certificaciones externas, reimpresión — see `docs/iteraciones/05-diplomas-certificaciones.md`
 - **Iteración 6** — Módulo de Auditoría (logging automático de cambios) — see `docs/iteraciones/06-auditoria.md`
 - **Iteración 7** — Mejoras de eliminación de eventos: validación de inscripciones aprobadas (bloquean borrado), transacción para limpiar pendientes, botón "Eliminar permanentemente" dentro del formulario de edición, separación próximos/pasados en frontend — see `docs/iteraciones/07-eliminar-eventos.md`
+- **Iteración 8** — Sistema de notificaciones por email (nodemailer + SMTP): bienvenida, reseteo de contraseña, estado de inscripciones y certificaciones — see `docs/iteraciones/08-notificaciones.md`
 
 ## Pending / Next
 - Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos
-- Notificaciones — Sistema de emails automáticos
 - Frontend completo — refinamiento UX, carga de archivos
 - Infraestructura — `podman-compose.yml`, scripts de backup/restore
 - Schema changes use `npx prisma db push` (no migration files)
