@@ -49,9 +49,10 @@ pnpm run seed                 # seed database with test data
 - **Iteración 6** — Módulo de Auditoría (logging automático de cambios) — see `docs/iteraciones/06-auditoria.md`
 - **Iteración 7** — Mejoras de eliminación de eventos: validación de inscripciones aprobadas (bloquean borrado), transacción para limpiar pendientes, botón "Eliminar permanentemente" dentro del formulario de edición, separación próximos/pasados en frontend — see `docs/iteraciones/07-eliminar-eventos.md`
 - **Iteración 8** — Sistema de notificaciones por email (nodemailer + SMTP): bienvenida, reseteo de contraseña, estado de inscripciones y certificaciones — see `docs/iteraciones/08-notificaciones.md`
+- **UX Phases 1–5** — Refinamiento frontend: reemplazo de alert/confirm por ConfirmModal, Spinner en cargas, unificación de estilos (badges, cursor), Pagination + search en listas, extracción de EventoForm — commit `8152823`
 
 ## Pending / Next
 - Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos
-- Frontend completo — refinamiento UX, carga de archivos
+- Carga de archivos — refinamiento UX en subida de archivos
 - Infraestructura — `podman-compose.yml`, scripts de backup/restore
 - Schema changes use `npx prisma db push` (no migration files)
