@@ -4,9 +4,10 @@ import { EventosService } from './eventos.service';
 import { PagosModule } from '../pagos/pagos.module';
 import { PreciosExamenModule } from '../precios-examen/precios-examen.module';
 import { FilesModule } from '../files/files.module';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
-  imports: [PagosModule, PreciosExamenModule, FilesModule],
+  imports: [PagosModule, PreciosExamenModule, FilesModule, NotificacionesModule],
   controllers: [EventosController],
   providers: [EventosService],
 })

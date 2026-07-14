@@ -6,6 +6,7 @@ import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { PreciosExamenService } from '../precios-examen/precios-examen.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
 import { FilesService } from '../files/files.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { CreateEventoDto, RangoExamenDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
@@ -59,6 +60,7 @@ export class EventosService {
     private preciosExamenService: PreciosExamenService,
     private feeConfigService: FeeConfigService,
     private filesService: FilesService,
+    private notificaciones: NotificacionesService,
   ) {}
 
   private get includeSub() {
@@ -346,6 +348,14 @@ export class EventosService {
       where: { id: inscripcionId },
       data: { estado_aprob: nuevoEstado },
     });
+
+    const eventoLabel = `${inscripcion.evento.tipo} - ${new Date(inscripcion.evento.fecha_inicio).toLocaleDateString('es-AR')}`;
+    this.notificaciones.sendInscripcionStatusEmail(
+      inscripcion.usuario.email,
+      inscripcion.usuario.nombre,
+      eventoLabel,
+      accion,
+    ).catch(err => this.logger.warn(err, 'Error al enviar email de estado de inscripción'));
 
     return this.formatInscripcion({ ...inscripcion, estado_aprob: nuevoEstado });
   }

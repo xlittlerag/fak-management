@@ -201,14 +201,17 @@ describe('Auth (e2e)', () => {
   describe('POST /auth/reset-password/request', () => {
     it('should set estado_blanqueo to PENDIENTE for existing user', async () => {
       const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { dni: 'RESET01', asociacion_id: assoc.id });
+      const { user } = await createTestUser(prisma, jwt, { dni: 'RESET01', asociacion_id: assoc.id });
 
       const response = await request(app.getHttpServer())
         .post('/api/auth/reset-password/request')
         .send({ dni: 'RESET01' })
         .expect(201);
 
-      expect(response.body.estado_blanqueo).toBe('PENDIENTE');
+      expect(response.body).toEqual({ mensaje: expect.any(String) });
+
+      const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
+      expect(updated?.estado_blanqueo).toBe('PENDIENTE');
     });
 
     it('should return 404 for non-existent DNI', async () => {

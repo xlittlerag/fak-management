@@ -21,6 +21,7 @@ import { FilesModule } from './files/files.module';
 import { CertificadosModule } from './certificados/certificados.module';
 import { DiplomasModule } from './diplomas/diplomas.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { LoggingInterceptor } from './common/logging.interceptor';
@@ -66,6 +67,7 @@ import { LoggingInterceptor } from './common/logging.interceptor';
     CertificadosModule,
     DiplomasModule,
     AuditoriaModule,
+    NotificacionesModule,
   ],
   controllers: [AppController],
   providers: [

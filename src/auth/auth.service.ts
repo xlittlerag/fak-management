@@ -1,26 +1,38 @@
-import { Injectable, ConflictException, UnauthorizedException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EstadoRegistro } from '@prisma/client';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
+    private notificaciones: NotificacionesService,
   ) {}
 
   async requestReset(dni: string) {
     const user = await this.prisma.usuario.findUnique({ where: { dni } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    return this.prisma.usuario.update({
+    const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    await this.prisma.usuario.update({
       where: { id: user.id },
       data: { estado_blanqueo: 'PENDIENTE' },
     });
+
+    this.notificaciones.sendPasswordResetEmail(user.email, user.nombre, codigo).catch(err =>
+      this.logger.warn(err, 'Error al enviar email de reseteo de contraseña')
+    );
+
+    return { mensaje: 'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.' };
   }
 
   async register(dto: RegisterUserDto) {
@@ -43,7 +55,7 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    return this.prisma.usuario.create({
+    const user = await this.prisma.usuario.create({
       data: {
         email: dto.email,
         password: hashedPassword,
@@ -68,6 +80,12 @@ export class AuthService {
         estado_pago: false,
       },
     });
+
+    this.notificaciones.sendWelcomeEmail(dto.email, dto.nombre).catch(err =>
+      this.logger.warn(err, 'Error al enviar email de bienvenida')
+    );
+
+    return user;
   }
 
   async login(dto: LoginDto) {
