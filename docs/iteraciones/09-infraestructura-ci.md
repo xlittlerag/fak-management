@@ -122,6 +122,56 @@ MERCADO_PAGO_ACCESS_TOKEN: test
 VITE_MERCADO_PAGO_PUBLIC_KEY: test
 ```
 
+## Backup / Restore con rclone
+
+### Scripts
+
+| Archivo | Descripción |
+|---|---|
+| `scripts/backup.sh` | Empaqueta DB + uploads en `tar.gz`, sube con rclone al destino, limpia backups viejos (>30 días) |
+| `scripts/restore.sh` | Lista backups remotos, descarga y restaura uno (con confirmación) |
+
+### Dependencia: rclone
+
+`rclone` se instala automáticamente en el Containerfile (binario estático, ~50MB). Soporta Google Drive, SFTP, S3, Backblaze B2 y docenas de destinos más.
+
+### Uso
+
+```bash
+# Backup (manual o cron)
+BACKUP_DEST="gdrive:backups/kendo" podman exec kendo-app /app/scripts/backup.sh
+BACKUP_DEST="sftp:user@home-server:/backups" podman exec kendo-app /app/scripts/backup.sh
+
+# Restore (interactivo)
+BACKUP_DEST="gdrive:backups/kendo" podman exec -it kendo-app /app/scripts/restore.sh
+
+# Restore automático (sin confirmación)
+BACKUP_DEST="gdrive:backups/kendo" FORCE=yes podman exec -it kendo-app /app/scripts/restore.sh kendo-backup-2026-07-14_133000.tar.gz
+```
+
+### Configuración de rclone
+
+El setup de rclone se hace una sola vez:
+
+```bash
+# Ejecutar en el host o dentro del container interactivo
+podman exec -it kendo-app rclone config
+
+# O copiar una config existente
+podman cp ~/.config/rclone/rclone.conf kendo-app:/app/.config/rclone/rclone.conf
+```
+
+Ejemplo de `rclone.conf` para Google Drive:
+
+```ini
+[gdrive]
+type = drive
+scope = drive.file
+token = {"access_token":"...","token_type":"...","refresh_token":"...","expiry":"..."}
+client_id = 123456789-xxxxx.apps.googleusercontent.com
+client_secret = GOCSPX-...
+```
+
 ## Criterios de Aceptación (DoD)
 
 - [ ] `Containerfile` construye exitosamente sin errores
@@ -134,4 +184,8 @@ VITE_MERCADO_PAGO_PUBLIC_KEY: test
 - [ ] Los tests E2E pasan en CI
 - [ ] `.dockerignore` excluye node_modules, dist, .git
 - [ ] El usuario no-root `kendo` puede escribir en `uploads/`
+- [ ] `rclone` instalado y funcional en el contenedor
+- [ ] `scripts/backup.sh` empaqueta DB + uploads y sube al destino configurado
+- [ ] `scripts/restore.sh` descarga y restaura un backup (interactivo y con `FORCE=yes`)
+- [ ] Backup puede subir a Google Drive, SFTP y otros destinos de rclone
 - [ ] Documentado en `AGENTS.md`

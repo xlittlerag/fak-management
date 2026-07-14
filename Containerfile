@@ -42,8 +42,23 @@ COPY --from=build /app/frontend/dist ./frontend/dist
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
+COPY scripts /app/scripts
 
 RUN mkdir -p /app/uploads && chown -R kendo:kendo /app
+
+# rclone para backups externos (Google Drive, SFTP, S3, etc.)
+RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/* && \
+    ARCH=$(uname -m) && \
+    case "$ARCH" in \
+      x86_64)  RCLONE_ARCH=amd64 ;; \
+      aarch64) RCLONE_ARCH=arm64 ;; \
+      *)       echo "Unsupported arch: $ARCH"; exit 1 ;; \
+    esac && \
+    curl -fsSL "https://downloads.rclone.org/rclone-current-linux-$RCLONE_ARCH.zip" -o /tmp/rclone.zip && \
+    unzip /tmp/rclone.zip -d /tmp/rclone && \
+    mv /tmp/rclone/rclone-*-linux-$RCLONE_ARCH/rclone /usr/local/bin/rclone && \
+    chmod +x /usr/local/bin/rclone && \
+    rm -rf /tmp/rclone.zip /tmp/rclone
 
 USER kendo
 WORKDIR /app
