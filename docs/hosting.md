@@ -22,7 +22,7 @@
 - Node.js 22.x LTS o superior
 - Ejecución de proceso Node.js persistente (PM2, systemd, o similar)
 - Variable de entorno `JWT_SECRET` para firma de tokens
-- Variable de entorno `DATABASE_URL` para conexión a PostgreSQL
+- Variable de entorno `DATABASE_URL` para conexión a la base de datos
 - Variable de entorno `VITE_MERCADO_PAGO_PUBLIC_KEY` para frontend
 - Variable de entorno `MERCADO_PAGO_ACCESS_TOKEN` para backend
 - Variable de entorno `LOG_LEVEL` para nivel de logging (default: `info`)
