@@ -54,5 +54,5 @@ pnpm run seed                 # seed database with test data
 ## Pending / Next
 - Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos
 - Carga de archivos — refinamiento UX en subida de archivos
-- Infraestructura — `Dockerfile`, scripts de backup/restore
+- Infraestructura — scripts de backup/restore
 - Schema changes use `npx prisma db push` (no migration files)
