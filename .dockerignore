@@ -1,0 +1,12 @@
+node_modules
+dist
+frontend/node_modules
+frontend/dist
+.git
+.gitignore
+*.md
+.env
+.env.local
+test
+coverage
+.DS_Store
