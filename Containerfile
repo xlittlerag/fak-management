@@ -40,6 +40,7 @@ COPY --from=prod-deps /app/node_modules /app/node_modules
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/frontend/dist ./frontend/dist
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 
 RUN mkdir -p /app/uploads && chown -R kendo:kendo /app
@@ -49,9 +50,9 @@ WORKDIR /app
 
 EXPOSE 3000
 
-VOLUME [ "/app/dev.db", "/app/uploads" ]
+VOLUME [ "/app/uploads" ]
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3000/', () => process.exit(0)).on('error', () => process.exit(1))"
+# HEALTHCHECK no soportado en formato OCI (podman default).
+# Usar al ejecutar: podman run --health-cmd="node -e \"require('http').get('http://localhost:3000/',()=>process.exit(0)).on('error',()=>process.exit(1))\"" --health-interval=30s --health-start-period=15s
 
 ENTRYPOINT [ "/app/docker-entrypoint.sh" ]
