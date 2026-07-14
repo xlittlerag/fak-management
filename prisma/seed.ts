@@ -1,6 +1,5 @@
 import { PrismaClient, Rol, Graduacion, Disciplina, EstadoSolicitud } from '@prisma/client';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import * as bcrypt from 'bcrypt';
 import 'dotenv/config';
 
@@ -17,8 +16,9 @@ function days(n: number, from?: Date): Date {
 }
 
 async function main() {
-  const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-  const adapter = new PrismaPg(pool);
+  const adapter = new PrismaBetterSqlite3({
+    url: process.env.DATABASE_URL || 'file:./dev.db',
+  });
   const prisma = new PrismaClient({ adapter });
 
   const pwd = await bcrypt.hash('Test1234!', 10);
@@ -371,8 +371,6 @@ async function main() {
   console.log(`   ${userCount} usuarios, ${eventoCount} eventos (${eventoTypes}), diplomas, certificaciones y más.`);
   console.log(`   Admin login: POST /auth/admin-login { password: "Admin123!" }`);
   console.log(`   User login:  POST /auth/login { dni: "11111111", password: "Test1234!" }`);
-
-  await pool.end();
 }
 
 main().catch((e) => {

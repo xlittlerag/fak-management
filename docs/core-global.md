@@ -4,7 +4,7 @@
 
 - **Backend:** NestJS (v11+), TypeScript, Prisma ORM.
 - **Frontend:** Preact, Vite, TypeScript, Tailwind CSS v4.
-- **Base de Datos:** PostgreSQL.
+- **Base de Datos:** SQLite.
 
 ---
 

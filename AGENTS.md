@@ -10,11 +10,10 @@ pnpm run start:dev            # NestJS dev server
 pnpm run build                # compile TypeScript
 pnpm run test:e2e             # Jest E2E tests with supertest
 pnpm run seed                 # seed database with test data
-pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 ```
 
 ## Architecture
-- **Backend:** NestJS (v11+) + Prisma 7.8 + PostgreSQL
+- **Backend:** NestJS (v11+) + Prisma 7.8 + SQLite
 - **Frontend:** Preact + Vite + Tailwind v4 (directory exists, not yet implemented in this repo)
 - **Auth:** JWT with DNI-based login; bcrypt passwords
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
@@ -37,8 +36,8 @@ pg_ctl -D .db -l .db/log start  # local Postgres (if not using env DB)
 
 ## Setup
 1. `pnpm install` in the repo root
-2. Copy `.env.example` → `.env` and set `DATABASE_URL` (or rely on `pg_ctl`)
-3. Run migrations (`npx prisma migrate dev`) before starting
+2. Copy `.env.example` → `.env` (default `DATABASE_URL=file:./dev.db`)
+3. Run `npx prisma db push` to create the database schema
 4. Start backend (`pnpm start:dev`) and frontend (`cd frontend && pnpm dev`)
 
 ## Completed Iterations

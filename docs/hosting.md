@@ -7,7 +7,7 @@
 | Tipo                            | Aplicación web (backend + frontend SPA)                             |
 | Backend                         | Node.js 22+ (NestJS)                                                |
 | Frontend                        | Preact + Vite (archivos estáticos)                                  |
-| Base de datos                   | PostgreSQL 16+                                                      |
+| Base de datos                   | SQLite                                                              |
 | Almacenamiento de archivos      | Sistema de archivos (`uploads/`). Ver § Almacenamiento de archivos. |
 | Usuarios concurrentes esperados | < 50                                                                |
 | Volumen de datos                | Bajo (miles de registros, no millones)                              |
@@ -33,10 +33,10 @@
 
 ### Base de datos
 
-- PostgreSQL 16+
-- Almacenamiento: mínimo 5 GB (crecimiento estimado < 1 GB/año)
-- Conexiones: mínimo 20 concurrentes
+- SQLite (archivo `./dev.db` en la raíz del proyecto)
+- Sin servidor separado — la base de datos es un archivo local
 - La aplicación crea y migra el schema mediante Prisma (`prisma db push`)
+- Backup: copiar el archivo `dev.db`
 
 ### Frontend
 
@@ -55,7 +55,7 @@
 
 ### Copias de seguridad
 
-- Backup diario de la base de datos (pg_dump)
+- Backup diario de la base de datos (copiar `dev.db`)
 - Backup diario del directorio `uploads/`
 - Retención: mínimo 7 días (recomendado 30 días)
 - Prueba de restauración mensual
@@ -129,7 +129,7 @@ Adecuado para el volumen actual de la Federación Argentina de Kendo.
 | Recurso                           | Servicio                                             | Especificación              | Costo estimado (USD/mes) |
 | --------------------------------- | ---------------------------------------------------- | --------------------------- | ------------------------ |
 | Servidor de aplicación + frontend | VPS básico                                           | 2 vCPU, 2 GB RAM, 40 GB SSD | ~10–15                   |
-| Base de datos                     | PostgreSQL en el mismo VPS (Docker o nativo)         | —                           | incluido                 |
+| Base de datos                     | SQLite (archivo local en el mismo VPS)               | —                           | incluido                 |
 | SSL                               | Let's Encrypt (gratuito)                             | —                           | $0                       |
 | Backups                           | Scripts automáticos + rsync a almacenamiento externo | —                           | $0                       |
 | **Total estimado**                |                                                      |                             | **~10–15 USD/mes**       |
@@ -144,55 +144,32 @@ Adecuado para el volumen actual de la Federación Argentina de Kendo.
 | **Hostinger**    | VPS KVM 1     | 2 vCPU, 4 GB RAM, 50 GB SSD | ~$9              | Sin data center en Sudamérica. Precio promocional.   |
 
 > **Recomendación:** DigitalOcean Droplet de $12/mes en São Paulo (saque un
-> snapshot semanal como backup adicional). Instalar PostgreSQL + aplicación
-> Node.js con PM2 + nginx como proxy reverso y servidor de estáticos.
+> snapshot semanal como backup adicional). Instalar aplicación Node.js con PM2
+> + nginx como proxy reverso y servidor de estáticos.
 
 ---
 
 ### Tier 2 — Administrado (menos mantenimiento)
 
-Base de datos administrada por el proveedor (backups automáticos, parches, alta
-disponibilidad).
+Con SQLite no se necesita base de datos administrada. Todo corre en un solo
+VPS. Si en el futuro se requiere PostgreSQL por escala, se puede migrar sin
+cambios en la aplicación.
 
-| Recurso                           | Servicio                                         | Especificación                         | Costo estimado (USD/mes) |
-| --------------------------------- | ------------------------------------------------ | -------------------------------------- | ------------------------ |
-| Servidor de aplicación + frontend | VPS                                              | 2 vCPU, 2 GB RAM, 40 GB SSD            | ~12                      |
-| Base de datos                     | Managed PostgreSQL                               | 1 vCPU, 2 GB RAM, 10 GB almacenamiento | ~15                      |
-| SSL                               | Let's Encrypt (gratuito)                         | —                                      | $0                       |
-| Backups                           | Incluidos en DB administrada + snapshots del VPS | —                                      | incluido                 |
-| **Total estimado**                |                                                  |                                        | **~27–30 USD/mes**       |
-
-**Proveedores sugeridos:**
-
-| Proveedor        | App Server        | DB Managed                                   | Costo total (USD/mes)        |
-| ---------------- | ----------------- | -------------------------------------------- | ---------------------------- |
-| **DigitalOcean** | Droplet $12       | Managed PostgreSQL $15 (1 vCPU, 2 GB, 10 GB) | ~$27                         |
-| **Vultr**        | Cloud Compute $12 | Managed PostgreSQL $15 (1 vCPU, 2 GB, 10 GB) | ~$27                         |
-| **Railway**      | Service + DB      | PostgreSQL incluido en el plan               | ~$20–25 (variable según uso) |
-
-> **Recomendación:** DigitalOcean Droplet $12 + Managed PostgreSQL $15. La DB
-> administrada da backups automáticos, punto de restauración en el tiempo, y
-> parches de seguridad sin intervención.
+| Recurso                           | Servicio                                         | Especificación              | Costo estimado (USD/mes) |
+| --------------------------------- | ------------------------------------------------- | --------------------------- | ------------------------ |
+| Servidor de aplicación + frontend | VPS                                              | 2 vCPU, 2 GB RAM, 40 GB SSD | ~12                      |
+| Base de datos                     | SQLite (incluido, sin servidor separado)          | —                           | $0                       |
+| SSL                               | Let's Encrypt (gratuito)                         | —                           | $0                       |
+| Backups                           | Copia del archivo `dev.db` + snapshots del VPS   | —                           | incluido                 |
+| **Total estimado**                |                                                  |                             | **~12 USD/mes**          |
 
 ---
 
 ### Tier 3 — Serverless / PaaS (mínima administración)
 
-| Recurso              | Servicio                               | Costo estimado (USD/mes) |
-| -------------------- | -------------------------------------- | ------------------------ |
-| Backend (NestJS)     | Render Web Service o Railway Service   | ~7–15                    |
-| Frontend (estáticos) | Render Static Site o Vercel            | ~0–7                     |
-| Base de datos        | Render PostgreSQL o Railway PostgreSQL | ~7–15                    |
-| SSL                  | Incluido                               | $0                       |
-| Backups              | Incluidos                              | incluido                 |
-| **Total estimado**   |                                        | **~15–35 USD/mes**       |
-
-**Proveedores sugeridos:**
-
-| Proveedor   | Plan                                                  | Costo (USD/mes) | Notas                                                  |
-| ----------- | ----------------------------------------------------- | --------------- | ------------------------------------------------------ |
-| **Render**  | Web Service ($7) + PostgreSQL ($7) + Static Site ($0) | ~$14            | Más barato de los PaaS. Sin data center en Sudamérica. |
-| **Railway** | Plan Developer ($20) incluye DB, 500 GB transferencia | ~$20            | Fácil despliegue desde GitHub. Buen DX.                |
+No recomendado con SQLite (los PaaS esperan una URL de base de datos externa).
+Si se necesita este modelo, migrar a PostgreSQL sigue siendo viable en
+cualquier momento.
 
 ---
 
@@ -215,21 +192,17 @@ disponibilidad).
 │ NestJS   │  │ estáticos │
 │ :3000    │  │ (HTML/CSS)│
 └────┬─────┘  └───────────┘
-     │
-┌────▼─────┐
-│ PostgreSQL│
-└──────────┘
 ```
 
 ## Guía rápida de implementación (DigitalOcean)
 
 1. Crear Droplet Ubuntu 24.04 LTS ($12/mo, São Paulo)
-2. Instalar Node.js 22.x, PostgreSQL 16, nginx
+2. Instalar Node.js 22.x, nginx
 3. Clonar repositorio, instalar dependencias (`pnpm install`)
 4. Compilar backend (`pnpm run build`) y frontend
    (`cd frontend && pnpm run build`)
-5. Configurar `DATABASE_URL`, `JWT_SECRET`, `MERCADO_PAGO_ACCESS_TOKEN` en
-   `.env`
+5. Configurar `DATABASE_URL=file:./dev.db`, `JWT_SECRET`,
+   `MERCADO_PAGO_ACCESS_TOKEN` en `.env`
 6. Ejecutar `npx prisma db push` para crear schema
 7. Iniciar backend con PM2: `pm2 start dist/main.js --name kendo-api`
 8. Configurar nginx:
@@ -241,16 +214,15 @@ disponibilidad).
 ## Checklist de instalación
 
 - [ ] Node.js 22.x instalado
-- [ ] PostgreSQL 16+ instalado y corriendo
 - [ ] `JWT_SECRET` generado (`openssl rand -hex 64`)
-- [ ] `DATABASE_URL` configurada con credenciales
+- [ ] `DATABASE_URL` configurada (ej: `file:./dev.db`)
 - [ ] `MERCADO_PAGO_ACCESS_TOKEN` configurado
 - [ ] `VITE_MERCADO_PAGO_PUBLIC_KEY` configurado en frontend
 - [ ] Backend compilado y corriendo con PM2
 - [ ] Frontend compilado y sirviendo correctamente
 - [ ] nginx configurado con proxy reverso
 - [ ] SSL activo (Let's Encrypt)
-- [ ] Backup automático configurado (pg_dump diario + rsync)
+- [ ] Backup automático configurado (copia de `dev.db` diaria + rsync)
 - [ ] Firewall configurado (solo puertos 22, 80, 443)
 - [ ] Uploads directory con permisos correctos
 - [ ] Prueba de restauración de backup exitosa

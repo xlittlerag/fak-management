@@ -7,3 +7,4 @@ allowBuilds:
   bcrypt: true
   unrs-resolver: true
   esbuild: true
+  better-sqlite3: true

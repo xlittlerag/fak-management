@@ -1,8 +1,6 @@
 import { Injectable, OnModuleInit, OnModuleDestroy, Logger } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
-import { ConfigService } from '@nestjs/config';
-import { PrismaPg } from '@prisma/adapter-pg';
-import pg from 'pg';
+import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 import { RequestContextService } from '../auditoria/request-context.service';
 
 const MODEL_NAMES = [
@@ -15,16 +13,13 @@ const MODEL_NAMES = [
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(PrismaService.name);
-  private auditClient: PrismaClient;
   private ctxService: RequestContextService | null = null;
 
-  constructor(
-    configService: ConfigService,
-  ) {
-    const pool = new pg.Pool({
-      connectionString: configService.get<string>('DATABASE_URL'),
+  constructor() {
+    const adapter = new PrismaBetterSqlite3({
+      url: process.env.DATABASE_URL || 'file:./dev.db',
     });
-    const adapter = new PrismaPg(pool);
+
     super({
       adapter,
       omit: {
@@ -33,18 +28,6 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
         },
       },
     });
-
-    const auditPool = new pg.Pool({
-      connectionString: configService.get<string>('DATABASE_URL'),
-    });
-    this.auditClient = new PrismaClient({
-      adapter: new PrismaPg(auditPool),
-      omit: {
-        usuario: {
-          password: true,
-        },
-      },
-    }) as unknown as PrismaClient;
   }
 
   setContextService(ctx: RequestContextService) {
@@ -53,19 +36,18 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleInit() {
     await this.$connect();
-    await this.auditClient.$connect();
     this.applyExtension();
   }
 
   async onModuleDestroy() {
-    await this.auditClient.$disconnect();
   }
 
   private applyExtension() {
+    const prisma = this;
     const ctxService = this.ctxService;
     if (!ctxService) return;
 
-    const audit = this.auditClient;
+    const logger = this.logger;
 
     const extended = this.$extends({
       query: {
@@ -83,9 +65,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
               if (where) {
                 const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
                 try {
-                  previousState = await ((audit as unknown as Record<string, { findUnique: (opts: { where: Record<string, unknown> }) => Promise<unknown> }>)[modelKey].findUnique({ where }));
+                  previousState = await (prisma as unknown as Record<string, { findUnique: (opts: { where: Record<string, unknown> }) => Promise<unknown> }>)[modelKey].findUnique({ where });
                 } catch (err) {
-                  this.logger.warn(`Pre-read error for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
+                  logger.warn(`Pre-read error for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
                 }
               }
             }
@@ -104,9 +86,9 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
                 datos_previos: operation === 'create' ? null : previousState,
                 datos_nuevos: operation === 'delete' ? null : result,
               };
-              await (audit.auditLog.create as unknown as (args: { data: Record<string, unknown> }) => Promise<unknown>)({ data: auditData });
+              await (prisma.auditLog.create as unknown as (args: { data: Record<string, unknown> }) => Promise<unknown>)({ data: auditData });
             } catch (err) {
-              this.logger.error(`Audit write failed for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
+              logger.error(`Audit write failed for ${model} ${operation}: ${err instanceof Error ? err.message : String(err)}`);
             }
 
             return result;
