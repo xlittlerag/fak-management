@@ -45,7 +45,7 @@ pnpm run dev
 ## 📋 TODO / Próximos Pasos
 
 | Prioridad | Feature | Estado |
-|---|---|---|---|
+|---|---|
 | 1 | **Dashboard / Reportes** — Estadísticas de miembros, eventos, ingresos; gráficos | Pendiente |
 | 2 | **Notificaciones** — Emails automáticos vía SMTP (bienvenida, reseteo contraseña, estado inscripción, estado certificación) | ✅ Completado |
 | 3 | **Frontend completo** — Refinamiento UX, carga de archivos | Pendiente |
