@@ -26,6 +26,12 @@ describe('Pagos (e2e)', () => {
         },
       })
     );
+
+    jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
+      id: 'test_payment_default',
+      status: 'pending',
+      external_reference: 'test_ref',
+    } as any);
   });
 
   beforeEach(async () => {
