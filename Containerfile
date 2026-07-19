@@ -36,6 +36,7 @@ RUN pnpm run build
 # Etapa Final: Runtime ----------------------------------------
 FROM base
 ENV NODE_ENV=production
+ENV DB_DIR=/app/data
 RUN groupadd -r kendo && useradd -r -g kendo -d /app -s /sbin/nologin kendo
 
 COPY --from=prod-deps /app/node_modules /app/node_modules
@@ -46,7 +47,7 @@ COPY --from=build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY scripts /app/scripts
 
-RUN mkdir -p /app/uploads && chown -R kendo:kendo /app
+RUN mkdir -p /app/uploads /app/data && chown -R kendo:kendo /app
 
 # rclone para backups externos (Google Drive, SFTP, S3, etc.)
 RUN apt-get update && apt-get install -y curl unzip && rm -rf /var/lib/apt/lists/* && \
@@ -67,7 +68,7 @@ WORKDIR /app
 
 EXPOSE 3000
 
-VOLUME [ "/app/uploads" ]
+VOLUME [ "/app/data", "/app/uploads" ]
 
 # HEALTHCHECK no soportado en formato OCI (podman default).
 # Usar al ejecutar: podman run --health-cmd="node -e \"require('http').get('http://localhost:3000/',()=>process.exit(0)).on('error',()=>process.exit(1))\"" --health-interval=30s --health-start-period=15s

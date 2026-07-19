@@ -1,11 +1,16 @@
 #!/bin/sh
 set -e
 
+DB_DIR="${DB_DIR:-/app/data}"
+DB_FILE="${DB_FILE:-devdb}"
+mkdir -p "$DB_DIR"
+
 echo "→ Ejecutando prisma db push..."
-npx prisma db push 2>&1
+cd "$DB_DIR"
+DATABASE_URL="file:${DB_FILE}" npx prisma db push 2>&1
 
 echo "→ Verificando admin general..."
-node -e "
+DATABASE_URL="file:${DB_FILE}" node -e "
 const { PrismaClient } = require('@prisma/client');
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
 const bcrypt = require('bcrypt');
@@ -35,4 +40,6 @@ main().catch(e => { console.error('Error al crear admin:', e); process.exit(1); 
 " 2>&1
 
 echo "→ Iniciando aplicación..."
+cd /app
+export DATABASE_URL="file:${DB_DIR}/${DB_FILE}"
 exec node dist/main.js
