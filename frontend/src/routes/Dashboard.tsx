@@ -17,6 +17,7 @@ import DiplomasAdmin from './DiplomasAdmin';
 import AuditoriaAdmin from './AuditoriaAdmin';
 import AdminConfig from './AdminConfig';
 import Reimpresiones from './Reimpresiones';
+import MisDiplomas from './MisDiplomas';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -44,6 +45,7 @@ export default function Dashboard() {
     { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'] },
+    { label: 'Mis Diplomas', path: '/dashboard/mis-diplomas', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Mis Certificados', path: '/dashboard/certificados', roles: ['BASICO'] },
     { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
@@ -82,6 +84,7 @@ export default function Dashboard() {
         { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_GENERAL'] },
         { label: 'Diplomas', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
         { label: 'Reimpresiones', path: '/dashboard/reimpresiones', roles: ['ADMIN_GENERAL'] },
+        { label: 'Mis Diplomas', path: '/dashboard/mis-diplomas', roles: ['ADMIN_GENERAL'] },
       ],
     },
     {
@@ -108,6 +111,7 @@ export default function Dashboard() {
       '/dashboard/certificados-pendientes': 'Certificados Pendientes',
       '/dashboard/diplomas-admin': 'Gestión de Diplomas',
       '/dashboard/reimpresiones': 'Solicitudes de Reimpresión',
+      '/dashboard/mis-diplomas': 'Mis Diplomas',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
       '/dashboard/auditoria': 'Auditoría',
     };
@@ -204,6 +208,7 @@ export default function Dashboard() {
           {path === '/dashboard/certificados-pendientes' && <CertificadosPendientesAdmin />}
           {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
           {path === '/dashboard/reimpresiones' && <Reimpresiones />}
+          {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
           {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
         </div>
