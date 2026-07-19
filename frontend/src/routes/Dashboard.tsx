@@ -37,6 +37,11 @@ export default function Dashboard() {
     return null;
   }
 
+  if (user.rol === 'ADMIN_GENERAL' && path === '/dashboard') {
+    route('/dashboard/usuarios');
+    return null;
+  }
+
   const menuItems = [
     { label: 'Inicio', path: '/dashboard', roles: ['BASICO', 'ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Mi Perfil', path: '/dashboard/perfil', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
@@ -52,12 +57,6 @@ export default function Dashboard() {
   ];
 
   const adminSections = [
-    {
-      title: 'General',
-      items: [
-        { label: 'Inicio', path: '/dashboard', roles: ['ADMIN_GENERAL'] },
-      ],
-    },
     {
       title: 'Gestión',
       items: [
