@@ -1,4 +1,4 @@
-import { Module, RequestMethod } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -25,6 +25,7 @@ import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { LoggingInterceptor } from './common/logging.interceptor';
+import { SpaFallbackMiddleware } from './common/spa-fallback.middleware';
 
 @Module({
   imports: [
@@ -90,4 +91,11 @@ import { LoggingInterceptor } from './common/logging.interceptor';
     },
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SpaFallbackMiddleware)
+      .exclude('/api/*path', '/uploads/*path')
+      .forRoutes({ path: '*path', method: RequestMethod.GET });
+  }
+}

@@ -3,6 +3,14 @@ import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import { GRADUACIONES } from '../constants';
 
+function fileLabel(url: string): string {
+  const ext = url.split('.').pop()?.toUpperCase();
+  if (ext === 'PDF') return 'PDF';
+  if (ext === 'PNG') return 'PNG';
+  if (ext === 'JPG' || ext === 'JPEG') return 'JPG';
+  return 'Archivo';
+}
+
 const DISC_LABEL: Record<string, string> = {
   KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo',
 };
@@ -67,7 +75,7 @@ export default function Reimpresiones() {
                     </td>
                     <td class="px-4 py-2 text-slate-500">{new Date(r.created_at).toLocaleDateString('es-AR')}</td>
                     <td class="px-4 py-2">
-                      <a href={r.diploma.url_archivo} target="_blank" class="text-slate-600 hover:text-slate-900 underline">Ver PDF</a>
+                      <a href={r.diploma.url_archivo} target="_blank" class="text-slate-600 hover:text-slate-900 underline">Ver {fileLabel(r.diploma.url_archivo)}</a>
                     </td>
                   </tr>
                 ))}

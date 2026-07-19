@@ -10,6 +10,14 @@ const DISCIPLINA_LABELS: Record<string, string> = {
   JODO: 'Jodo',
 };
 
+function fileLabel(url: string): string {
+  const ext = url.split('.').pop()?.toUpperCase();
+  if (ext === 'PDF') return 'PDF';
+  if (ext === 'PNG') return 'PNG';
+  if (ext === 'JPG' || ext === 'JPEG') return 'JPG';
+  return 'Archivo';
+}
+
 const DISCIPLINA_COLORS: Record<string, string> = {
   KENDO: 'bg-blue-50 text-blue-700 border-blue-200',
   IAIDO: 'bg-green-50 text-green-700 border-green-200',
@@ -74,7 +82,7 @@ export default function MisDiplomas() {
                       target="_blank"
                       class="text-slate-600 hover:text-slate-900 underline text-xs"
                     >
-                      Ver PDF
+                      Ver {fileLabel(d.url_archivo)}
                     </a>
                   </td>
                 </tr>
