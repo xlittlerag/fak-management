@@ -15,3 +15,15 @@ body {
 * {
   box-sizing: border-box;
 }
+
+/* Sidebar nav scrollbar */
+aside nav::-webkit-scrollbar {
+  width: 4px;
+}
+aside nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+aside nav::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 2px;
+}
