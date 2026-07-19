@@ -72,7 +72,7 @@ pnpm run dev
 |---|---|---|
 | 1 | **Dashboard / Reportes** — Estadísticas de miembros, eventos, ingresos; gráficos | Pendiente |
 | 2 | **Notificaciones** — Emails automáticos vía SMTP (bienvenida, reseteo contraseña, estado inscripción, estado certificación) | ✅ Completado |
-| 3 | **Frontend completo** — Refinamiento UX, carga de archivos | Pendiente |
+| 3 | **Frontend completo** — Refinamiento UX, carga de archivos | ✅ Completado |
 | 4 | **Infraestructura** — Containerfile, CI, backup/restore con rclone | ✅ Completado |
 
 ### Leyenda
