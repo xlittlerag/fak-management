@@ -429,7 +429,7 @@ export class EventosService {
       throw new BadRequestException('La fecha límite para modificar la inscripción ya ha vencido');
     }
 
-    if (!inscripcion.evento.torneo?.inscripciones_abiertas) {
+    if (inscripcion.evento.torneo && !inscripcion.evento.torneo.inscripciones_abiertas) {
       throw new BadRequestException('Las inscripciones están cerradas, no puede modificar');
     }
 
@@ -487,6 +487,10 @@ export class EventosService {
 
     if (inscripcion.evento.torneo?.fecha_limite_real && new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()) {
       throw new BadRequestException('La fecha límite para darse de baja ya ha vencido');
+    }
+
+    if (inscripcion.evento.torneo && !inscripcion.evento.torneo.inscripciones_abiertas) {
+      throw new BadRequestException('Las inscripciones están cerradas, no puede darse de baja');
     }
 
     await this.prisma.inscripcionEvento.delete({ where: { id: inscripcionId } });
