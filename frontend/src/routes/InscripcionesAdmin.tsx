@@ -86,8 +86,6 @@ export default function InscripcionesAdmin() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Inscripciones Pendientes</h2>
-
       <input
         type="text"
         value={search}

@@ -128,8 +128,6 @@ export default function MisInscripciones() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Mis Inscripciones</h2>
-
       {msg && (
         <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>
       )}

@@ -32,8 +32,6 @@ export default function Reimpresiones() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Solicitudes de Reimpresión</h2>
-
       {msg && (
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{msg}</div>
       )}

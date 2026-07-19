@@ -89,8 +89,6 @@ export default function AuditoriaAdmin() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Auditoría</h2>
-
       {error && (
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>
       )}

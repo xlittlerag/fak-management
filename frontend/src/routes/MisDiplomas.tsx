@@ -41,9 +41,6 @@ export default function MisDiplomas() {
 
   return (
     <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-      <div class="px-6 py-4 border-b border-slate-100">
-        <h3 class="font-semibold text-slate-800">Mis Diplomas Nacionales</h3>
-      </div>
       {diplomas.length === 0 ? (
         <div class="px-6 py-8 text-center text-slate-400">No tiene diplomas emitidos.</div>
       ) : (

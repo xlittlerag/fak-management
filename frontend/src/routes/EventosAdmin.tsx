@@ -66,7 +66,7 @@ export default function EventosAdmin() {
     <div class="space-y-6">
       <div class="flex justify-between items-center">
         <h2 class="text-lg font-semibold text-slate-800">
-          {showPasados ? 'Eventos Pasados' : 'Gestión de Eventos'}
+          {showPasados ? 'Eventos Pasados' : 'Próximos Eventos'}
         </h2>
         <div class="flex gap-2">
           {!isFormOpen && (

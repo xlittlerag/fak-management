@@ -143,8 +143,7 @@ export default function Asociaciones() {
         </div>
       )}
 
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-bold text-slate-800">Gestionar Asociaciones</h3>
+      <div class="flex justify-end">
         <button
           onClick={openCreate}
           class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"

@@ -109,8 +109,6 @@ export default function DiplomasAdmin() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Cargar Diplomas</h2>
-
       {msg && (
         <div class={`px-4 py-3 rounded text-sm border ${
           msg.startsWith('Error') || msg.startsWith('No')
