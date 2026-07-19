@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import { route } from 'preact-iso';
+import { useLocation } from 'preact-iso';
 import { Spinner } from '../components/Spinner';
 import EventoForm, { type EventoAdmin } from '../components/EventoForm';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -15,6 +15,7 @@ function canEditEvent(evento: EventoAdmin, user: { id: number; rol: string } | n
 
 export default function EventosAdmin() {
   const { user } = useAuth();
+  const { route } = useLocation();
   const [eventos, setEventos] = useState<EventoAdmin[]>([]);
   const [loading, setLoading] = useState(true);
   const [tableError, setTableError] = useState('');
