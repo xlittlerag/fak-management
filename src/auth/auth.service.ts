@@ -22,10 +22,16 @@ export class AuthService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const hash = await bcrypt.hash(codigo, 10);
+    const expira = new Date(Date.now() + 60 * 60 * 1000);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
-      data: { estado_blanqueo: 'PENDIENTE' },
+      data: {
+        estado_blanqueo: 'PENDIENTE',
+        codigo_blanqueo: hash,
+        codigo_blanqueo_expira: expira,
+      },
     });
 
     this.notificaciones.sendPasswordResetEmail(user.email, user.nombre, codigo).catch(err =>
@@ -33,6 +39,35 @@ export class AuthService {
     );
 
     return { mensaje: 'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.' };
+  }
+
+  async completeReset(dni: string, codigo: string, nuevaPassword: string) {
+    const user = await this.prisma.usuario.findUnique({ where: { dni } });
+    if (!user || !user.codigo_blanqueo || !user.codigo_blanqueo_expira) {
+      throw new UnauthorizedException('No hay una solicitud de blanqueo activa para este DNI.');
+    }
+
+    if (new Date() > user.codigo_blanqueo_expira) {
+      throw new UnauthorizedException('El código ha expirado. Solicite un nuevo blanqueo.');
+    }
+
+    if (!(await bcrypt.compare(codigo, user.codigo_blanqueo))) {
+      throw new UnauthorizedException('El código ingresado es incorrecto.');
+    }
+
+    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+
+    await this.prisma.usuario.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        estado_blanqueo: 'APROBADO',
+        codigo_blanqueo: null,
+        codigo_blanqueo_expira: null,
+      },
+    });
+
+    return { mensaje: 'Contraseña actualizada correctamente. Ya puede iniciar sesión con su nueva contraseña.' };
   }
 
   async register(dto: RegisterUserDto) {

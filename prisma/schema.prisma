@@ -50,6 +50,8 @@ model Usuario {
   dojo_id          Int
   estado_reg       EstadoRegistro        @default(PENDIENTE_APROBACION)
   estado_blanqueo  EstadoSolicitud       @default(APROBADO)
+  codigo_blanqueo  String?
+  codigo_blanqueo_expira DateTime?
   grad_kendo       Graduacion            @default(SIN_GRADUACION)
   f_grad_kendo     DateTime?
   grad_iaido       Graduacion            @default(SIN_GRADUACION)

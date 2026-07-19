@@ -37,7 +37,7 @@ export default function Login() {
     }
     try {
       await api.post('/auth/reset-password/request', { dni });
-      setSuccess('Solicitud de blanqueo enviada. Aguarde la aprobación administrativa.');
+      setSuccess('Solicitud de blanqueo enviada. Si el DNI está registrado, recibirá un correo con el código.');
       setError('');
     } catch {
       setError('Error al solicitar el blanqueo.');

@@ -10,6 +10,7 @@ import EventoDetalle from './routes/EventoDetalle';
 import PagoExito from './routes/PagoExito';
 import PagoPendiente from './routes/PagoPendiente';
 import PagoError from './routes/PagoError';
+import ResetPassword from './routes/ResetPassword';
 import NotFound from './routes/_404';
 
 function AppContent() {
@@ -28,6 +29,7 @@ function AppContent() {
       <Route path="/login" component={Login} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/register" component={Register} />
+      <Route path="/reset-password" component={ResetPassword} />
       <Route path="/eventos" component={Eventos} />
       <Route path="/eventos/:id" component={EventoDetalle} />
       <Route path="/pagos/exito" component={PagoExito} />
