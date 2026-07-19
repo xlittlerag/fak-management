@@ -35,6 +35,7 @@ RUN pnpm run build
 
 # Etapa Final: Runtime ----------------------------------------
 FROM base
+ENV NODE_ENV=production
 RUN groupadd -r kendo && useradd -r -g kendo -d /app -s /sbin/nologin kendo
 
 COPY --from=prod-deps /app/node_modules /app/node_modules
