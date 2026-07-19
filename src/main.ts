@@ -23,6 +23,7 @@ async function bootstrap() {
   }));
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
+  app.enableShutdownHooks();
   app.enableCors();
   await app.listen(process.env.PORT ?? 3000);
 }
