@@ -31,6 +31,21 @@ const GraduacionRank: Record<string, number> = {
   DAN_8: 11,
 };
 
+const GRAD_LABEL: Record<string, string> = {
+  SIN_GRADUACION: 'Sin graduación',
+  KYU_3: '3° Kyu',
+  KYU_2: '2° Kyu',
+  KYU_1: '1° Kyu',
+  DAN_1: '1° Dan',
+  DAN_2: '2° Dan',
+  DAN_3: '3° Dan',
+  DAN_4: '4° Dan',
+  DAN_5: '5° Dan',
+  DAN_6: '6° Dan',
+  DAN_7: '7° Dan',
+  DAN_8: '8° Dan',
+};
+
 function rankGrad(g: string): number {
   return GraduacionRank[g] ?? -1;
 }
@@ -721,7 +736,7 @@ export class EventosService {
     if (req.graduacionPrevia) {
       if (userGrad !== req.graduacionPrevia) {
         throw new ForbiddenException(
-          `Para rendir ${targetGrad} debe tener ${req.graduacionPrevia} aprobado en ${disciplina}`,
+          `Para rendir ${GRAD_LABEL[targetGrad] || targetGrad} debe tener ${GRAD_LABEL[req.graduacionPrevia] || req.graduacionPrevia} aprobado en ${disciplina}`,
         );
       }
 
@@ -738,7 +753,7 @@ export class EventosService {
       if (new Date() < fechaMinima) {
         const restan = this.diasEntre(new Date(), fechaMinima);
         throw new ForbiddenException(
-          `Deben transcurrir al menos ${req.mesesEspera} meses desde la obtención de ${req.graduacionPrevia} en ${disciplina} para rendir ${targetGrad} (faltan ${restan} días)`,
+          `Deben transcurrir al menos ${req.mesesEspera} meses desde la obtención de ${GRAD_LABEL[req.graduacionPrevia] || req.graduacionPrevia} en ${disciplina} para rendir ${GRAD_LABEL[targetGrad] || targetGrad} (faltan ${restan} días)`,
         );
       }
     }
