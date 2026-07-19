@@ -128,7 +128,7 @@ export default function Dashboard() {
       )}
 
       {/* Sidebar */}
-      <aside class={`fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+      <aside class={`max-lg:fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
         sidebarOpen ? 'translate-x-0' : '-translate-x-full'
       }`}>
         <div class="p-6 border-b border-slate-800">
@@ -141,7 +141,7 @@ export default function Dashboard() {
           <p class="text-xs mt-1 text-slate-500 uppercase tracking-wider font-semibold">{user.rol.replace('_', ' ')}</p>
         </div>
         
-        <nav class="flex-1 p-4 space-y-1">
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
           {user.rol === 'ADMIN_GENERAL'
             ? adminSections.map(section => {
                 const visible = section.items.filter(i => i.roles.includes(user.rol));
@@ -182,7 +182,7 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main class="flex-1 overflow-y-auto min-w-0">
+      <main class="flex-1 overflow-y-auto min-w-0 bg-slate-50">
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center gap-4">
           <div class="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} class="lg:hidden text-slate-600 hover:text-slate-900">
