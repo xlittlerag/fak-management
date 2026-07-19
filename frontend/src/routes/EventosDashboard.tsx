@@ -4,6 +4,7 @@ import { Spinner } from '../components/Spinner';
 import { getErrorMessage } from '../lib/error';
 import { useAuth } from '../context/AuthContext';
 import type { CategoriaDef } from '../types';
+import { FileUpload } from '../components/FileUpload';
 
 interface Evento {
   id: number;
@@ -369,11 +370,11 @@ export default function EventosDashboard() {
                                 onInput={(e: Event) => setDescNecesidades(prev => ({ ...prev, [evento.id]: (e.target as HTMLTextAreaElement).value }))}
                                 class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
                                 placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
-                              <div>
-                                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG/PNG)</label>
-                                <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setMedicoFile(prev => ({ ...prev, [evento.id]: (e.target as HTMLInputElement).files?.[0] || null }))} class="text-sm" />
-                                {medicoFile[evento.id] && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {medicoFile[evento.id]!.name}</p>}
-                              </div>
+                              <FileUpload
+                                label="Certificado médico"
+                                currentFile={medicoFile[evento.id] || null}
+                                onFileChange={(f) => setMedicoFile(prev => ({ ...prev, [evento.id]: f }))}
+                              />
                             </>
                           )}
                         </div>

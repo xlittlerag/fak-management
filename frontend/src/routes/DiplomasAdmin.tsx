@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import { GRADUACIONES } from '../constants';
+import { FileUpload } from '../components/FileUpload';
 
 const DISCIPLINAS = [
   { value: 'KENDO', label: 'Kendo' },
@@ -67,13 +68,6 @@ export default function DiplomasAdmin() {
     } catch (err) {
       setMsg(getErrorMessage(err));
     }
-  };
-
-  const handleSelectLoteFile = (e: Event, userId: number, disc: string) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files?.length) return;
-    const key = `${userId}_${disc}`;
-    setLoteFiles(prev => ({ ...prev, [key]: input.files![0] }));
   };
 
   const handleSubmitLote = async () => {
@@ -175,12 +169,12 @@ export default function DiplomasAdmin() {
               onInput={(e: Event) => setInscripcionId(parseInt((e.target as HTMLInputElement).value) || undefined)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Archivo del diploma (PDF/JPG/PNG)</label>
-            <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setFile((e.target as HTMLInputElement).files?.[0] || null)}
-              class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200" />
-            {file && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {file.name}</p>}
-          </div>
+          <FileUpload
+            label="Archivo del diploma"
+            currentFile={file}
+            onFileChange={setFile}
+            required
+          />
           <button type="submit" disabled={saving || !usuarioId || !file}
             class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {saving ? 'Cargando...' : 'Cargar Diploma'}
@@ -220,13 +214,20 @@ export default function DiplomasAdmin() {
                         <td class="px-3 py-2">{ins.usuario?.nombre} {ins.usuario?.apellido} ({ins.usuario?.dni})</td>
                         <td class="px-3 py-2">{DISC_LABEL[disc] || disc}</td>
                         <td class="px-3 py-2">
-                          {loteFiles[`${ins.usuario_id}_${disc}`] ? (
-                            <span class="text-green-600 text-[10px]">Seleccionado: {loteFiles[`${ins.usuario_id}_${disc}`].name}</span>
-                          ) : (
-                            <input type="file" accept=".jpg,.jpeg,.png,.pdf"
-                              onChange={(e: Event) => handleSelectLoteFile(e, ins.usuario_id, disc)}
-                              class="text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700" />
-                          )}
+                          <FileUpload
+                            label=""
+                            currentFile={loteFiles[`${ins.usuario_id}_${disc}`] || null}
+                            onFileChange={(f) => {
+                              const key = `${ins.usuario_id}_${disc}`;
+                              setLoteFiles(prev => {
+                                const next = { ...prev };
+                                if (f) next[key] = f;
+                                else delete next[key];
+                                return next;
+                              });
+                            }}
+                            compact
+                          />
                         </td>
                       </tr>
                     ));

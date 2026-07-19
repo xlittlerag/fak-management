@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import { GRADUACIONES } from '../constants';
+import { FileUpload } from '../components/FileUpload';
 
 const DISCIPLINAS = [
   { value: 'KENDO', label: 'Kendo' },
@@ -118,16 +119,12 @@ export default function Certificados() {
               </select>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Archivo del diploma</label>
-            <input
-              type="file"
-              accept=".jpg,.jpeg,.png,.pdf"
-              onChange={(e: Event) => setFile((e.target as HTMLInputElement).files?.[0] || null)}
-              class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200"
-            />
-            {file && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {file.name}</p>}
-          </div>
+          <FileUpload
+            label="Archivo del diploma"
+            currentFile={file}
+            onFileChange={setFile}
+            required
+          />
           <button
             type="submit"
             disabled={saving || !file}

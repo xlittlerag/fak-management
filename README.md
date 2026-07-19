@@ -18,6 +18,30 @@ El proyecto es una aplicación Monorepo dividida en:
    ```
 2. Configurar el archivo `.env` en la raíz (ver `.env.example`).
 
+### Ejecución con Podman
+
+```bash
+# Construir imagen
+podman build -t kendo-manager .
+
+# Ejecutar contenedor (primera vez)
+podman run -d -p 3000:3000 \
+  -e JWT_SECRET="$(openssl rand -hex 64)" \
+  -e DATABASE_URL="file:devdb" \
+  -e MERCADO_PAGO_ACCESS_TOKEN="test" \
+  -e VITE_MERCADO_PAGO_PUBLIC_KEY="test" \
+  -e ADMIN_PASSWORD="Admin123!" \
+  -v kendo-uploads:/app/uploads \
+  kendo-manager
+
+# Healthcheck (podman no soporta HEALTHCHECK en OCI)
+# Agregar al ejecutar:
+#   --health-cmd="node -e \"require('http').get('http://localhost:3000/',()=>process.exit(0)).on('error',()=>process.exit(1))\"" \
+#   --health-interval=30s \
+#   --health-start-period=15s
+```
+
+
 ### Ejecución en Desarrollo
 
 #### 1. Base de Datos

@@ -3,6 +3,7 @@ import { Spinner } from '../components/Spinner';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { FileUpload } from '../components/FileUpload';
 import { getErrorMessage } from '../lib/error';
 import type { InscripcionResumen, CategoriaDef, DatosLugar } from '../types';
 
@@ -435,11 +436,11 @@ export default function EventoDetalle() {
                     onInput={(e: Event) => setDescNecesidades((e.target as HTMLTextAreaElement).value)}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
                     placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
-                  <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Certificado médico (opcional, PDF/JPG/PNG)</label>
-                    <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={(e: Event) => setMedicoFile((e.target as HTMLInputElement).files?.[0] || null)} class="text-sm" />
-                    {medicoFile && <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {medicoFile.name}</p>}
-                  </div>
+                  <FileUpload
+                    label="Certificado médico"
+                    currentFile={medicoFile}
+                    onFileChange={setMedicoFile}
+                  />
                 </>
               )}
             </div>
