@@ -63,28 +63,21 @@ export default function Dashboard() {
       items: [
         { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
         { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
+        { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
       ],
     },
     {
-      title: 'Eventos',
+      title: 'Certificaciones',
       items: [
-        { label: 'Gestión de Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
-        { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_GENERAL'] },
+        { label: 'Cert. Externas', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_GENERAL'] },
+        { label: 'Diplomas Nacionales', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
+        { label: 'Reimpresiones', path: '/dashboard/reimpresiones', roles: ['ADMIN_GENERAL'] },
       ],
     },
     {
       title: 'Finanzas',
       items: [
         { label: 'Configuración', path: '/dashboard/admin/config', roles: ['ADMIN_GENERAL'] },
-      ],
-    },
-    {
-      title: 'Certificaciones',
-      items: [
-        { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_GENERAL'] },
-        { label: 'Diplomas', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
-        { label: 'Reimpresiones', path: '/dashboard/reimpresiones', roles: ['ADMIN_GENERAL'] },
-        { label: 'Mis Diplomas', path: '/dashboard/mis-diplomas', roles: ['ADMIN_GENERAL'] },
       ],
     },
     {

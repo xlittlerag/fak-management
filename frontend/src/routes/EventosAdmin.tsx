@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { route } from 'preact-iso';
 import { Spinner } from '../components/Spinner';
 import EventoForm, { type EventoAdmin } from '../components/EventoForm';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -101,6 +102,7 @@ export default function EventosAdmin() {
                   <th class="px-4 py-2">Lugar</th>
                   <th class="px-4 py-2">Estado</th>
                   <th class="px-4 py-2">Costo</th>
+                  <th class="px-4 py-2">Inscripciones</th>
                   <th class="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
@@ -122,6 +124,11 @@ export default function EventosAdmin() {
                     <td class="px-4 py-2">
                       {ev.tipo === 'EXAMEN' ? 'Variable' : `$${(ev.torneo?.costo_inscripcion ?? ev.seminario?.costo_inscripcion ?? 0)}`}
                     </td>
+                    <td class="px-4 py-2">
+                      <button onClick={() => route(`/dashboard/inscripciones?eventoId=${ev.id}`)} class="text-blue-600 hover:underline text-xs">
+                        Ver inscripciones
+                      </button>
+                    </td>
                     <td class="px-4 py-2 text-right space-x-2">
                       {canEditEvent(ev, user) && (
                         <>
@@ -139,7 +146,7 @@ export default function EventosAdmin() {
                 ))}
                 {eventosVisibles.length === 0 && (
                   <tr>
-                    <td colspan={6} class="px-4 py-8 text-center text-slate-500">
+                    <td colspan={7} class="px-4 py-8 text-center text-slate-500">
                       {showPasados ? 'No hay eventos pasados.' : 'No hay eventos próximos.'}
                     </td>
                   </tr>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { Spinner } from '../components/Spinner';
 import { ConfirmModal } from '../components/ConfirmModal';
@@ -18,6 +19,10 @@ interface Inscripcion {
 }
 
 export default function InscripcionesAdmin() {
+  const { route } = useLocation();
+  const params = new URLSearchParams(window.location.search);
+  const eventoId = params.get('eventoId');
+
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -28,26 +33,31 @@ export default function InscripcionesAdmin() {
   const PAGE_SIZE = 30;
 
   useEffect(() => {
-    fetchAllInscripciones();
+    fetchInscripciones();
   }, []);
 
-  const fetchAllInscripciones = async () => {
+  const fetchInscripciones = async () => {
     try {
-      const eventosRes = await api.get('/eventos');
-      const eventos = eventosRes.data as Array<{ id: number }>;
-      const allInscripciones: Inscripcion[] = [];
+      if (eventoId) {
+        const res = await api.get(`/eventos/${eventoId}/inscripciones`);
+        setInscripciones(res.data);
+      } else {
+        const eventosRes = await api.get('/eventos');
+        const eventos = eventosRes.data as Array<{ id: number }>;
+        const allInscripciones: Inscripcion[] = [];
 
-      for (const ev of eventos) {
-        try {
-          const res = await api.get(`/eventos/${ev.id}/inscripciones`);
-          allInscripciones.push(...res.data);
-        } catch {
-          // skip eventos sin acceso
+        for (const ev of eventos) {
+          try {
+            const res = await api.get(`/eventos/${ev.id}/inscripciones`);
+            allInscripciones.push(...res.data);
+          } catch {
+            // skip eventos sin acceso
+          }
         }
-      }
 
-      allInscripciones.sort((a, b) => a.id - b.id);
-      setInscripciones(allInscripciones);
+        allInscripciones.sort((a, b) => a.id - b.id);
+        setInscripciones(allInscripciones);
+      }
     } catch {
       setError('Error al cargar inscripciones');
     } finally {
@@ -68,7 +78,7 @@ export default function InscripcionesAdmin() {
     try {
       await api.post(`/inscripciones/${inscripcionId}/pago-manual`);
       setMsg('Pago registrado fuera del sistema');
-      fetchAllInscripciones();
+      fetchInscripciones();
     } catch {
       setError('Error al registrar pago manual');
     }
@@ -86,13 +96,20 @@ export default function InscripcionesAdmin() {
 
   return (
     <div class="space-y-4">
-      <input
-        type="text"
-        value={search}
-        onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
-        placeholder="Buscar por nombre o DNI..."
-        class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
-      />
+      <div class="flex items-center gap-4">
+        <input
+          type="text"
+          value={search}
+          onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
+          placeholder="Buscar por nombre o DNI..."
+          class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        />
+        {eventoId && (
+          <button onClick={() => route('/dashboard/eventos-admin')} class="text-sm text-blue-600 hover:underline whitespace-nowrap">
+            ← Volver a Eventos
+          </button>
+        )}
+      </div>
 
       {error && (
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>
