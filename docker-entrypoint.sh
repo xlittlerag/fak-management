@@ -7,7 +7,7 @@ mkdir -p "$DB_DIR"
 
 echo "→ Ejecutando prisma db push..."
 cd "$DB_DIR"
-DATABASE_URL="file:${DB_FILE}" npx prisma db push 2>&1
+DATABASE_URL="file:${DB_FILE}" npx prisma db push --schema=/app/prisma/schema.prisma 2>&1
 
 echo "→ Verificando admin general..."
 DATABASE_URL="file:${DB_FILE}" node -e "
