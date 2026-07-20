@@ -49,12 +49,6 @@ import { SpaFallbackMiddleware } from './common/spa-fallback.middleware';
       rootPath: join(__dirname, '..', 'frontend', 'dist'),
       exclude: ['/api/*path'],
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
-      serveRoot: '/uploads',
-      serveStaticOptions: { index: false },
-      exclude: ['/api/*path'],
-    }),
     PrismaModule,
     AuthModule,
     AsociacionesModule,
