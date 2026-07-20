@@ -4,9 +4,9 @@ import { join } from 'path';
 import { existsSync } from 'fs';
 import { Public } from '../auth/decorators/public.decorator';
 
-@Controller()
+@Controller('uploads')
 export class UploadsController {
-  @Get('uploads/:filename')
+  @Get(':filename')
   @Public()
   serve(@Param('filename') filename: string, @Res() res: Response) {
     const filePath = join(process.cwd(), 'uploads', filename);

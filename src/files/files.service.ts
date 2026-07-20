@@ -34,6 +34,6 @@ export class FilesService {
 
     await writeFile(filepath, file.buffer);
 
-    return `/uploads/${filename}`;
+    return `/api/uploads/${filename}`;
   }
 }

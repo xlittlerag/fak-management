@@ -246,7 +246,7 @@ async function main() {
         pagado: opts?.pagado ?? false, pagado_fuera_sistema: opts?.pagoFueraSistema ?? false,
         necesidades_especiales: opts?.necesidades ?? false,
         descripcion_necesidades: opts?.descNecesidades ?? null,
-        archivo_medico_url: opts?.necesidades ? '/uploads/seed/certificado-medico.pdf' : null,
+        archivo_medico_url: opts?.necesidades ? '/api/uploads/seed/certificado-medico.pdf' : null,
       },
     });
   }
@@ -309,7 +309,7 @@ async function main() {
   for (const d of diplomas) {
     await prisma.diplomaNacional.create({
       data: {
-        usuario_id: d.usuario, url_archivo: '/uploads/seed/diploma.pdf',
+        usuario_id: d.usuario, url_archivo: '/api/uploads/seed/diploma.pdf',
         disciplina: d.disciplina, graduacion: d.graduacion,
         inscripcion_id: d.inscripcion ?? null,
       },
@@ -318,16 +318,16 @@ async function main() {
 
   // 8. Certificaciones externas
   await prisma.certificadoExterno.create({
-    data: { usuario_id: user('maria@test.com').id, url_archivo: '/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_3', estado: 'PENDIENTE' },
+    data: { usuario_id: user('maria@test.com').id, url_archivo: '/api/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_3', estado: 'PENDIENTE' },
   });
   await prisma.certificadoExterno.create({
-    data: { usuario_id: user('carlos@test.com').id, url_archivo: '/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'KYU_1', estado: 'APROBADO_ASOCIACION' },
+    data: { usuario_id: user('carlos@test.com').id, url_archivo: '/api/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'KYU_1', estado: 'APROBADO_ASOCIACION' },
   });
   await prisma.certificadoExterno.create({
-    data: { usuario_id: user('ana@test.com').id, url_archivo: '/uploads/seed/ext.pdf', disciplina: 'IAIDO', grad_solicitada: 'KYU_2', estado: 'APROBADO' },
+    data: { usuario_id: user('ana@test.com').id, url_archivo: '/api/uploads/seed/ext.pdf', disciplina: 'IAIDO', grad_solicitada: 'KYU_2', estado: 'APROBADO' },
   });
   await prisma.certificadoExterno.create({
-    data: { usuario_id: user('martin@test.com').id, url_archivo: '/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_2', estado: 'RECHAZADO' },
+    data: { usuario_id: user('martin@test.com').id, url_archivo: '/api/uploads/seed/ext.pdf', disciplina: 'KENDO', grad_solicitada: 'DAN_2', estado: 'RECHAZADO' },
   });
 
   // 9. Historial de graduaciones
