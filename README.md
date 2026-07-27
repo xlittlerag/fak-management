@@ -32,6 +32,7 @@ podman build --build-arg VITE_MERCADO_PAGO_PUBLIC_KEY="test-xxxx" -t kendo-manag
 podman run -d -p 3000:3000 \
   -e JWT_SECRET="$(openssl rand -hex 64)" \
   -e MERCADO_PAGO_ACCESS_TOKEN="test" \
+  -e MERCADO_PAGO_SIMULATED="true" \
   -e ADMIN_PASSWORD="Admin123!" \
   -v kendo-db:/app/data \
   -v kendo-uploads:/app/uploads \
