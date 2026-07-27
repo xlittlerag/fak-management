@@ -164,19 +164,6 @@ const handlePagar = async (ins: Inscripcion) => {
 
   const handleSimulatePayment = async () => {
     if (!simulatedPayment) return;
-    try {
-      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
-      setInscripciones(prev =>
-        prev.map(i => (i.id === simulatedPayment.inscripcionId ? { ...i, pagado: true } : i))
-      );
-      setSimulatedPayment(null);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    }
-  };
-
-  const handleSimulatePayment = async () => {
-    if (!simulatedPayment) return;
     setError('');
     try {
       await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });

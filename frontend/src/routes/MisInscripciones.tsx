@@ -33,7 +33,6 @@ export default function MisInscripciones() {
   const [msg, setMsg] = useState('');
   const [confirmBaja, setConfirmBaja] = useState<number | null>(null);
   const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
-  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
 
   useEffect(() => {
     fetchInscripciones();
