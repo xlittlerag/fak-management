@@ -51,6 +51,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 8** — Sistema de notificaciones por email (nodemailer + SMTP): bienvenida, reseteo de contraseña, estado de inscripciones y certificaciones — see `docs/iteraciones/08-notificaciones.md`
 - **UX Phases 1–5** — Refinamiento frontend: reemplazo de alert/confirm por ConfirmModal, Spinner en cargas, unificación de estilos (badges, cursor), Pagination + search en listas, extracción de EventoForm — commit `8152823`
 - **Iteración 9** — Infraestructura y CI: Containerfile (multi-stage, usuario no-root, volumes), entrypoint con admin automático, GitHub Actions CI, scripts de backup/restore con rclone — see `docs/iteraciones/09-infraestructura-ci.md`
+- **Iteración 10** — Modo simulado para Mercado Pago (test): saltea el checkout modal en entorno de test, `MERCADO_PAGO_SIMULATED=true`, endpoint `POST /api/pagos/simulate` que procesa pagos mock reusando la lógica del webhook — see `docs/iteraciones/10-modo-simulado-mercadopago.md`
 
 ## Pending / Next
 - Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos

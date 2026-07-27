@@ -34,6 +34,7 @@ export default function Perfil() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const [simulatedReimp, setSimulatedReimp] = useState<{ externalReference: string } | null>(null);
 
   useEffect(() => {
     fetchPerfil();
@@ -310,7 +311,12 @@ export default function Perfil() {
                   setReimpMsg('');
                   try {
                     const res = await api.post('/diplomas/reimprimir', { disciplina: reimpDisc });
-                    const { preferenceId } = res.data.preference;
+                    const { preferenceId, simulated, externalReference } = res.data.preference;
+                    if (simulated) {
+                      setSimulatedReimp({ externalReference });
+                      setReimpLoading(false);
+                      return;
+                    }
                     const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
                     mp.checkout({
                       preference: { id: preferenceId },
@@ -328,7 +334,31 @@ export default function Perfil() {
               >
                 {reimpLoading ? 'Generando pago...' : 'Continuar al pago'}
               </button>
-              <div id="reimp-checkout-container" />
+              {simulatedReimp ? (
+                <div class="mt-2">
+                  <button
+                    onClick={async () => {
+                      setReimpLoading(true);
+                      try {
+                        await api.post('/pagos/simulate', { externalReference: simulatedReimp.externalReference });
+                        setReimpMsg('Pago simulado completado');
+                        setSimulatedReimp(null);
+                        setReimpresionModal(false);
+                      } catch (err) {
+                        setReimpMsg(getErrorMessage(err));
+                      } finally {
+                        setReimpLoading(false);
+                      }
+                    }}
+                    disabled={reimpLoading}
+                    class="w-full bg-green-600 text-white px-8 py-2 rounded font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
+                  >
+                    {reimpLoading ? 'Procesando...' : 'Pagar en modo prueba (simulado)'}
+                  </button>
+                </div>
+              ) : (
+                <div id="reimp-checkout-container" />
+              )}
             </div>
             <button
               onClick={() => setReimpresionModal(false)}

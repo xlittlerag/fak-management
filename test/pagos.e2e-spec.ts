@@ -5,6 +5,9 @@ import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
 import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
 import MercadoPago, { Payment } from 'mercadopago';
+import { ConfigService } from '@nestjs/config';
+
+process.env.MERCADO_PAGO_SIMULATED = 'true';
 
 describe('Pagos (e2e)', () => {
   let app: INestApplication;
@@ -262,6 +265,129 @@ describe('Pagos (e2e)', () => {
           id: 'credit_card',
         })
       );
+    });
+  });
+
+  describe('POST /pagos/simulate — modo simulado', () => {
+    it('debería simular pago de cuota federativa (fee_user_)', async () => {
+      await seedFeeConfig();
+      const { user, token } = await createTestUser(prisma, jwt);
+
+      const preferenceResponse = await request(app.getHttpServer())
+        .post('/api/pagos/checkout-fee')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      const externalReference = preferenceResponse.body.externalReference;
+
+      const response = await request(app.getHttpServer())
+        .post('/api/pagos/simulate')
+        .send({ externalReference })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.processed).toBe(true);
+
+      const updatedUser = await prisma.usuario.findUnique({ where: { id: user.id } });
+      expect(updatedUser!.estado_pago).toBe(true);
+      expect(updatedUser!.estado_reg).toBe('APROBADO');
+    });
+
+    it('debería simular pago de inscripción (inscripcion_user_)', async () => {
+      await seedFeeConfig();
+      const { user, token } = await createTestUser(prisma, jwt);
+
+      const evento = await prisma.evento.create({
+        data: {
+          tipo: 'TORNEO',
+          fecha_inicio: new Date('2026-12-01T10:00:00.000Z'),
+          fecha_fin: new Date('2026-12-01T18:00:00.000Z'),
+          datos_lugar: { direccion: 'Test', provincia: 'BUENOS_AIRES' },
+          torneo: {
+            create: { costo_inscripcion: 5000, disciplina: 'KENDO', inscripcion_multiple: false, categorias: [] },
+          },
+        },
+        include: { torneo: true },
+      });
+
+      const inscripcion = await prisma.inscripcionEvento.create({
+        data: {
+          usuario_id: user.id,
+          evento_id: evento.id,
+          estado_aprob: 'APROBADO',
+          pagado: false,
+          categoria_grad: ['General'],
+          disciplinas: [],
+        },
+      });
+
+      const externalReference = `inscripcion_user_${user.id}_evento_${evento.id}_insc_${inscripcion.id}_ts_${Date.now()}`;
+
+      const response = await request(app.getHttpServer())
+        .post('/api/pagos/simulate')
+        .send({ externalReference })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.processed).toBe(true);
+
+      const updatedInscripcion = await prisma.inscripcionEvento.findUnique({ where: { id: inscripcion.id } });
+      expect(updatedInscripcion!.pagado).toBe(true);
+      expect(updatedInscripcion!.estado_aprob).toBe('APROBADO');
+    });
+
+    it('debería simular pago de reimpresión (reimpresion_user_)', async () => {
+      await seedFeeConfig();
+      const { user, token } = await createTestUser(prisma, jwt);
+
+      const diploma = await prisma.diplomaNacional.create({
+        data: {
+          usuario_id: user.id,
+          disciplina: 'KENDO',
+          graduacion: 'DAN_1',
+          url_archivo: 'https://example.com/diploma.pdf',
+        },
+      });
+
+      const reimpresion = await prisma.reimpresionDiploma.create({
+        data: {
+          usuario: { connect: { id: user.id } },
+          diploma: { connect: { id: diploma.id } },
+          pagado: false,
+        },
+      });
+
+      const externalReference = `reimpresion_user_${user.id}_reimp_${reimpresion.id}_ts_${Date.now()}`;
+
+      const response = await request(app.getHttpServer())
+        .post('/api/pagos/simulate')
+        .send({ externalReference })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.processed).toBe(true);
+
+      const updatedReimpresion = await prisma.reimpresionDiploma.findUnique({ where: { id: reimpresion.id } });
+      expect(updatedReimpresion!.pagado).toBe(true);
+      expect(updatedReimpresion!.mp_payment_id).toContain('sim_');
+    });
+
+    it('debería rechazar referencia externa inválida', async () => {
+      const response = await request(app.getHttpServer())
+        .post('/api/pagos/simulate')
+        .send({ externalReference: 'invalid_reference' })
+        .expect(200);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.processed).toBe(false);
+      expect(response.body.message).toBe('Referencia externa inválida');
+    });
+
+    it('debería rechazar sin externalReference', async () => {
+      await request(app.getHttpServer())
+        .post('/api/pagos/simulate')
+        .send({})
+        .expect(403);
     });
   });
 });

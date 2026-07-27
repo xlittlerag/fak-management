@@ -32,6 +32,8 @@ export default function MisInscripciones() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [msg, setMsg] = useState('');
   const [confirmBaja, setConfirmBaja] = useState<number | null>(null);
+  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
+  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
 
   useEffect(() => {
     fetchInscripciones();
@@ -56,15 +58,32 @@ export default function MisInscripciones() {
         fetchInscripciones();
         return;
       }
+      const { preferenceId, simulated, externalReference } = res.data;
+      if (simulated) {
+        setSimulatedPayment({ externalReference, inscripcionId });
+        return;
+      }
       const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
-        preference: { id: res.data.preferenceId },
+        preference: { id: preferenceId },
         render: { container: `#mp-checkout-${inscripcionId}`, label: 'Pagar' },
       });
     } catch (err) {
       setMsg(getErrorMessage(err));
     } finally {
       setPayingId(null);
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!simulatedPayment) return;
+    setMsg('');
+    try {
+      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
+      fetchInscripciones();
+      setSimulatedPayment(null);
+    } catch (err) {
+      setMsg(getErrorMessage(err));
     }
   };
 
@@ -218,13 +237,22 @@ export default function MisInscripciones() {
 
               {ins.estado_aprob === 'APROBADO' && !ins.pagado && editingId !== ins.id && (
                 <div class="mt-4" id={`mp-checkout-${ins.id}`}>
-                  <button
-                    onClick={() => handlePagar(ins.id)}
-                    disabled={payingId === ins.id}
-                    class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                  >
-                    {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
-                  </button>
+                  {simulatedPayment?.inscripcionId === ins.id ? (
+                    <button
+                      onClick={handleSimulatePayment}
+                      class="w-full bg-green-600 text-white py-2 rounded font-medium hover:bg-green-700 transition-colors text-sm"
+                    >
+                      Pagar en modo prueba (simulado)
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handlePagar(ins.id)}
+                      disabled={payingId === ins.id}
+                      class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                    >
+                      {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
+                    </button>
+                  )}
                 </div>
               )}
               {ins.estado_aprob === 'RECHAZADO' && (

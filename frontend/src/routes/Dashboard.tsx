@@ -218,6 +218,7 @@ function DashboardHome() {
   const [checkoutError, setCheckoutError] = useState('');
   const [proximos, setProximos] = useState<EventoResumen[]>([]);
   const [loadingProximos, setLoadingProximos] = useState(true);
+  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string } | null>(null);
 
   useEffect(() => {
     api.get('/eventos')
@@ -238,12 +239,31 @@ function DashboardHome() {
     setLoadingPreference(true);
     try {
       const res = await api.post('/pagos/checkout-fee');
-      const { preferenceId } = res.data;
+      const { preferenceId, simulated, externalReference } = res.data;
+      if (simulated) {
+        // Modo simulado: mostrar botón de simulación en lugar de MP checkout
+        setSimulatedPayment({ externalReference });
+        return;
+      }
       const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
         preference: { id: preferenceId },
         render: { container: '#mp-checkout-container', label: 'Pagar' },
       });
+    } catch (err) {
+      setCheckoutError(getErrorMessage(err));
+    } finally {
+      setLoadingPreference(false);
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!simulatedPayment) return;
+    setLoadingPreference(true);
+    setCheckoutError('');
+    try {
+      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
+      route('/pagos/exito');
     } catch (err) {
       setCheckoutError(getErrorMessage(err));
     } finally {
@@ -318,13 +338,23 @@ function DashboardHome() {
 
               {!cuota.usuario_tiene_pago && (
                 <div id="mp-checkout-container">
-                  <button
-                    onClick={handlePay}
-                    disabled={loadingPreference}
-                    class="bg-blue-600 text-white px-8 py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
-                  >
-                    {loadingPreference ? 'Generando pago...' : 'Pagar con Mercado Pago'}
-                  </button>
+                  {simulatedPayment ? (
+                    <button
+                      onClick={handleSimulatePayment}
+                      disabled={loadingPreference}
+                      class="bg-green-600 text-white px-8 py-2 rounded font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center w-full"
+                    >
+                      {loadingPreference ? 'Procesando pago simulado...' : 'Pagar en modo prueba (simulado)'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handlePay}
+                      disabled={loadingPreference}
+                      class="bg-blue-600 text-white px-8 py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center w-full"
+                    >
+                      {loadingPreference ? 'Generando pago...' : 'Pagar con Mercado Pago'}
+                    </button>
+                  )}
                 </div>
               )}
             </div>

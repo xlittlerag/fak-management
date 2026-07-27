@@ -194,35 +194,166 @@ cualquier momento.
 └────┬─────┘  └───────────┘
 ```
 
-## Guía rápida de implementación (DigitalOcean)
+## Guía rápida de implementación (DigitalOcean + Podman)
 
 1. Crear Droplet Ubuntu 24.04 LTS ($12/mo, São Paulo)
-2. Instalar Node.js 22.x, nginx
-3. Clonar repositorio, instalar dependencias (`pnpm install`)
-4. Compilar backend (`pnpm run build`) y frontend
-   (`cd frontend && pnpm run build`)
-5. Configurar `DATABASE_URL=file:./dev.db`, `JWT_SECRET`,
-   `MERCADO_PAGO_ACCESS_TOKEN` en `.env`
-6. Ejecutar `npx prisma db push` para crear schema
-7. Iniciar backend con PM2: `pm2 start dist/main.js --name kendo-api`
-8. Configurar nginx:
-   - Servir `frontend/dist/` en `/`
-   - Proxy reverso `/api/*` hacia `http://localhost:3000`
-   - Proxy reverso `/uploads/` hacia la carpeta de archivos
-   - SSL con Certbot (Let's Encrypt)
+2. Instalar Podman, nginx
+3. Clonar repositorio en el servidor
+4. Construir la imagen:
+   ```bash
+   podman build \
+     --build-arg VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
+     -t kendo-manager .
+   ```
+5. Crear directorios para datos persistentes:
+   ```bash
+   mkdir -p /data/kendo/uploads
+   ```
+6. Iniciar el contenedor:
+   ```bash
+   podman run -d --name kendo-app --restart always \
+     -p 127.0.0.1:3000:3000 \
+     -e JWT_SECRET="$(openssl rand -hex 64)" \
+     -e DATABASE_URL="file:devdb" \
+     -e MERCADO_PAGO_ACCESS_TOKEN="..." \
+     -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
+     -e ADMIN_PASSWORD="contraseña-segura" \
+     -e NODE_ENV=production \
+     -v /data/kendo/uploads:/app/uploads:Z \
+     -v /data/kendo/rclone:/app/.config/rclone:Z \
+     localhost/kendo-manager
+   ```
+7. Configurar nginx como proxy reverso:
+   ```nginx
+   server {
+       listen 80;
+       server_name kendo.example.com;
+       return 301 https://$host$request_uri;
+   }
+
+   server {
+       listen 443 ssl;
+       server_name kendo.example.com;
+
+       ssl_certificate /etc/letsencrypt/live/kendo.example.com/fullchain.pem;
+       ssl_certificate_key /etc/letsencrypt/live/kendo.example.com/privkey.pem;
+
+       location /api/ {
+           proxy_pass http://127.0.0.1:3000;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       }
+
+       location /uploads/ {
+           proxy_pass http://127.0.0.1:3000;
+       }
+
+       location / {
+           proxy_pass http://127.0.0.1:3000;
+       }
+   }
+   ```
+8. Obtener SSL con Certbot:
+   ```bash
+   certbot --nginx -d kendo.example.com
+   ```
+
+### Actualización
+
+```bash
+cd /repo && git pull
+podman build --build-arg VITE_MERCADO_PAGO_PUBLIC_KEY="..." -t kendo-manager .
+podman stop kendo-app && podman rm kendo-app
+# mismo podman run de arriba
+```
+
+## Configuración de Backups (rclone)
+
+Los backups se envían a almacenamiento externo (Google Drive, SFTP, S3, etc.)
+usando `rclone`, que viene instalado dentro del contenedor.
+
+### 1. Configurar rclone (una sola vez)
+
+```bash
+# Opción A: Configurar desde cero (interactivo)
+podman exec -it kendo-app rclone config
+
+# Opción B: Copiar una configuración existente
+podman exec kendo-app mkdir -p /app/.config/rclone
+podman cp ~/.config/rclone/rclone.conf kendo-app:/app/.config/rclone/rclone.conf
+```
+
+Si la config se monta como volumen (`-v /data/kendo/rclone:/app/.config/rclone:Z`),
+sobrevive a reinicios del contenedor.
+
+### 2. Probar backup manual
+
+```bash
+# Google Drive
+podman exec kendo-app sh -c \
+  'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/backup.sh'
+
+# Home server por SFTP
+podman exec kendo-app sh -c \
+  'BACKUP_DEST="sftp:user@home-server:/backups/kendo" /app/scripts/backup.sh'
+
+# S3-compatible (DigitalOcean Spaces, Backblaze B2, etc.)
+podman exec kendo-app sh -c \
+  'BACKUP_DEST="s3:kendo-backups:/prod" /app/scripts/backup.sh'
+```
+
+### 3. Programar backup diario (cron)
+
+```bash
+sudo crontab -e
+```
+
+Agregar:
+
+```cron
+0 3 * * * podman exec kendo-app sh -c 'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/backup.sh' >> /var/log/kendo-backup.log 2>&1
+```
+
+### 4. Restaurar un backup
+
+```bash
+# Listar backups disponibles
+podman exec -it kendo-app sh -c \
+  'BACKUP_DEST="gdrive:backups/kendo-prod" rclone tree gdrive:backups/kendo-prod'
+
+# Restaurar (interactivo, pide confirmación)
+podman exec -it kendo-app sh -c \
+  'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/restore.sh'
+
+# Restaurar automático (sin confirmación, útil para scripts)
+podman exec kendo-app sh -c \
+  'BACKUP_DEST="gdrive:backups/kendo-prod" FORCE=yes /app/scripts/restore.sh kendo-backup-2026-07-14_133000.tar.gz'
+
+# IMPORTANTE: Reiniciar la app después de restaurar
+podman restart kendo-app
+```
 
 ## Checklist de instalación
 
-- [ ] Node.js 22.x instalado
+- [ ] Podman instalado
 - [ ] `JWT_SECRET` generado (`openssl rand -hex 64`)
-- [ ] `DATABASE_URL` configurada (ej: `file:./dev.db`)
+- [ ] `DATABASE_URL` configurada (usar `file:devdb`, ver § Nota sobre Prisma 7.8)
 - [ ] `MERCADO_PAGO_ACCESS_TOKEN` configurado
-- [ ] `VITE_MERCADO_PAGO_PUBLIC_KEY` configurado en frontend
-- [ ] Backend compilado y corriendo con PM2
-- [ ] Frontend compilado y sirviendo correctamente
+- [ ] `VITE_MERCADO_PAGO_PUBLIC_KEY` configurado como build-arg
+- [ ] Contenedor construido y corriendo con `--restart always`
 - [ ] nginx configurado con proxy reverso
 - [ ] SSL activo (Let's Encrypt)
-- [ ] Backup automático configurado (copia de `dev.db` diaria + rsync)
-- [ ] Firewall configurado (solo puertos 22, 80, 443)
-- [ ] Uploads directory con permisos correctos
+- [ ] Volumen para uploads montado (`/app/uploads`)
+- [ ] Volumen para rclone montado (`/app/.config/rclone`)
+- [ ] rclone configurado con destino externo
+- [ ] Backup diario programado en cron
 - [ ] Prueba de restauración de backup exitosa
+- [ ] Firewall configurado (solo puertos 22, 80, 443)
+
+### Nota sobre Prisma 7.8 SQLite URL
+
+Prisma 7.8 rechaza los caracteres `.` y `/` en el path de conexión SQLite. Por
+eso `DATABASE_URL` debe usar un nombre simple: `file:devdb` en vez de
+`file:./dev.db`. El runtime de la aplicación acepta ambos formatos, pero
+`prisma db push` requiere el formato sin puntos ni barras.

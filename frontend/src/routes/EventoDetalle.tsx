@@ -79,6 +79,7 @@ export default function EventoDetalle() {
   const [medicoFile, setMedicoFile] = useState<File | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string } | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -144,11 +145,28 @@ export default function EventoDetalle() {
         setSuccess('Inscripción confirmada');
         return;
       }
+      const { preferenceId, simulated, externalReference } = res.data;
+      if (simulated) {
+        setSimulatedPayment({ externalReference });
+        return;
+      }
       const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
-        preference: { id: res.data.preferenceId },
+        preference: { id: preferenceId },
         render: { container: '#mp-checkout-inscripcion', label: 'Pagar' },
       });
+    } catch (err) {
+      setError(getErrorMessage(err));
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!simulatedPayment) return;
+    try {
+      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
+      setInscripcion({ ...inscripcion!, pagado: true });
+      setSuccess('Pago simulado completado');
+      setSimulatedPayment(null);
     } catch (err) {
       setError(getErrorMessage(err));
     }
@@ -295,12 +313,21 @@ export default function EventoDetalle() {
 
           {inscripcion.estado_aprob === 'APROBADO' && !inscripcion.pagado && (evento.tipo !== 'EXAMEN' ? costo > 0 : true) && (
             <div id="mp-checkout-inscripcion">
-              <button
-                onClick={handlePagar}
-                class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 transition-colors text-sm"
-              >
-                Pagar inscripción
-              </button>
+              {simulatedPayment ? (
+                <button
+                  onClick={handleSimulatePayment}
+                  class="w-full bg-green-600 text-white py-2 rounded font-medium hover:bg-green-700 transition-colors text-sm"
+                >
+                  Pagar en modo prueba (simulado)
+                </button>
+              ) : (
+                <button
+                  onClick={handlePagar}
+                  class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 transition-colors text-sm"
+                >
+                  Pagar inscripción
+                </button>
+              )}
             </div>
           )}
         </div>

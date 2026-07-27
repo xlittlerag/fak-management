@@ -84,5 +84,5 @@ pnpm run dev
 
 ### Leyenda
 
-- ✅ Completado — Iteraciones 1–9
+- ✅ Completado — Iteraciones 1–10
 - 🔜 Pendiente — Planificado, no iniciado

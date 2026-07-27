@@ -24,11 +24,25 @@ export class MercadoPagoService {
     });
   }
 
+  private get isSimulated(): boolean {
+    return this.configService.get<string>('MERCADO_PAGO_SIMULATED') === 'true';
+  }
+
   async createFederativeFeePreference(userId: number, userEmail: string, amount: number) {
+    const externalReference = `fee_user_${userId}_ts_${Date.now()}`;
+
+    if (this.isSimulated) {
+      return {
+        preferenceId: `sim_${externalReference}`,
+        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        externalReference,
+        paymentMethods: { excludedPaymentTypes: [{ id: 'credit_card' }] },
+        simulated: true,
+      };
+    }
+
     const preferenceClient = new Preference(this.client);
     const appUrl = this.configService.get<string>('APP_URL');
-
-    const externalReference = `fee_user_${userId}_ts_${Date.now()}`;
 
     try {
       const preferenceResponse = await preferenceClient.create({
@@ -84,10 +98,19 @@ export class MercadoPagoService {
   }
 
   async createInscriptionPreference(userId: number, userEmail: string, amount: number, inscripcionId: number, eventoId: number) {
+    const externalReference = `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`;
+
+    if (this.isSimulated) {
+      return {
+        preferenceId: `sim_${externalReference}`,
+        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        externalReference,
+        simulated: true,
+      };
+    }
+
     const preferenceClient = new Preference(this.client);
     const appUrl = this.configService.get<string>('APP_URL');
-
-    const externalReference = `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`;
 
     try {
       const preferenceResponse = await preferenceClient.create({
@@ -289,10 +312,19 @@ export class MercadoPagoService {
   }
 
   async createReimpresionPreference(userId: number, userEmail: string, amount: number, reimpresionId: number) {
+    const externalReference = `reimpresion_user_${userId}_reimp_${reimpresionId}_ts_${Date.now()}`;
+
+    if (this.isSimulated) {
+      return {
+        preferenceId: `sim_${externalReference}`,
+        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        externalReference,
+        simulated: true,
+      };
+    }
+
     const preferenceClient = new Preference(this.client);
     const appUrl = this.configService.get<string>('APP_URL');
-
-    const externalReference = `reimpresion_user_${userId}_reimp_${reimpresionId}_ts_${Date.now()}`;
 
     try {
       const preferenceResponse = await preferenceClient.create({
@@ -342,5 +374,29 @@ export class MercadoPagoService {
     });
 
     return user || null;
+  }
+
+  async simulatePayment(externalReference: string, status: 'approved' | 'rejected' = 'approved') {
+    if (!this.isSimulated) {
+      throw new InternalServerErrorException('Modo simulado no habilitado');
+    }
+
+    if (status !== 'approved') {
+      return { success: false, processed: false, message: 'Solo pagos aprobados se procesan' };
+    }
+
+    const fakePaymentId = `sim_${Date.now()}`;
+
+    if (externalReference.startsWith('fee_user_')) {
+      return this.processFeePayment(fakePaymentId, externalReference);
+    }
+    if (externalReference.startsWith('inscripcion_user_')) {
+      return this.processInscriptionPayment(fakePaymentId, externalReference);
+    }
+    if (externalReference.startsWith('reimpresion_user_')) {
+      return this.processReimpresionPayment(fakePaymentId, externalReference);
+    }
+
+    return { success: false, processed: false, message: 'Referencia externa inválida' };
   }
 }
