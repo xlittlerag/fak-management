@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { Disciplina, Graduacion, Prisma } from '@prisma/client';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
@@ -46,7 +47,7 @@ export class DiplomasService {
         where: {
           inscripcion_id_disciplina: {
             inscripcion_id: dto.inscripcion_id,
-            disciplina: dto.disciplina as any,
+            disciplina: dto.disciplina as Disciplina,
           },
         },
       });
@@ -65,8 +66,8 @@ export class DiplomasService {
       data: {
         usuario_id: dto.usuario_id,
         url_archivo,
-        disciplina: dto.disciplina as any,
-        graduacion: graduacion as any,
+        disciplina: dto.disciplina as Disciplina,
+        graduacion: graduacion as Graduacion,
         inscripcion_id: dto.inscripcion_id ?? null,
       },
       include: {
@@ -92,8 +93,10 @@ export class DiplomasService {
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    const metas: { usuario_id: number; disciplina: string }[] =
-      JSON.parse(archivosMeta);
+    const metas = JSON.parse(archivosMeta) as {
+      usuario_id: number;
+      disciplina: string;
+    }[];
     if (files.length !== metas.length) {
       throw new BadRequestException(
         'La cantidad de archivos no coincide con los metadatos',
@@ -129,20 +132,21 @@ export class DiplomasService {
           data: {
             usuario_id: meta.usuario_id,
             url_archivo,
-            disciplina: meta.disciplina as any,
-            graduacion: graduacion as any,
+            disciplina: meta.disciplina as Disciplina,
+            graduacion: graduacion as Graduacion,
             inscripcion_id: inscripcion.id,
           },
         });
         created.push(diploma);
-      } catch (e: any) {
-        if (e.code === 'P2002') {
+      } catch (e) {
+        const prismaError = e as { code?: string; message?: string };
+        if (prismaError.code === 'P2002') {
           errors.push(
             `Usuario ${meta.usuario_id} - ${meta.disciplina}: ya existe un diploma`,
           );
         } else {
           errors.push(
-            `Usuario ${meta.usuario_id} - ${meta.disciplina}: ${e.message}`,
+            `Usuario ${meta.usuario_id} - ${meta.disciplina}: ${prismaError.message}`,
           );
         }
       }
@@ -152,7 +156,7 @@ export class DiplomasService {
   }
 
   async findAll(usuario_id?: number) {
-    const where: any = {};
+    const where: Prisma.DiplomaNacionalWhereInput = {};
     if (usuario_id) where.usuario_id = usuario_id;
     return this.prisma.diplomaNacional.findMany({
       where,
@@ -211,7 +215,7 @@ export class DiplomasService {
     const diploma = await this.prisma.diplomaNacional.findFirst({
       where: {
         usuario_id: user.id,
-        disciplina: dto.disciplina as any,
+        disciplina: dto.disciplina as Disciplina,
       },
       orderBy: { created_at: 'desc' },
     });

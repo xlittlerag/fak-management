@@ -8,7 +8,6 @@ import {
   createTestUser,
   createAdminGeneral,
 } from './test-utils';
-import * as bcrypt from 'bcrypt';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;

@@ -86,7 +86,7 @@ export class UsuariosService {
     const data: Prisma.UsuarioUpdateInput = {
       ...dto,
     };
-    if (data.password) {
+    if (typeof data.password === 'string') {
       data.password = await bcrypt.hash(data.password, 10);
     }
     if (dto.fecha_nacimiento) {

@@ -65,7 +65,6 @@ export class PrismaService
   async onModuleDestroy() {}
 
   private applyExtension() {
-    const prisma = this;
     const ctxService = this.ctxService;
     if (!ctxService) return;
 
@@ -74,7 +73,7 @@ export class PrismaService
     const extended = this.$extends({
       query: {
         $allModels: {
-          async $allOperations({ model, operation, args, query }) {
+          $allOperations: async ({ model, operation, args, query }) => {
             if (
               model === 'AuditLog' ||
               !['create', 'update', 'delete', 'upsert'].includes(operation)
@@ -92,7 +91,7 @@ export class PrismaService
                 const modelKey = model.charAt(0).toLowerCase() + model.slice(1);
                 try {
                   previousState = await (
-                    prisma as unknown as Record<
+                    this as unknown as Record<
                       string,
                       {
                         findUnique: (opts: {
@@ -124,7 +123,7 @@ export class PrismaService
                 datos_nuevos: operation === 'delete' ? null : result,
               };
               await (
-                prisma.auditLog.create as unknown as (args: {
+                this.auditLog.create as unknown as (args: {
                   data: Record<string, unknown>;
                 }) => Promise<unknown>
               )({ data: auditData });
@@ -143,7 +142,6 @@ export class PrismaService
     const ext = extended as unknown as Record<string, unknown>;
 
     for (const name of MODEL_NAMES) {
-      ext[name];
       Object.defineProperty(this, name, {
         get: () => ext[name],
         configurable: true,

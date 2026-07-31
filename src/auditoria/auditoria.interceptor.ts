@@ -5,6 +5,7 @@ import {
   CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
+import type { Request } from 'express';
 import { RequestContextService } from './request-context.service';
 
 @Injectable()
@@ -12,7 +13,7 @@ export class AuditoriaInterceptor implements NestInterceptor {
   constructor(private readonly contextService: RequestContextService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const request = context.switchToHttp().getRequest();
+    const request = context.switchToHttp().getRequest<Request>();
     const user = request.user;
 
     if (!user) {
@@ -20,7 +21,7 @@ export class AuditoriaInterceptor implements NestInterceptor {
     }
 
     const ctx = {
-      usuario_id: user.sub ?? user.id,
+      usuario_id: user.id,
       ip: request.ip ?? '',
       user_agent: request.headers?.['user-agent'] ?? '',
     };

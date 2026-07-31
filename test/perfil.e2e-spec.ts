@@ -4,10 +4,6 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { createTestApp, cleanupDb, createTestUser } from './test-utils';
 
-function formatDate(d: Date): string {
-  return d.toISOString().replace('Z', '').substring(0, 23) + 'Z';
-}
-
 describe('Perfil (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
@@ -28,7 +24,7 @@ describe('Perfil (e2e)', () => {
 
   describe('GET /usuarios/perfil', () => {
     it('should return own profile data', async () => {
-      const { user, token } = await createTestUser(prisma, jwt, {
+      const { token } = await createTestUser(prisma, jwt, {
         nombre: 'Original',
         email: 'profile@test.com',
       });

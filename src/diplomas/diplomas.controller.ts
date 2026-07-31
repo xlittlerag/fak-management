@@ -4,9 +4,7 @@ import {
   Post,
   Patch,
   Body,
-  Param,
   Req,
-  ParseIntPipe,
   Query,
   UseInterceptors,
   UploadedFile,
@@ -15,7 +13,6 @@ import {
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { DiplomasService } from './diplomas.service';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
-import { CreateDiplomaLoteDto } from './dto/create-diploma.dto';
 import { ReimprimirDto } from './dto/reimprimir.dto';
 import { UpdateConfigDto } from './dto/update-config.dto';
 import { Roles } from '../auth/decorators/roles.decorator';

@@ -9,8 +9,7 @@ import {
   createTestUser,
   createAdminGeneral,
 } from './test-utils';
-import MercadoPago, { Payment } from 'mercadopago';
-import { ConfigService } from '@nestjs/config';
+import { Payment } from 'mercadopago';
 
 process.env.MERCADO_PAGO_SIMULATED = 'true';
 
@@ -26,16 +25,14 @@ describe('Pagos (e2e)', () => {
     mpService = app.get(MercadoPagoService);
     jest
       .spyOn(mpService, 'createFederativeFeePreference')
-      .mockImplementation(
-        async (userId: number, userEmail: string, amount: number) => ({
-          preferenceId: `mp_test_${userId}_${Date.now()}`,
-          initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_test_${userId}`,
-          externalReference: `fee_user_${userId}_ts_${Date.now()}`,
-          paymentMethods: {
-            excludedPaymentTypes: [{ id: 'credit_card' }],
-          },
-        }),
-      );
+      .mockImplementation((userId: number) => ({
+        preferenceId: `mp_test_${userId}_${Date.now()}`,
+        initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_test_${userId}`,
+        externalReference: `fee_user_${userId}_ts_${Date.now()}`,
+        paymentMethods: {
+          excludedPaymentTypes: [{ id: 'credit_card' }],
+        },
+      }));
 
     jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
       id: 'test_payment_default',
@@ -311,7 +308,7 @@ describe('Pagos (e2e)', () => {
 
     it('debería simular pago de inscripción (inscripcion_user_)', async () => {
       await seedFeeConfig();
-      const { user, token } = await createTestUser(prisma, jwt);
+      const { user } = await createTestUser(prisma, jwt);
 
       const evento = await prisma.evento.create({
         data: {
@@ -361,7 +358,7 @@ describe('Pagos (e2e)', () => {
 
     it('debería simular pago de reimpresión (reimpresion_user_)', async () => {
       await seedFeeConfig();
-      const { user, token } = await createTestUser(prisma, jwt);
+      const { user } = await createTestUser(prisma, jwt);
 
       const diploma = await prisma.diplomaNacional.create({
         data: {

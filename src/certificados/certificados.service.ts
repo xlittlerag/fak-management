@@ -6,7 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { EstadoSolicitud, Prisma } from '@prisma/client';
+import { Prisma, Disciplina, Graduacion } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateCertificadoDto } from './dto/create-certificado.dto';
 import { FilesService } from '../files/files.service';
@@ -32,8 +32,8 @@ export class CertificadosService {
       data: {
         usuario_id: user.id,
         url_archivo,
-        disciplina: dto.disciplina as any,
-        grad_solicitada: dto.grad_solicitada as any,
+        disciplina: dto.disciplina as Disciplina,
+        grad_solicitada: dto.grad_solicitada as Graduacion,
         estado: 'PENDIENTE',
       },
       select: {

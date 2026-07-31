@@ -22,7 +22,7 @@ describe('Eventos (e2e)', () => {
     jest
       .spyOn(mpService, 'createInscriptionPreference')
       .mockImplementation(
-        async (
+        (
           userId: number,
           userEmail: string,
           amount: number,
@@ -244,7 +244,7 @@ describe('Eventos (e2e)', () => {
 
     it('NO debería eliminar un evento con inscripciones aprobadas', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+      const { token, asociacionId } = await createTestUser(prisma, jwt, {
         estado_pago: true,
       });
       const adminAssoc = await createTestUser(prisma, jwt, {
@@ -291,7 +291,7 @@ describe('Eventos (e2e)', () => {
   describe('POST /eventos/:id/inscribir — Inscripción', () => {
     it('debería inscribir a un usuario activo en un evento', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token } = await createTestUser(prisma, jwt, {
+      const { token } = await createTestUser(prisma, jwt, {
         estado_pago: true,
       });
 
@@ -594,7 +594,7 @@ describe('Eventos (e2e)', () => {
   describe('PATCH /inscripciones/:id/aprobar — Aprobar inscripción', () => {
     it('debería aprobar una inscripción como admin de asociación', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+      const { token, asociacionId } = await createTestUser(prisma, jwt, {
         estado_pago: true,
       });
       const adminAssoc = await createTestUser(prisma, jwt, {
@@ -667,7 +667,7 @@ describe('Eventos (e2e)', () => {
   describe('POST /inscripciones/:id/pagar — Pago de inscripción', () => {
     it('debería generar preferencia de pago para inscripción aprobada', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+      const { token, asociacionId } = await createTestUser(prisma, jwt, {
         estado_pago: true,
       });
       const adminAssoc = await createTestUser(prisma, jwt, {

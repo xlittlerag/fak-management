@@ -169,7 +169,7 @@ describe('Auditoría (e2e)', () => {
     it('debería filtrar por entidad', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
 
-      const createRes = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/api/asociaciones')
         .set('Authorization', `Bearer ${admin.token}`)
         .send({ nombre: 'Filtro Entidad' });
@@ -239,7 +239,7 @@ describe('Auditoría (e2e)', () => {
     it('debería obtener detalle de un log', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
 
-      const createRes = await request(app.getHttpServer())
+      await request(app.getHttpServer())
         .post('/api/asociaciones')
         .set('Authorization', `Bearer ${admin.token}`)
         .send({ nombre: 'Detalle Test' });

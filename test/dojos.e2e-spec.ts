@@ -48,7 +48,7 @@ describe('Dojos (e2e)', () => {
       const d1 = await prisma.dojo.create({
         data: { nombre: 'Activo', asociacion_id: assoc.id },
       });
-      const d2 = await prisma.dojo.create({
+      await prisma.dojo.create({
         data: {
           nombre: 'Eliminado',
           asociacion_id: assoc.id,

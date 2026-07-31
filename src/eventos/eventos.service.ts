@@ -14,7 +14,7 @@ import { PreciosExamenService } from '../precios-examen/precios-examen.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
 import { FilesService } from '../files/files.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
-import { CreateEventoDto, RangoExamenDto } from './dto/create-evento.dto';
+import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
 import { REQUISITOS_EXAMEN } from './config/requisitos-examen';
@@ -339,7 +339,7 @@ export class EventosService {
 
     let categoriasArray = dto?.categorias?.length
       ? dto.categorias
-      : [this.guessCategoria(evento.tipo, usuario)];
+      : [this.guessCategoria(evento.tipo)];
 
     if (evento.tipo === 'EXAMEN') {
       if (!dto?.disciplinas?.length) {
@@ -980,7 +980,7 @@ export class EventosService {
     const currentRank = rankGrad(currentGrad);
     if (currentRank === -1) return null;
     const entry = Object.entries(GraduacionRank).find(
-      ([_, r]) => r === currentRank + 1,
+      ([, r]) => r === currentRank + 1,
     );
     return entry ? entry[0] : null;
   }
@@ -1123,8 +1123,8 @@ export class EventosService {
       const gradKey =
         `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
       const userGrad = usuario[gradKey] as string;
-      const gradMin = (sub as Prisma.TorneoGetPayload<{}>).grad_min;
-      const gradMax = (sub as Prisma.TorneoGetPayload<{}>).grad_max;
+      const gradMin = torneo.grad_min;
+      const gradMax = torneo.grad_max;
 
       if (gradMin && rankGrad(userGrad) < rankGrad(gradMin)) {
         throw new ForbiddenException(
@@ -1204,10 +1204,7 @@ export class EventosService {
     }
   }
 
-  private guessCategoria(
-    tipo: string,
-    _usuario: { grad_kendo?: string | null },
-  ): string {
+  private guessCategoria(tipo: string): string {
     if (tipo === 'EXAMEN') {
       return 'KYU_3';
     }
@@ -1215,7 +1212,7 @@ export class EventosService {
   }
 
   private parseCategorias(raw: unknown): string[] {
-    if (Array.isArray(raw)) return raw;
+    if (Array.isArray(raw)) return raw as string[];
     if (typeof raw === 'string') return [raw];
     return [];
   }

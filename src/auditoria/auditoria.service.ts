@@ -332,8 +332,8 @@ type AuditLogShape = {
   entidad: string;
   entidad_id: number;
   usuario_id: number | null;
-  datos_previos: unknown | null;
-  datos_nuevos: unknown | null;
+  datos_previos: unknown;
+  datos_nuevos: unknown;
   ip: string | null;
   user_agent: string | null;
   created_at: Date;

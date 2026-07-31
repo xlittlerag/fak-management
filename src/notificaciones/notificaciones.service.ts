@@ -1,6 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
 import { readFileSync, existsSync } from 'fs';
 import { join } from 'path';
 import type { Transporter } from 'nodemailer';

@@ -102,10 +102,10 @@ export class MercadoPagoService {
           ],
         },
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Error al crear preferencia de pago: ${error.message}`,
-        error.stack,
+        `Error al crear preferencia de pago: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException(
         'No se pudo crear la preferencia de pago',
@@ -175,10 +175,10 @@ export class MercadoPagoService {
           preferenceResponse.sandbox_init_point,
         externalReference: preferenceResponse.external_reference,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Error al crear preferencia de pago de inscripción: ${error.message}`,
-        error.stack,
+        `Error al crear preferencia de pago de inscripción: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException(
         'No se pudo crear la preferencia de pago',
@@ -229,9 +229,9 @@ export class MercadoPagoService {
       }
 
       return { processed: false };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Error al consultar pago ${paymentId}: ${error.message}`,
+        `Error al consultar pago ${paymentId}: ${error instanceof Error ? error.message : String(error)}`,
       );
       return { processed: false };
     }
@@ -404,10 +404,10 @@ export class MercadoPagoService {
           preferenceResponse.sandbox_init_point,
         externalReference: preferenceResponse.external_reference,
       };
-    } catch (error) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Error al crear preferencia de reimpresión: ${error.message}`,
-        error.stack,
+        `Error al crear preferencia de reimpresión: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
       );
       throw new InternalServerErrorException(
         'No se pudo crear la preferencia de pago',

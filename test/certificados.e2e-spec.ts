@@ -28,6 +28,7 @@ describe('Certificados (e2e)', () => {
       preferenceId: 'mp_fee_test',
       initPoint: 'https://test.mp.com/fee',
       externalReference: 'fee_test_ref',
+      paymentMethods: { excludedPaymentTypes: [{ id: 'credit_card' }] },
     });
     jest.spyOn(mpService, 'createReimpresionPreference').mockResolvedValue({
       preferenceId: 'mp_reimp_test',
