@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Req, HttpCode, HttpStatus, Logger, ForbiddenException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Req,
+  HttpCode,
+  HttpStatus,
+  Logger,
+  ForbiddenException,
+} from '@nestjs/common';
 import { MercadoPagoService } from './mercado-pago.service';
 import { FeeConfigService } from './fee-config.service';
 import { ConfigService } from '@nestjs/config';
@@ -33,10 +42,17 @@ export class MercadoPagoController {
 
     const userStatus = await this.mpService.getUserStatus(user.id);
     if (!userStatus) {
-      throw new ForbiddenException('Su cuenta no está activa para realizar pagos');
+      throw new ForbiddenException(
+        'Su cuenta no está activa para realizar pagos',
+      );
     }
-    if (userStatus.estado_reg === 'PENDIENTE_APROBACION') {
-      throw new ForbiddenException('Su cuenta no está activa para realizar pagos');
+    if (
+      userStatus.estado_reg === 'PENDIENTE_APROBACION' ||
+      userStatus.estado_reg === 'DESAFILIADO'
+    ) {
+      throw new ForbiddenException(
+        'Su cuenta no está activa para realizar pagos',
+      );
     }
 
     const result = await this.mpService.createFederativeFeePreference(
@@ -45,7 +61,9 @@ export class MercadoPagoController {
       feeConfig.monto_actual,
     );
 
-    this.logger.log(`Preferencia de checkout creada para ${user.email}, ID: ${result.preferenceId}`);
+    this.logger.log(
+      `Preferencia de checkout creada para ${user.email}, ID: ${result.preferenceId}`,
+    );
 
     return result;
   }
@@ -57,7 +75,7 @@ export class MercadoPagoController {
     this.logger.log(`Webhook recibido: ${JSON.stringify(webhookData)}`);
 
     try {
-      const result = await this.mpService.processWebhook(webhookData as never);
+      const result = await this.mpService.processWebhook(webhookData);
 
       if (result.processed && 'userId' in result) {
         this.logger.log(
@@ -67,7 +85,9 @@ export class MercadoPagoController {
 
       return { received: true, processed: result.processed };
     } catch (error) {
-      this.logger.error(`Error procesando webhook: ${(error as Error).message}`);
+      this.logger.error(
+        `Error procesando webhook: ${(error as Error).message}`,
+      );
 
       return { received: true };
     }
@@ -76,7 +96,13 @@ export class MercadoPagoController {
   @Post('simulate')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async simulatePayment(@Body() body: { externalReference: string; status?: 'approved' | 'rejected' }) {
+  async simulatePayment(
+    @Body()
+    body: {
+      externalReference: string;
+      status?: 'approved' | 'rejected';
+    },
+  ) {
     if (!this.isSimulated) {
       throw new ForbiddenException('Modo simulado no habilitado');
     }
@@ -86,7 +112,10 @@ export class MercadoPagoController {
     }
 
     const status = body.status ?? 'approved';
-    const result = await this.mpService.simulatePayment(body.externalReference, status);
+    const result = await this.mpService.simulatePayment(
+      body.externalReference,
+      status,
+    );
 
     this.logger.log(`Pago simulado para ${body.externalReference}: ${status}`);
 

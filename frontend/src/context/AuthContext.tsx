@@ -7,6 +7,7 @@ interface User {
   email: string;
   rol: string;
   asociacion_id: number;
+  estado_reg?: string;
   grad_kendo?: string;
   grad_iaido?: string;
   grad_jodo?: string;

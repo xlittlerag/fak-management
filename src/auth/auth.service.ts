@@ -1,4 +1,11 @@
-import { Injectable, ConflictException, UnauthorizedException, ForbiddenException, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  ForbiddenException,
+  NotFoundException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -34,21 +41,30 @@ export class AuthService {
       },
     });
 
-    this.notificaciones.sendPasswordResetEmail(user.email, user.nombre, codigo).catch(err =>
-      this.logger.warn(err, 'Error al enviar email de reseteo de contraseña')
-    );
+    this.notificaciones
+      .sendPasswordResetEmail(user.email, user.nombre, codigo)
+      .catch((err) =>
+        this.logger.warn(err, 'Error al enviar email de reseteo de contraseña'),
+      );
 
-    return { mensaje: 'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.' };
+    return {
+      mensaje:
+        'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.',
+    };
   }
 
   async completeReset(dni: string, codigo: string, nuevaPassword: string) {
     const user = await this.prisma.usuario.findUnique({ where: { dni } });
     if (!user || !user.codigo_blanqueo || !user.codigo_blanqueo_expira) {
-      throw new UnauthorizedException('No hay una solicitud de blanqueo activa para este DNI.');
+      throw new UnauthorizedException(
+        'No hay una solicitud de blanqueo activa para este DNI.',
+      );
     }
 
     if (new Date() > user.codigo_blanqueo_expira) {
-      throw new UnauthorizedException('El código ha expirado. Solicite un nuevo blanqueo.');
+      throw new UnauthorizedException(
+        'El código ha expirado. Solicite un nuevo blanqueo.',
+      );
     }
 
     if (!(await bcrypt.compare(codigo, user.codigo_blanqueo))) {
@@ -67,7 +83,10 @@ export class AuthService {
       },
     });
 
-    return { mensaje: 'Contraseña actualizada correctamente. Ya puede iniciar sesión con su nueva contraseña.' };
+    return {
+      mensaje:
+        'Contraseña actualizada correctamente. Ya puede iniciar sesión con su nueva contraseña.',
+    };
   }
 
   async register(dto: RegisterUserDto) {
@@ -75,7 +94,9 @@ export class AuthService {
       where: { dni: dto.dni },
     });
     if (blacklisted) {
-      throw new ForbiddenException('El DNI ingresado no puede registrarse en el sistema.');
+      throw new ForbiddenException(
+        'El DNI ingresado no puede registrarse en el sistema.',
+      );
     }
 
     const existingUser = await this.prisma.usuario.findFirst({
@@ -85,7 +106,9 @@ export class AuthService {
     });
 
     if (existingUser) {
-      throw new ConflictException('El correo electrónico o el DNI ya se encuentran registrados.');
+      throw new ConflictException(
+        'El correo electrónico o el DNI ya se encuentran registrados.',
+      );
     }
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
@@ -116,9 +139,11 @@ export class AuthService {
       },
     });
 
-    this.notificaciones.sendWelcomeEmail(dto.email, dto.nombre).catch(err =>
-      this.logger.warn(err, 'Error al enviar email de bienvenida')
-    );
+    this.notificaciones
+      .sendWelcomeEmail(dto.email, dto.nombre)
+      .catch((err) =>
+        this.logger.warn(err, 'Error al enviar email de bienvenida'),
+      );
 
     return user;
   }
@@ -140,19 +165,27 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Las credenciales ingresadas son incorrectas.');
+      throw new UnauthorizedException(
+        'Las credenciales ingresadas son incorrectas.',
+      );
     }
 
     if (!(await bcrypt.compare(dto.password, user.password))) {
-      throw new UnauthorizedException('Las credenciales ingresadas son incorrectas.');
+      throw new UnauthorizedException(
+        'Las credenciales ingresadas son incorrectas.',
+      );
     }
 
     if (user.estado_reg === EstadoRegistro.PENDIENTE_APROBACION) {
-      throw new ForbiddenException('Su cuenta aún aguarda la aprobación de su asociación.');
+      throw new ForbiddenException(
+        'Su cuenta aún aguarda la aprobación de su asociación.',
+      );
     }
 
     if (user.estado_reg === EstadoRegistro.RECHAZADO) {
-      throw new ForbiddenException('Su cuenta ha sido rechazada. Contacte al administrador.');
+      throw new ForbiddenException(
+        'Su cuenta ha sido rechazada. Contacte al administrador.',
+      );
     }
 
     const payload = {
@@ -160,6 +193,7 @@ export class AuthService {
       email: user.email,
       rol: user.rol,
       asociacion_id: user.asociacion_id,
+      estado_reg: user.estado_reg,
       grad_kendo: user.grad_kendo,
       grad_iaido: user.grad_iaido,
       grad_jodo: user.grad_jodo,
@@ -180,12 +214,15 @@ export class AuthService {
           email: 'admin@kendo-manager',
           rol: 'ADMIN_GENERAL' as const,
           asociacion_id: 0,
+          estado_reg: 'APROBADO' as const,
         };
 
         return { access_token: this.jwtService.sign(payload) };
       }
     }
 
-    throw new UnauthorizedException('Credenciales de administrador incorrectas.');
+    throw new UnauthorizedException(
+      'Credenciales de administrador incorrectas.',
+    );
   }
 }

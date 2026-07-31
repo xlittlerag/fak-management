@@ -10,6 +10,69 @@ export default function AdminConfig() {
       <ConfigCuota />
       <ConfigPreciosExamen />
       <ConfigReimpresion />
+      <ConfigFakEmail />
+    </div>
+  );
+}
+
+function ConfigFakEmail() {
+  const [fakEmail, setFakEmail] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [msg, setMsg] = useState('');
+
+  useEffect(() => {
+    api.get('/afiliaciones/config')
+      .then(res => setFakEmail(res.data.fak_email || ''))
+      .catch(() => setMsg('No se pudo cargar la configuración'))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    setMsg('');
+    try {
+      await api.patch('/afiliaciones/config', { fak_email: fakEmail.trim() || null });
+      setMsg('Email de la federación actualizado correctamente');
+    } catch (err) {
+      setMsg(getErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <div class="text-slate-400">Cargando configuración...</div>;
+
+  return (
+    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+      <h3 class="text-base font-bold text-slate-800 mb-6">Email de la Federación</h3>
+
+      {msg && (
+        <div class={`px-4 py-3 rounded text-sm border mb-4 ${
+          msg === 'Email de la federación actualizado correctamente'
+            ? 'bg-green-50 border-green-200 text-green-700'
+            : 'bg-red-50 border-red-200 text-red-700'
+        }`}>{msg}</div>
+      )}
+
+      <p class="text-sm text-slate-500 mb-4">Recibe las notificaciones de solicitudes de baja de socios y altas registradas.</p>
+
+      <div class="max-w-md space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+          <input
+            type="email"
+            value={fakEmail}
+            onInput={(e: Event) => setFakEmail((e.target as HTMLInputElement).value)}
+            placeholder="presidente@kendoargentina.org"
+            class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+          />
+        </div>
+        <button onClick={handleSave} disabled={saving}
+          class="bg-slate-900 text-white py-2 px-6 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          {saving ? 'Guardando...' : 'Guardar'}
+        </button>
+      </div>
     </div>
   );
 }

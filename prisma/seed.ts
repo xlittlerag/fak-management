@@ -362,7 +362,7 @@ async function main() {
 
   // 12. Config del sistema
   await prisma.configSistema.create({
-    data: { precio_reimpresion: 5000 },
+    data: { precio_reimpresion: 5000, fak_email: 'presidente@kendoargentina.org' },
   });
 
   console.log('✅ Base de datos sembrada correctamente.');

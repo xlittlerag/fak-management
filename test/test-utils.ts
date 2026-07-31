@@ -1,4 +1,8 @@
-import { INestApplication, ValidationPipe, BadRequestException } from '@nestjs/common';
+import {
+  INestApplication,
+  ValidationPipe,
+  BadRequestException,
+} from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
@@ -17,19 +21,21 @@ export async function createTestApp(): Promise<{
 
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    transform: true,
-    forbidNonWhitelisted: true,
-    exceptionFactory: (errors) => {
-      const messages = errors.flatMap((e) =>
-        Object.values(e.constraints || {}).map(
-          (c) => validationMessages[c] || c,
-        ),
-      );
-      return new BadRequestException(messages);
-    },
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: true,
+      exceptionFactory: (errors) => {
+        const messages = errors.flatMap((e) =>
+          Object.values(e.constraints || {}).map(
+            (c) => validationMessages[c] || c,
+          ),
+        );
+        return new BadRequestException(messages);
+      },
+    }),
+  );
   await app.init();
 
   const prisma = app.get(PrismaService);
@@ -40,13 +46,17 @@ export async function createTestApp(): Promise<{
 
 export async function cleanupDb(prisma: PrismaService) {
   await prisma.auditLog.deleteMany();
+  await prisma.solicitudAfiliacion.deleteMany();
   await prisma.reimpresionDiploma.deleteMany();
   await prisma.diplomaNacional.deleteMany();
   await prisma.historialGraduacion.deleteMany();
   await prisma.inscripcionEvento.deleteMany();
   await prisma.certificadoExterno.deleteMany();
   await prisma.usuario.deleteMany();
-  await prisma.dojo.updateMany({ where: { deleted_at: { not: null } }, data: { deleted_at: null } });
+  await prisma.dojo.updateMany({
+    where: { deleted_at: { not: null } },
+    data: { deleted_at: null },
+  });
   await prisma.dojo.deleteMany();
   await prisma.evento.deleteMany();
   await prisma.asociacion.deleteMany();
@@ -74,6 +84,7 @@ export async function createAdminGeneral(
     email: 'admin@kendo-manager',
     rol: 'ADMIN_GENERAL',
     asociacion_id: 0,
+    estado_reg: 'APROBADO',
   });
 
   return { admin, token };
@@ -157,6 +168,7 @@ export async function createTestUser(
     email: user.email,
     rol: user.rol,
     asociacion_id: user.asociacion_id,
+    estado_reg: user.estado_reg,
   });
 
   return { user, token, asociacionId };

@@ -9,6 +9,7 @@ interface JwtPayload {
   email: string;
   rol: string;
   asociacion_id: number;
+  estado_reg?: string;
 }
 
 @Injectable()
@@ -27,6 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       email: payload.email,
       rol: payload.rol as AuthUser['rol'],
       asociacion_id: payload.asociacion_id,
+      estado_reg: payload.estado_reg as AuthUser['estado_reg'],
     };
   }
 }

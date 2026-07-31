@@ -38,9 +38,17 @@ export class NotificacionesService {
     return this.templates[name];
   }
 
-  private async send(options: { to: string; subject: string; html: string }): Promise<void> {
+  private async send(options: {
+    to: string;
+    subject: string;
+    html: string;
+  }): Promise<void> {
     if (!this.transporter) {
-      this.logger.warn('SMTP no configurado — email no enviado a %s (asunto: %s)', options.to, options.subject);
+      this.logger.warn(
+        'SMTP no configurado — email no enviado a %s (asunto: %s)',
+        options.to,
+        options.subject,
+      );
       return;
     }
     try {
@@ -50,9 +58,18 @@ export class NotificacionesService {
         subject: options.subject,
         html: options.html,
       });
-      this.logger.log('Email enviado a %s (asunto: %s)', options.to, options.subject);
+      this.logger.log(
+        'Email enviado a %s (asunto: %s)',
+        options.to,
+        options.subject,
+      );
     } catch (err) {
-      this.logger.warn(err, 'Error al enviar email a %s (asunto: %s)', options.to, options.subject);
+      this.logger.warn(
+        err,
+        'Error al enviar email a %s (asunto: %s)',
+        options.to,
+        options.subject,
+      );
     }
   }
 
@@ -61,23 +78,45 @@ export class NotificacionesService {
     await this.send({ to, subject: 'Bienvenido a la FAK', html });
   }
 
-  async sendPasswordResetEmail(to: string, nombre: string, codigo: string): Promise<void> {
+  async sendPasswordResetEmail(
+    to: string,
+    nombre: string,
+    codigo: string,
+  ): Promise<void> {
     const html = render(this.getTemplate('password-reset'), { nombre, codigo });
-    await this.send({ to, subject: 'Restablecimiento de Contraseña - FAK', html });
+    await this.send({
+      to,
+      subject: 'Restablecimiento de Contraseña - FAK',
+      html,
+    });
   }
 
-  async sendInscripcionStatusEmail(to: string, nombre: string, evento: string, estado: string): Promise<void> {
+  async sendInscripcionStatusEmail(
+    to: string,
+    nombre: string,
+    evento: string,
+    estado: string,
+  ): Promise<void> {
     const estadoLabel = estado === 'APROBADO' ? 'aprobada' : 'rechazada';
-    const mensajeAdicional = estado === 'APROBADO'
-      ? '<p>Puede proceder al pago desde el panel de eventos para confirmar su participación.</p>'
-      : '<p>Si considera que esto es un error, contacte al administrador de su asociación.</p>';
+    const mensajeAdicional =
+      estado === 'APROBADO'
+        ? '<p>Puede proceder al pago desde el panel de eventos para confirmar su participación.</p>'
+        : '<p>Si considera que esto es un error, contacte al administrador de su asociación.</p>';
     const html = render(this.getTemplate('inscripcion-status'), {
-      nombre, evento, estado: estadoLabel, mensaje_adicional: mensajeAdicional,
+      nombre,
+      evento,
+      estado: estadoLabel,
+      mensaje_adicional: mensajeAdicional,
     });
     await this.send({ to, subject: `Inscripción ${estadoLabel} - FAK`, html });
   }
 
-  async sendCertificacionStatusEmail(to: string, nombre: string, disciplina: string, estado: string): Promise<void> {
+  async sendCertificacionStatusEmail(
+    to: string,
+    nombre: string,
+    disciplina: string,
+    estado: string,
+  ): Promise<void> {
     const estadoLabel: Record<string, string> = {
       APROBADO: 'aprobada',
       APROBADO_ASOCIACION: 'aprobada por la asociación',
@@ -85,8 +124,117 @@ export class NotificacionesService {
       PENDIENTE: 'pendiente',
     };
     const html = render(this.getTemplate('certificacion-status'), {
-      nombre, disciplina, estado: estadoLabel[estado] || estado,
+      nombre,
+      disciplina,
+      estado: estadoLabel[estado] || estado,
     });
-    await this.send({ to, subject: `Certificación ${estadoLabel[estado] || estado} - FAK`, html });
+    await this.send({
+      to,
+      subject: `Certificación ${estadoLabel[estado] || estado} - FAK`,
+      html,
+    });
+  }
+
+  async sendBajaSolicitadaFederacion(
+    to: string,
+    socio: string,
+    asociacion: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('baja-solicitada'), {
+      socio,
+      asociacion,
+    });
+    await this.send({ to, subject: 'Solicitud de baja de socio - FAK', html });
+  }
+
+  async sendBajaConfirmadaSocio(
+    to: string,
+    nombre: string,
+    asociacion: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('baja-confirmada'), {
+      nombre,
+      asociacion,
+    });
+    await this.send({ to, subject: 'Desafiliación efectivizada - FAK', html });
+  }
+
+  async sendBajaRechazadaAsociacion(
+    to: string,
+    nombre: string,
+    socio: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('baja-rechazada'), { nombre, socio });
+    await this.send({ to, subject: 'Solicitud de baja rechazada - FAK', html });
+  }
+
+  async sendBajaInformadaAsociacion(
+    to: string,
+    nombre: string,
+    socio: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('baja-informada-asociacion'), {
+      nombre,
+      socio,
+    });
+    await this.send({ to, subject: 'Socio desafiliado - FAK', html });
+  }
+
+  async sendBajaInformadaFederacion(
+    to: string,
+    socio: string,
+    asociacion: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('baja-informada-federacion'), {
+      socio,
+      asociacion,
+    });
+    await this.send({ to, subject: 'Socio auto-desafiliado - FAK', html });
+  }
+
+  async sendAltaSolicitadaAsociacion(
+    to: string,
+    nombre: string,
+    socio: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('alta-solicitada'), { nombre, socio });
+    await this.send({ to, subject: 'Solicitud de afiliación - FAK', html });
+  }
+
+  async sendAltaConfirmadaSocio(
+    to: string,
+    nombre: string,
+    asociacion: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('alta-confirmada'), {
+      nombre,
+      asociacion,
+    });
+    await this.send({ to, subject: 'Afiliación confirmada - FAK', html });
+  }
+
+  async sendAltaRechazadaSocio(
+    to: string,
+    nombre: string,
+    motivo: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('alta-rechazada'), { nombre, motivo });
+    await this.send({
+      to,
+      subject: 'Solicitud de afiliación rechazada - FAK',
+      html,
+    });
+  }
+
+  async sendAltaInformadaFederacion(
+    to: string,
+    socio: string,
+    asociacion: string,
+  ): Promise<void> {
+    const html = render(this.getTemplate('alta-informada-federacion'), {
+      socio,
+      asociacion,
+    });
+    await this.send({ to, subject: 'Afiliación registrada - FAK', html });
   }
 }

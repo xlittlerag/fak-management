@@ -19,6 +19,7 @@ model Asociacion {
   deleted_at DateTime?
   dojos      Dojo[]
   usuarios   Usuario[]
+  solicitudes_afiliacion SolicitudAfiliacion[]
 }
 
 model Dojo {
@@ -28,6 +29,7 @@ model Dojo {
   deleted_at    DateTime?
   asociacion    Asociacion @relation(fields: [asociacion_id], references: [id])
   usuarios      Usuario[]
+  solicitudes_afiliacion SolicitudAfiliacion[]
 }
 
 model Usuario {
@@ -65,6 +67,7 @@ model Usuario {
   inscripciones    InscripcionEvento[]
   diplomas_nacionales  DiplomaNacional[]
   reimpresiones        ReimpresionDiploma[]
+  solicitudes_afiliacion SolicitudAfiliacion[]
   asociacion           Asociacion            @relation(fields: [asociacion_id], references: [id])
   dojo                 Dojo                  @relation(fields: [dojo_id], references: [id])
 }
@@ -215,10 +218,31 @@ model ReimpresionDiploma {
 }
 
 model ConfigSistema {
-  id                 Int    @id @default(autoincrement())
-  precio_reimpresion Float  @default(5000)
+  id                 Int     @id @default(autoincrement())
+  precio_reimpresion Float   @default(5000)
+  fak_email          String?
 
   @@map("configsistema")
+}
+
+model SolicitudAfiliacion {
+  id            Int      @id @default(autoincrement())
+  tipo          String
+  usuario_id    Int
+  estado        String   @default("PENDIENTE")
+  asociacion_id Int?
+  dojo_id       Int?
+  motivo        String?
+  resuelto_por  Int?
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+  usuario       Usuario     @relation(fields: [usuario_id], references: [id])
+  asociacion    Asociacion? @relation(fields: [asociacion_id], references: [id])
+  dojo          Dojo?       @relation(fields: [dojo_id], references: [id])
+
+  @@index([usuario_id])
+  @@index([tipo, estado])
+  @@map("solicitudafiliacion")
 }
 
 model AuditLog {
@@ -249,6 +273,7 @@ enum EstadoRegistro {
   PENDIENTE_APROBACION
   APROBADO
   RECHAZADO
+  DESAFILIADO
 }
 
 enum Disciplina {

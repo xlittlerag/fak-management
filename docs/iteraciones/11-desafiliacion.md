@@ -95,6 +95,7 @@ Nuevos métodos en `NotificacionesService` + templates `src/notificaciones/templ
 - `baja-confirmada.html` → al socio cuando su baja es efectiva (propia o aprobada).
 - `baja-rechazada.html` → al/los admin(s) de la asociación cuando la federación rechaza.
 - `baja-informada-asociacion.html` → a la asociación cuando un socio se auto-desafilia.
+- `baja-informada-federacion.html` → a federación (`fak_email`) cuando un socio se auto-desafilia.
 - `alta-solicitada.html` → a la asociación destino cuando un usuario pide alta.
 - `alta-confirmada.html` → al socio cuando su alta es efectiva.
 - `alta-informada-federacion.html` → a federación (`fak_email`) en cada alta efectiva.

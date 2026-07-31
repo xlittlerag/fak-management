@@ -1,10 +1,15 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useLocation } from 'preact-iso';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
 import { Spinner } from '../components/Spinner';
+import { ConfirmModal } from '../components/ConfirmModal';
 import { getErrorMessage } from '../lib/error';
 
 export default function Perfil() {
+  const { user, logout } = useAuth();
+  const { route } = useLocation();
   const [formData, setFormData] = useState({
     nombre: '',
     apellido: '',
@@ -35,6 +40,9 @@ export default function Perfil() {
   const [message, setMessage] = useState({ text: '', type: '' });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [simulatedReimp, setSimulatedReimp] = useState<{ externalReference: string } | null>(null);
+  const [bajaModal, setBajaModal] = useState(false);
+  const [bajaLoading, setBajaLoading] = useState(false);
+  const [bajaMotivo, setBajaMotivo] = useState('');
 
   useEffect(() => {
     fetchPerfil();
@@ -62,7 +70,6 @@ export default function Perfil() {
     e.preventDefault();
     setSaving(true);
     setMessage({ text: '', type: '' });
-
     const updateData: Record<string, string | undefined> = {
       nombre: formData.nombre,
       apellido: formData.apellido,
@@ -92,6 +99,19 @@ export default function Perfil() {
     }
   };
 
+  const handleBaja = async () => {
+    setBajaLoading(true);
+    setMessage({ text: '', type: '' });
+    try {
+      await api.post('/afiliaciones/baja', { motivo: bajaMotivo || undefined });
+      logout();
+      route('/login');
+    } catch (err) {
+      setMessage({ text: getErrorMessage(err), type: 'error' });
+      setBajaLoading(false);
+    }
+  };
+
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement | HTMLSelectElement;
     setFormData({ ...formData, [target.name]: target.value });
@@ -118,6 +138,18 @@ export default function Perfil() {
 
   return (
     <div class="max-w-4xl space-y-6">
+      {user?.estado_reg === 'DESAFILIADO' && (
+        <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 flex items-center justify-between gap-4">
+          <div>
+            <p class="font-semibold">Usted se encuentra desafiliado.</p>
+            <p class="text-sm">Puede solicitar una nueva afiliación desde el panel.</p>
+          </div>
+          <a href="/dashboard/afiliacion" class="shrink-0 px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700 transition-colors">
+            Solicitar Afiliación
+          </a>
+        </div>
+      )}
+
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
         <h3 class="text-xl font-bold mb-6 text-slate-800">Sus Datos Personales</h3>
 
@@ -368,6 +400,31 @@ export default function Perfil() {
             </button>
           </div>
         </div>
+      )}
+
+      {user?.estado_reg === 'APROBADO' && (
+        <div class="bg-white rounded-lg shadow-sm border border-red-200 p-6">
+          <h3 class="text-lg font-bold mb-2 text-slate-800">Desafiliación</h3>
+          <p class="text-sm text-slate-500 mb-4">Solicitar su desafiliación de la federación. Esta acción es inmediata: conservará su historial y podrá solicitar una nueva afiliación en el futuro.</p>
+          <button
+            onClick={() => { setBajaModal(true); setBajaMotivo(''); }}
+            class="px-6 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition-colors text-sm"
+          >
+            Solicitar desafiliación
+          </button>
+        </div>
+      )}
+
+      {bajaModal && (
+        <ConfirmModal
+          isOpen={true}
+          onClose={() => setBajaModal(false)}
+          onConfirm={() => { handleBaja(); }}
+          title="Solicitar desafiliación"
+          message="¿Está seguro de solicitar su desafiliación? Su cuenta quedará desactivada para eventos y pagos hasta que solicite una nueva afiliación."
+          confirmText={bajaLoading ? 'Procesando...' : 'Confirmar desafiliación'}
+          danger
+        />
       )}
     </div>
   );

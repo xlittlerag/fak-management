@@ -22,6 +22,7 @@ import { CertificadosModule } from './certificados/certificados.module';
 import { DiplomasModule } from './diplomas/diplomas.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { AfiliacionesModule } from './afiliaciones/afiliaciones.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { LoggingInterceptor } from './common/logging.interceptor';
@@ -34,16 +35,19 @@ import { LoggingInterceptor } from './common/logging.interceptor';
         genReqId: () => randomUUID(),
         autoLogging: false,
         level: process.env.LOG_LEVEL ?? 'info',
-        transport: process.env.NODE_ENV !== 'production'
-          ? { target: 'pino-pretty' }
-          : undefined,
+        transport:
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
+            : undefined,
       },
       forRoutes: [{ path: '/*path', method: RequestMethod.ALL }],
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60000,
-      limit: 30,
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 30,
+      },
+    ]),
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'frontend', 'dist'),
       exclude: ['/api/*path', '/uploads/*path'],
@@ -62,6 +66,7 @@ import { LoggingInterceptor } from './common/logging.interceptor';
     DiplomasModule,
     AuditoriaModule,
     NotificacionesModule,
+    AfiliacionesModule,
   ],
   controllers: [AppController],
   providers: [

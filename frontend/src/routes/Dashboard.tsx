@@ -18,6 +18,9 @@ import AuditoriaAdmin from './AuditoriaAdmin';
 import AdminConfig from './AdminConfig';
 import Reimpresiones from './Reimpresiones';
 import MisDiplomas from './MisDiplomas';
+import Afiliacion from './Afiliacion';
+import AfiliacionesAdmin from './AfiliacionesAdmin';
+import BajasAdmin from './BajasAdmin';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -42,10 +45,14 @@ export default function Dashboard() {
     return null;
   }
 
+  const isDesafiliado = user.estado_reg === 'DESAFILIADO';
+
   const menuItems = [
     { label: 'Inicio', path: '/dashboard', roles: ['BASICO', 'ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
     { label: 'Mi Perfil', path: '/dashboard/perfil', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
+    { label: 'Solicitar Afiliación', path: '/dashboard/afiliacion', roles: [] },
     { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
+    { label: 'Afiliaciones', path: '/dashboard/afiliaciones', roles: ['ADMIN_ASOCIACION'] },
     { label: 'Ver Eventos', path: '/dashboard/eventos', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
     { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
@@ -63,6 +70,7 @@ export default function Dashboard() {
         { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
         { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
         { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
+        { label: 'Bajas Pendientes', path: '/dashboard/bajas', roles: ['ADMIN_GENERAL'] },
       ],
     },
     {
@@ -88,11 +96,15 @@ export default function Dashboard() {
   ];
 
   const filteredMenu = menuItems.filter(item => item.roles.includes(user.rol));
+  const desafiliadoMenu = menuItems.filter(item => item.path === '/dashboard/perfil' || item.path === '/dashboard/afiliacion');
 
   function pageTitle(path: string) {
     if (path === '/dashboard') return 'Inicio';
     const labels: Record<string, string> = {
       '/dashboard/perfil': 'Mi Perfil',
+      '/dashboard/afiliacion': 'Solicitar Afiliación',
+      '/dashboard/afiliaciones': 'Afiliaciones',
+      '/dashboard/bajas': 'Bajas Pendientes',
       '/dashboard/usuarios': 'Miembros',
       '/dashboard/eventos': 'Ver Eventos',
       '/dashboard/mis-inscripciones': 'Mis Inscripciones',
@@ -134,25 +146,8 @@ export default function Dashboard() {
         </div>
         
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-          {user.rol === 'ADMIN_GENERAL'
-            ? adminSections.map(section => {
-                const visible = section.items.filter(i => i.roles.includes(user.rol));
-                if (visible.length === 0) return null;
-                return (
-                  <div key={section.title}>
-                    <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{section.title}</p>
-                    {visible.map(item => (
-                      <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
-                        class={`block px-4 py-1.5 rounded transition-colors ${
-                          path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
-                        }`}>
-                        {item.label}
-                      </a>
-                    ))}
-                  </div>
-                );
-              })
-            : filteredMenu.map(item => (
+          {isDesafiliado
+            ? desafiliadoMenu.map(item => (
                 <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
                   class={`block px-4 py-2 rounded transition-colors ${
                     path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
@@ -160,6 +155,32 @@ export default function Dashboard() {
                   {item.label}
                 </a>
               ))
+            : user.rol === 'ADMIN_GENERAL'
+              ? adminSections.map(section => {
+                  const visible = section.items.filter(i => i.roles.includes(user.rol));
+                  if (visible.length === 0) return null;
+                  return (
+                    <div key={section.title}>
+                      <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{section.title}</p>
+                      {visible.map(item => (
+                        <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
+                          class={`block px-4 py-1.5 rounded transition-colors ${
+                            path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
+                          }`}>
+                          {item.label}
+                        </a>
+                      ))}
+                    </div>
+                  );
+                })
+              : filteredMenu.map(item => (
+                  <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
+                    class={`block px-4 py-2 rounded transition-colors ${
+                      path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
+                    }`}>
+                    {item.label}
+                  </a>
+                ))
           }
         </nav>
 
@@ -188,8 +209,12 @@ export default function Dashboard() {
         </header>
 
         <div class="p-4 sm:p-8">
+          {isDesafiliado && path !== '/dashboard/perfil' && path !== '/dashboard/afiliacion' && (() => { route('/dashboard/perfil'); return null; })()}
           {path === '/dashboard' && <DashboardHome />}
           {path === '/dashboard/perfil' && <Perfil />}
+          {path === '/dashboard/afiliacion' && <Afiliacion />}
+          {path === '/dashboard/afiliaciones' && <AfiliacionesAdmin />}
+          {path === '/dashboard/bajas' && <BajasAdmin />}
           {path === '/dashboard/usuarios' && <Usuarios />}
           {path === '/dashboard/eventos' && <EventosDashboard />}
           {path === '/dashboard/mis-inscripciones' && <MisInscripciones />}
