@@ -140,6 +140,9 @@ export default function EventosAdmin() {
                           {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
                             <button onClick={() => setConfirmCerrarId(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
                           )}
+                          {user?.rol === 'ADMIN_GENERAL' && ev.tipo === 'EXAMEN' && (
+                            <button onClick={() => route(`/dashboard/mesas?eventoId=${ev.id}`)} class="text-purple-600 hover:underline">Mesas</button>
+                          )}
                         </>
                       )}
                     </td>

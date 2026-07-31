@@ -23,6 +23,7 @@ import { DiplomasModule } from './diplomas/diplomas.module';
 import { AuditoriaModule } from './auditoria/auditoria.module';
 import { NotificacionesModule } from './notificaciones/notificaciones.module';
 import { AfiliacionesModule } from './afiliaciones/afiliaciones.module';
+import { MesasModule } from './mesas/mesas.module';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { RolesGuard } from './auth/guards/roles.guard';
 import { LoggingInterceptor } from './common/logging.interceptor';
@@ -67,6 +68,7 @@ import { LoggingInterceptor } from './common/logging.interceptor';
     AuditoriaModule,
     NotificacionesModule,
     AfiliacionesModule,
+    MesasModule,
   ],
   controllers: [AppController],
   providers: [

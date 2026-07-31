@@ -97,6 +97,7 @@ model Evento {
   creador            Usuario?            @relation(fields: [creador_id], references: [id])
   examen             Examen?
   inscripciones      InscripcionEvento[]
+  mesas              MesaExaminadora[]
   seminario          Seminario?
   torneo             Torneo?
 }
@@ -150,6 +151,52 @@ model InscripcionEvento {
   evento                  Evento            @relation(fields: [evento_id], references: [id])
   usuario                 Usuario           @relation(fields: [usuario_id], references: [id])
   diplomas_nacionales     DiplomaNacional[]
+  resultados              ResultadoExamen[]
+  registros               RegistroExamen[]
+}
+
+model MesaExaminadora {
+  id           Int       @id @default(autoincrement())
+  evento_id    Int
+  disciplina   String
+  examinadores Json
+  grad_min     String
+  grad_max     String
+  creador_id   Int?
+  createdAt    DateTime  @default(now())
+  evento       Evento    @relation(fields: [evento_id], references: [id], onDelete: Cascade)
+  resultados   ResultadoExamen[]
+
+  @@index([evento_id, disciplina])
+}
+
+model ResultadoExamen {
+  id            Int              @id @default(autoincrement())
+  inscripcion_id Int
+  disciplina    String
+  instancia     InstanciaExamen
+  mesa_id       Int?
+  aprobado      Boolean
+  cargado_por   Int?
+  createdAt     DateTime         @default(now())
+  inscripcion   InscripcionEvento @relation(fields: [inscripcion_id], references: [id], onDelete: Cascade)
+  mesa          MesaExaminadora? @relation(fields: [mesa_id], references: [id], onDelete: Cascade)
+
+  @@unique([inscripcion_id, disciplina, instancia])
+  @@index([mesa_id])
+}
+
+model RegistroExamen {
+  id                 Int              @id @default(autoincrement())
+  inscripcion_id     Int
+  disciplina         String
+  pagado             Boolean          @default(false)
+  graduacion_aplicada Boolean         @default(false)
+  cargado_por        Int?
+  createdAt          DateTime         @default(now())
+  inscripcion        InscripcionEvento @relation(fields: [inscripcion_id], references: [id], onDelete: Cascade)
+
+  @@unique([inscripcion_id, disciplina])
 }
 
 model HistorialGraduacion {
@@ -308,6 +355,12 @@ enum EstadoSolicitud {
   APROBADO_ASOCIACION
   APROBADO
   RECHAZADO
+}
+
+enum InstanciaExamen {
+  PRACTICO
+  KATA
+  ESCRITO
 }
 
 enum Provincia {

@@ -1,6 +1,6 @@
 # Especificación Técnica — Iteración 12: Mesas Examinadoras
 
-> **Estado:** Planificado
+> **Estado:** Implementado
 > **Fuente:** `docs/requerimiento.md` §"Mesas examinadoras (iteración futura)" — "Permitir la carga de aprobados y desaprobados por instancia de examen (práctico → kata → escrito). Registrar las distintas mesas examinadoras del día con: Nombres de los examinadores (texto libre, un input por mesa), Rango de graduación que examinó cada mesa. Al cargar el resultado de un candidato: si solo hay una mesa para su graduación, se asigna automáticamente. Si hay dos o más mesas compatibles, el administrador general debe seleccionar la mesa."
 
 ## 0. Decisiones de diseño (confirmadas)
@@ -120,15 +120,24 @@ Se usa para validar al cargar resultados (rechazar una instancia no requerida pa
 
 ## 7. Criterios de Aceptación (DoD)
 
-- [ ] CRUD de mesas con validación de rango dentro de `graduaciones_a_rendir` del examen y `grad_min <= grad_max`; borrado bloqueado si la mesa tiene resultados.
-- [ ] Asignación automática de mesa con 1 sola compatible; error con 0; selección manual con 2+.
-- [ ] Solo se pueden cargar las instancias requeridas para la (disciplina, graduación) del candidato (p.ej. KYU_2 Kendo solo acepta PRACTICO; KYU_1 Kendo acepta PRACTICO+KATA y rechaza ESCRITO; DAN acepta las tres; Iaido/Jodo sin PRACTICO).
-- [ ] Al aprobar todas las instancias de una disciplina + registro pagado → `grad_<disciplina>` y `f_grad_<disciplina>` actualizados, `HistorialGraduacion` creado, idempotente (no se duplica).
-- [ ] Carga de registro por disciplina; la graduación solo se aplica en la disciplina correspondiente.
-- [ ] Permisos: `ADMIN_ASOCIACION` no puede crear mesas ni cargar resultados (403).
-- [ ] Auditoría: creación/actualización de mesas, resultados y registros generan logs.
-- [ ] Mensajes de error en español formal (Usted).
-- [ ] Tests E2E cubren los flujos principales.
+- [x] CRUD de mesas con validación de rango dentro de `graduaciones_a_rendir` del examen y `grad_min <= grad_max`; borrado bloqueado si la mesa tiene resultados.
+- [x] Asignación automática de mesa con 1 sola compatible; error con 0; selección manual con 2+.
+- [x] Solo se pueden cargar las instancias requeridas para la (disciplina, graduación) del candidato (p.ej. KYU_2 Kendo solo acepta PRACTICO; KYU_1 Kendo acepta PRACTICO+KATA y rechaza ESCRITO; DAN acepta las tres; Iaido/Jodo sin PRACTICO).
+- [x] Al aprobar todas las instancias de una disciplina + registro pagado → `grad_<disciplina>` y `f_grad_<disciplina>` actualizados, `HistorialGraduacion` creado, idempotente (no se duplica).
+- [x] Carga de registro por disciplina; la graduación solo se aplica en la disciplina correspondiente.
+- [x] Permisos: `ADMIN_ASOCIACION` no puede crear mesas ni cargar resultados (403).
+- [x] Auditoría: creación/actualización de mesas, resultados y registros generan logs.
+- [x] Mensajes de error en español formal (Usted).
+- [x] Tests E2E cubren los flujos principales.
+
+## 7bis. Notas de implementación
+
+- `disciplina` se modela como `String` (no enum) para los tres modelos, consistente con `Torneo.disciplina` / `Seminario.disciplina` / `Examen`.
+- Los timestamps usan `createdAt` (camelCase) y `cargado_por` es opcional (`Int?`).
+- `ResultadoExamen.mesa` usa `onDelete: Cascade` (el servicio ya bloquea el borrado con resultados cargados vía 409).
+- `aplicarGraduacionSiCorresponde` se ejecuta de forma secuencial sobre `this.prisma` (no en `$transaction`) para conservar los logs de auditoría automática de los modelos intervinientes.
+- El shape de `GET /admin/examenes/:id/resultados` es: candidato → `instancias[]` planas (cada fila lleva `disciplina`, `graduacion`, `instancia`, `aprobado` —`null` = sin cargar—, `mesa_id`, `registro_pagado`, `graduacion_aplicada`), sin agrupar por disciplina.
+- `test/test-utils.ts`: `createTestApp` sobreescribe `ThrottlerStorage` para que el rate-limit global (30 req/60s por ruta) no afecte a los e2e.
 
 ## 8. Tests E2E (`test/mesas.e2e-spec.ts`)
 

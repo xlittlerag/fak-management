@@ -21,6 +21,7 @@ import MisDiplomas from './MisDiplomas';
 import Afiliacion from './Afiliacion';
 import AfiliacionesAdmin from './AfiliacionesAdmin';
 import BajasAdmin from './BajasAdmin';
+import Mesas from './Mesas';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -70,6 +71,7 @@ export default function Dashboard() {
         { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
         { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
         { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
+        { label: 'Mesas examinadoras', path: '/dashboard/mesas', roles: ['ADMIN_GENERAL'] },
         { label: 'Bajas Pendientes', path: '/dashboard/bajas', roles: ['ADMIN_GENERAL'] },
       ],
     },
@@ -118,6 +120,7 @@ export default function Dashboard() {
       '/dashboard/mis-diplomas': 'Mis Diplomas',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
       '/dashboard/auditoria': 'Auditoría',
+      '/dashboard/mesas': 'Mesas examinadoras',
     };
     return labels[path] || 'Dashboard';
   }
@@ -228,6 +231,7 @@ export default function Dashboard() {
           {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
           {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
+          {path === '/dashboard/mesas' && <Mesas />}
         </div>
       </main>
     </div>

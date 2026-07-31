@@ -28,6 +28,9 @@ const MODEL_NAMES = [
   'configSistema',
   'auditLog',
   'solicitudAfiliacion',
+  'mesaExaminadora',
+  'resultadoExamen',
+  'registroExamen',
 ] as const;
 
 @Injectable()

@@ -7,6 +7,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AppModule } from '../src/app.module';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
+import { ThrottlerStorage } from '@nestjs/throttler';
 import { validationMessages } from '../src/utils/validation-messages';
 import * as bcrypt from 'bcrypt';
 
@@ -17,7 +18,17 @@ export async function createTestApp(): Promise<{
 }> {
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
-  }).compile();
+  })
+    .overrideProvider(ThrottlerStorage)
+    .useValue({
+      increment: () => ({
+        totalHits: 1,
+        timeToExpire: 60000,
+        isBlocked: false,
+        timeToBlockExpire: 0,
+      }),
+    })
+    .compile();
 
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
@@ -49,6 +60,9 @@ export async function cleanupDb(prisma: PrismaService) {
   await prisma.solicitudAfiliacion.deleteMany();
   await prisma.reimpresionDiploma.deleteMany();
   await prisma.diplomaNacional.deleteMany();
+  await prisma.resultadoExamen.deleteMany();
+  await prisma.registroExamen.deleteMany();
+  await prisma.mesaExaminadora.deleteMany();
   await prisma.historialGraduacion.deleteMany();
   await prisma.inscripcionEvento.deleteMany();
   await prisma.certificadoExterno.deleteMany();
