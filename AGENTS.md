@@ -52,6 +52,8 @@ pnpm run seed                 # seed database with test data
 - **UX Phases 1–5** — Refinamiento frontend: reemplazo de alert/confirm por ConfirmModal, Spinner en cargas, unificación de estilos (badges, cursor), Pagination + search en listas, extracción de EventoForm — commit `8152823`
 - **Iteración 9** — Infraestructura y CI: Containerfile (multi-stage, usuario no-root, volumes), entrypoint con admin automático, GitHub Actions CI, scripts de backup/restore con rclone — see `docs/iteraciones/09-infraestructura-ci.md`
 - **Iteración 10** — Modo simulado para Mercado Pago (test): saltea el checkout modal en entorno de test, `MERCADO_PAGO_SIMULATED=true`, endpoint `POST /api/pagos/simulate` que procesa pagos mock reusando la lógica del webhook — see `docs/iteraciones/10-modo-simulado-mercadopago.md`
+- **Iteración 11** — Desafiliación y afiliación (transferencia de asociación): alta/baja de socios con aprobaciones y notificaciones a federación/asociaciones — see `docs/iteraciones/11-desafiliacion.md`
+- **Iteración 12** — Mesas examinadoras: CRUD de mesas por examen, carga de resultados por instancia (práctico/kata/escrito) con asignación automática/manual de mesa, registro de pago por disciplina y graduación automática idempotente — see `docs/iteraciones/12-mesas-examinadoras.md`
 
 ## Pending / Next
 - Schema changes use `npx prisma db push` (no migration files)

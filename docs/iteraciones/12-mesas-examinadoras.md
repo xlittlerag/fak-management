@@ -1,6 +1,7 @@
 # Especificación Técnica — Iteración 12: Mesas Examinadoras
 
 > **Estado:** Implementado
+> **Commit:** `69aaaa9`
 > **Fuente:** `docs/requerimiento.md` §"Mesas examinadoras (iteración futura)" — "Permitir la carga de aprobados y desaprobados por instancia de examen (práctico → kata → escrito). Registrar las distintas mesas examinadoras del día con: Nombres de los examinadores (texto libre, un input por mesa), Rango de graduación que examinó cada mesa. Al cargar el resultado de un candidato: si solo hay una mesa para su graduación, se asigna automáticamente. Si hay dos o más mesas compatibles, el administrador general debe seleccionar la mesa."
 
 ## 0. Decisiones de diseño (confirmadas)
