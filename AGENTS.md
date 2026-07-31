@@ -54,6 +54,4 @@ pnpm run seed                 # seed database with test data
 - **Iteración 10** — Modo simulado para Mercado Pago (test): saltea el checkout modal en entorno de test, `MERCADO_PAGO_SIMULATED=true`, endpoint `POST /api/pagos/simulate` que procesa pagos mock reusando la lógica del webhook — see `docs/iteraciones/10-modo-simulado-mercadopago.md`
 
 ## Pending / Next
-- Dashboard / Reportes — Estadísticas de miembros, eventos, ingresos; gráficos
-- Carga de archivos — refinamiento UX en subida de archivos
 - Schema changes use `npx prisma db push` (no migration files)
