@@ -174,18 +174,18 @@ client_secret = GOCSPX-...
 
 ## Criterios de Aceptación (DoD)
 
-- [ ] `Containerfile` construye exitosamente sin errores
-- [ ] El contenedor inicia con `prisma db push` automático
-- [ ] El contenedor crea admin si la DB está vacía
-- [ ] El contenedor no duplica admin si ya existe
-- [ ] Las variables de entorno se pasan correctamente
-- [ ] El frontend se sirve desde el mismo contenedor en `/`
-- [ ] El API responde en `/api/*`
-- [ ] Los tests E2E pasan en CI
-- [ ] `.dockerignore` excluye node_modules, dist, .git
-- [ ] El usuario no-root `kendo` puede escribir en `uploads/`
-- [ ] `rclone` instalado y funcional en el contenedor
-- [ ] `scripts/backup.sh` empaqueta DB + uploads y sube al destino configurado
-- [ ] `scripts/restore.sh` descarga y restaura un backup (interactivo y con `FORCE=yes`)
-- [ ] Backup puede subir a Google Drive, SFTP y otros destinos de rclone
-- [ ] Documentado en `AGENTS.md`
+- [x] `Containerfile` construye exitosamente sin errores
+- [x] El contenedor inicia con `prisma db push` automático
+- [x] El contenedor crea admin si la DB está vacía
+- [x] El contenedor no duplica admin si ya existe
+- [x] Las variables de entorno se pasan correctamente
+- [x] El frontend se sirve desde el mismo contenedor en `/`
+- [x] El API responde en `/api/*`
+- [x] Los tests E2E pasan en CI
+- [x] `.dockerignore` excluye node_modules, dist, .git
+- [x] El usuario no-root `kendo` puede escribir en `uploads/`
+- [x] `rclone` instalado y funcional en el contenedor
+- [x] `scripts/backup.sh` empaqueta DB + uploads y sube al destino configurado
+- [x] `scripts/restore.sh` descarga y restaura un backup (interactivo y con `FORCE=yes`)
+- [x] Backup puede subir a Google Drive, SFTP y otros destinos de rclone
+- [x] Documentado en `AGENTS.md`

@@ -142,6 +142,7 @@ export async function createTestUser(
     ciudad: overrides.ciudad || 'Ciudad Test',
     provincia: overrides.provincia || 'BUENOS_AIRES',
     codigo_postal: overrides.codigo_postal || '1234',
+    telefono: overrides.telefono || '1199999999',
   };
 
   for (const key of Object.keys(overrides)) {

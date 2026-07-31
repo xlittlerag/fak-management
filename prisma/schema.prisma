@@ -58,7 +58,7 @@ model Usuario {
   f_grad_iaido     DateTime?
   grad_jodo        Graduacion            @default(SIN_GRADUACION)
   f_grad_jodo      DateTime?
-  telefono         String?
+  telefono         String
   certificados     CertificadoExterno[]
   eventos_creados  Evento[]
   historial_grad   HistorialGraduacion[]

@@ -319,6 +319,7 @@ export const CATEGORIAS_TORNEO_DEFAULT = [
 
 ### 8.5 Teléfono obligatorio
 - `telefono` pasó de opcional a obligatorio en registro y perfil (frontend + backend DTOs).
+- Posteriormente se forzó `NOT NULL` a nivel base de datos (`telefono String` en `prisma/schema.prisma`).
 
 ### 8.6 Mensajes de error
 - `getErrorMessage()` ahora prioriza `response.data.message` sobre el genérico de Axios.

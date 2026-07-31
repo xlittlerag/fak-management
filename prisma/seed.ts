@@ -98,6 +98,7 @@ async function main() {
         nombre: u.nombre, apellido: u.apellido,
         fecha_nacimiento: new Date('1990-01-01'), sexo: u.nombre.endsWith('a') ? 'FEMENINO' : 'MASCULINO',
         calle_altura: 'Calle Falsa 123', ciudad: 'Ciudad Test', provincia: 'BUENOS_AIRES', codigo_postal: '1000',
+        telefono: '1199999999',
         rol: u.rol, asociacion_id: u.asocId, dojo_id: u.dojoId,
         estado_reg: (u.estadoReg ?? 'APROBADO') as any,
         estado_pago: u.estadoPago ?? false,

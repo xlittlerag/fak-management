@@ -126,15 +126,15 @@ DB Query → PrismaClient.$extends (middleware) → lee contexto → escribe Aud
 
 ## Criterios de Aceptación (DoD)
 
-- [ ] Toda operación CREATE/UPDATE/DELETE sobre entidades del sistema genera un registro en AuditLog
-- [ ] El registro captura usuario, IP, user-agent, valores previos y nuevos
-- [ ] No se registran las operaciones de lectura (findMany, findFirst, etc.)
-- [ ] Las operaciones de escritura del propio módulo de auditoría no generan bucles infinitos
-- [ ] ADMIN_GENERAL puede consultar logs con filtros por entidad, acción, fecha y usuario
-- [ ] Los filtros funcionan correctamente (pagina, limite, combinaciones)
-- [ ] Usuarios no autenticados no pueden acceder a los endpoints
-- [ ] Usuarios con rol BASICO/ADMIN_ASOCIACION no pueden acceder a los endpoints
-- [ ] La funcionalidad existente no se ve afectada (tests previos siguen pasando)
-- [ ] Frontend: ADMIN_GENERAL ve tabla de logs con filtros en /dashboard/auditoria
-- [ ] Mensajes de error en español formal (usted)
-- [ ] Tests E2E cubren los flujos principales
+- [x] Toda operación CREATE/UPDATE/DELETE sobre entidades del sistema genera un registro en AuditLog
+- [x] El registro captura usuario, IP, user-agent, valores previos y nuevos
+- [x] No se registran las operaciones de lectura (findMany, findFirst, etc.)
+- [x] Las operaciones de escritura del propio módulo de auditoría no generan bucles infinitos
+- [x] ADMIN_GENERAL puede consultar logs con filtros por entidad, acción, fecha y usuario
+- [x] Los filtros funcionan correctamente (pagina, limite, combinaciones)
+- [x] Usuarios no autenticados no pueden acceder a los endpoints
+- [x] Usuarios con rol BASICO/ADMIN_ASOCIACION no pueden acceder a los endpoints
+- [x] La funcionalidad existente no se ve afectada (tests previos siguen pasando)
+- [x] Frontend: ADMIN_GENERAL ve tabla de logs con filtros en /dashboard/auditoria
+- [x] Mensajes de error en español formal (usted)
+- [x] Tests E2E cubren los flujos principales

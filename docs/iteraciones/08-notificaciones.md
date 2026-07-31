@@ -107,12 +107,12 @@ Los templates son HTML plano con interpolación de variables. Se usa `replace()`
 
 ## Criterios de Aceptación (DoD)
 
-- [ ] `NotificacionesService` se inyecta correctamente y envía emails via nodemailer
-- [ ] Los métodos `sendWelcomeEmail`, `sendPasswordResetEmail`, `sendInscripcionStatusEmail` y `sendCertificacionStatusEmail` envían HTML bien formado
-- [ ] Al registrarse un usuario, se invoca `sendWelcomeEmail`
-- [ ] Al aprobar/rechazar una inscripción, se invoca `sendInscripcionStatusEmail`
-- [ ] Al cambiar estado de certificación, se invoca `sendCertificacionStatusEmail`
-- [ ] Si SMTP no está configurado, el servicio funciona en modo silencioso
-- [ ] Si el envío falla, el error se loguea pero no se propaga al usuario
-- [ ] Variables SMTP documentadas en `.env.example`
-- [ ] Tests E2E con nodemailer mockeado
+- [x] `NotificacionesService` se inyecta correctamente y envía emails via nodemailer
+- [x] Los métodos `sendWelcomeEmail`, `sendPasswordResetEmail`, `sendInscripcionStatusEmail` y `sendCertificacionStatusEmail` envían HTML bien formado
+- [x] Al registrarse un usuario, se invoca `sendWelcomeEmail`
+- [x] Al aprobar/rechazar una inscripción, se invoca `sendInscripcionStatusEmail`
+- [x] Al cambiar estado de certificación, se invoca `sendCertificacionStatusEmail`
+- [x] Si SMTP no está configurado, el servicio funciona en modo silencioso
+- [x] Si el envío falla, el error se loguea pero no se propaga al usuario
+- [x] Variables SMTP documentadas en `.env.example`
+- [x] Tests E2E con nodemailer mockeado

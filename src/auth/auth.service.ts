@@ -104,7 +104,7 @@ export class AuthService {
         ciudad: dto.ciudad,
         provincia: dto.provincia,
         codigo_postal: dto.codigo_postal,
-        telefono: dto.telefono ?? null,
+        telefono: dto.telefono,
         asociacion_id: dto.asociacion_id,
         dojo_id: dto.dojo_id,
         rol: 'BASICO',
