@@ -1,6 +1,7 @@
 # Especificación Técnica — Iteración 11: Desafiliación y Afiliación (Transferencia de Asociación)
 
-> **Estado:** Planificado
+> **Estado:** Implementado
+> **Commit:** `07b20fb`
 > **Fuente:** `docs/requerimiento.md` §4 (rol Admin de Asociación) — "También debe poder solicitar la desafiliación de socios. Si el socio la solicita debe ser automático en informar a la asociación y a federación. Si la asociación solicita la baja debe aprobar la federación antes. Si otra asociación solicita el alta, o admite alta solicitada por el usuario debe informar a federación y dar alta automática".
 
 ## 0. Decisiones de diseño (confirmadas)
