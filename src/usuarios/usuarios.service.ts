@@ -1,15 +1,23 @@
-import { Injectable, ForbiddenException, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
 import { EstadoRegistro, Rol, Graduacion, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
-import { AprobacionAccion, UpdateAprobacionDto } from './dto/update-aprobacion.dto';
+import {
+  AprobacionAccion,
+  UpdateAprobacionDto,
+} from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
 import { UpdateGraduacionDto } from './dto/update-graduacion.dto';
 import * as bcrypt from 'bcrypt';
 
 const GraduacionInputMap: Record<string, Graduacion> = {
-  'SIN_GRADUACION': 'SIN_GRADUACION',
+  SIN_GRADUACION: 'SIN_GRADUACION',
   '3_KYU': 'KYU_3',
   '2_KYU': 'KYU_2',
   '1_KYU': 'KYU_1',
@@ -50,7 +58,9 @@ export class UsuariosService {
   }
 
   async findAll(user: AuthUser, pagination?: { skip?: number; take?: number }) {
-    const where: Prisma.UsuarioWhereInput = { estado_reg: EstadoRegistro.APROBADO };
+    const where: Prisma.UsuarioWhereInput = {
+      estado_reg: EstadoRegistro.APROBADO,
+    };
     if (user.rol === Rol.ADMIN_ASOCIACION) {
       where.asociacion_id = user.asociacion_id;
     }
@@ -73,9 +83,11 @@ export class UsuariosService {
   }
 
   async updatePerfil(id: number, dto: UpdatePerfilDto) {
-    const data: Prisma.UsuarioUpdateInput = { ...dto } as Prisma.UsuarioUpdateInput;
+    const data: Prisma.UsuarioUpdateInput = {
+      ...dto,
+    };
     if (data.password) {
-      data.password = await bcrypt.hash(data.password as string, 10);
+      data.password = await bcrypt.hash(data.password, 10);
     }
     if (dto.fecha_nacimiento) {
       data.fecha_nacimiento = new Date(dto.fecha_nacimiento);
@@ -93,7 +105,9 @@ export class UsuariosService {
           throw new NotFoundException('Usuario no encontrado');
         }
         if (prismaErr.code === 'P2002') {
-          throw new ConflictException('El correo electrónico ya se encuentra en uso.');
+          throw new ConflictException(
+            'El correo electrónico ya se encuentra en uso.',
+          );
         }
       }
       throw err;
@@ -121,11 +135,14 @@ export class UsuariosService {
     const data: Prisma.UsuarioUpdateInput = {};
 
     if (dto.grad_kendo !== undefined) data.grad_kendo = mapGrad(dto.grad_kendo);
-    if (dto.f_grad_kendo !== undefined) data.f_grad_kendo = dto.f_grad_kendo ? new Date(dto.f_grad_kendo) : null;
+    if (dto.f_grad_kendo !== undefined)
+      data.f_grad_kendo = dto.f_grad_kendo ? new Date(dto.f_grad_kendo) : null;
     if (dto.grad_iaido !== undefined) data.grad_iaido = mapGrad(dto.grad_iaido);
-    if (dto.f_grad_iaido !== undefined) data.f_grad_iaido = dto.f_grad_iaido ? new Date(dto.f_grad_iaido) : null;
+    if (dto.f_grad_iaido !== undefined)
+      data.f_grad_iaido = dto.f_grad_iaido ? new Date(dto.f_grad_iaido) : null;
     if (dto.grad_jodo !== undefined) data.grad_jodo = mapGrad(dto.grad_jodo);
-    if (dto.f_grad_jodo !== undefined) data.f_grad_jodo = dto.f_grad_jodo ? new Date(dto.f_grad_jodo) : null;
+    if (dto.f_grad_jodo !== undefined)
+      data.f_grad_jodo = dto.f_grad_jodo ? new Date(dto.f_grad_jodo) : null;
 
     return this.prisma.usuario.update({
       where: { id },
@@ -133,7 +150,11 @@ export class UsuariosService {
     });
   }
 
-  async updateAprobacion(id: number, dto: UpdateAprobacionDto, admin: AuthUser) {
+  async updateAprobacion(
+    id: number,
+    dto: UpdateAprobacionDto,
+    admin: AuthUser,
+  ) {
     const user = await this.prisma.usuario.findUnique({
       where: { id },
     });
@@ -142,13 +163,19 @@ export class UsuariosService {
       throw new NotFoundException('Usuario no encontrado');
     }
 
-    if (admin.rol === Rol.ADMIN_ASOCIACION && user.asociacion_id !== admin.asociacion_id) {
-      throw new ForbiddenException('Usted no tiene permisos para aprobar usuarios de otra asociación');
+    if (
+      admin.rol === Rol.ADMIN_ASOCIACION &&
+      user.asociacion_id !== admin.asociacion_id
+    ) {
+      throw new ForbiddenException(
+        'Usted no tiene permisos para aprobar usuarios de otra asociación',
+      );
     }
 
-    const newEstado = dto.accion === AprobacionAccion.APROBAR
-      ? EstadoRegistro.APROBADO
-      : EstadoRegistro.RECHAZADO;
+    const newEstado =
+      dto.accion === AprobacionAccion.APROBAR
+        ? EstadoRegistro.APROBADO
+        : EstadoRegistro.RECHAZADO;
 
     return this.prisma.usuario.update({
       where: { id },

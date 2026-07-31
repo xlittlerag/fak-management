@@ -3,7 +3,12 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Diplomas (e2e)', () => {
   let app: INestApplication;
@@ -83,7 +88,9 @@ describe('Diplomas (e2e)', () => {
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           ambito: 'NACIONAL',
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         });
 
       const inscRes = await request(app.getHttpServer())
@@ -93,7 +100,11 @@ describe('Diplomas (e2e)', () => {
 
       await prisma.inscripcionEvento.update({
         where: { id: inscRes.body.id },
-        data: { estado_aprob: 'APROBADO', pagado: true, categoria_grad: { KENDO: 'DAN_1' } },
+        data: {
+          estado_aprob: 'APROBADO',
+          pagado: true,
+          categoria_grad: { KENDO: 'DAN_1' },
+        },
       });
 
       const res1 = await request(app.getHttpServer())
@@ -149,7 +160,11 @@ describe('Diplomas (e2e)', () => {
 
         await prisma.inscripcionEvento.update({
           where: { id: inscRes.body.id },
-          data: { estado_aprob: 'APROBADO', pagado: true, categoria_grad: { KENDO: 'DAN_1' } },
+          data: {
+            estado_aprob: 'APROBADO',
+            pagado: true,
+            categoria_grad: { KENDO: 'DAN_1' },
+          },
         });
       }
 
@@ -159,10 +174,13 @@ describe('Diplomas (e2e)', () => {
         .attach('files', Buffer.from('test'), 'u1.pdf')
         .attach('files', Buffer.from('test'), 'u2.pdf')
         .field('evento_id', String(eventoRes.body.id))
-        .field('archivos_meta', JSON.stringify([
-          { usuario_id: user1.user.id, disciplina: 'KENDO' },
-          { usuario_id: user2.user.id, disciplina: 'KENDO' },
-        ]));
+        .field(
+          'archivos_meta',
+          JSON.stringify([
+            { usuario_id: user1.user.id, disciplina: 'KENDO' },
+            { usuario_id: user2.user.id, disciplina: 'KENDO' },
+          ]),
+        );
 
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(2);
@@ -182,7 +200,9 @@ describe('Diplomas (e2e)', () => {
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           ambito: 'NACIONAL',
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         });
 
       const res = await request(app.getHttpServer())
@@ -190,9 +210,10 @@ describe('Diplomas (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .attach('files', Buffer.from('test'), 'u.pdf')
         .field('evento_id', String(eventoRes.body.id))
-        .field('archivos_meta', JSON.stringify([
-          { usuario_id: user.user.id, disciplina: 'KENDO' },
-        ]));
+        .field(
+          'archivos_meta',
+          JSON.stringify([{ usuario_id: user.user.id, disciplina: 'KENDO' }]),
+        );
 
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(0);

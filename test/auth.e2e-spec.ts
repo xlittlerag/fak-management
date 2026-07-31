@@ -2,7 +2,12 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 import * as bcrypt from 'bcrypt';
 
 describe('Auth (e2e)', () => {
@@ -25,8 +30,12 @@ describe('Auth (e2e)', () => {
 
   describe('POST /auth/register', () => {
     it('should create a user with PENDIENTE_APROBACION and BASICO role', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test Assoc' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'Test Dojo', asociacion_id: assoc.id } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test Assoc' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Test Dojo', asociacion_id: assoc.id },
+      });
 
       const registerDto = {
         nombre: 'Juan',
@@ -50,7 +59,9 @@ describe('Auth (e2e)', () => {
         .send(registerDto)
         .expect(201);
 
-      const user = await prisma.usuario.findUnique({ where: { email: 'juan@example.com' } });
+      const user = await prisma.usuario.findUnique({
+        where: { email: 'juan@example.com' },
+      });
       expect(user).toBeDefined();
       expect(user?.rol).toBe('BASICO');
       expect(user?.estado_reg).toBe('PENDIENTE_APROBACION');
@@ -58,9 +69,18 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 409 if email or DNI already exists', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test Assoc' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'Test Dojo', asociacion_id: assoc.id } });
-      await createTestUser(prisma, jwt, { email: 'dup@example.com', dni: 'D123', asociacion_id: assoc.id, dojo_id: dojo.id });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test Assoc' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Test Dojo', asociacion_id: assoc.id },
+      });
+      await createTestUser(prisma, jwt, {
+        email: 'dup@example.com',
+        dni: 'D123',
+        asociacion_id: assoc.id,
+        dojo_id: dojo.id,
+      });
 
       const registerDto = {
         nombre: 'Dup',
@@ -94,9 +114,7 @@ describe('Auth (e2e)', () => {
       expect(Array.isArray(response.body.message)).toBe(true);
       expect(response.body.message.length).toBeGreaterThan(0);
       expect(response.body.message).toEqual(
-        expect.arrayContaining([
-          expect.stringMatching(/obligatorio/),
-        ])
+        expect.arrayContaining([expect.stringMatching(/obligatorio/)]),
       );
     });
   });
@@ -107,16 +125,18 @@ describe('Auth (e2e)', () => {
         .post('/api/auth/login')
         .send({ dni: 'nonexistent', password: 'wrong' })
         .expect(401);
-      });
+    });
 
     it('should return 403 if user is PENDIENTE_APROBACION', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      await createTestUser(prisma, jwt, { 
-        email: 'pending@example.com', 
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await createTestUser(prisma, jwt, {
+        email: 'pending@example.com',
         dni: 'P123',
         password: 'Password123!',
         estado_reg: 'PENDIENTE_APROBACION',
-        asociacion_id: assoc.id 
+        asociacion_id: assoc.id,
       });
 
       const response = await request(app.getHttpServer())
@@ -128,13 +148,15 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 403 if user is RECHAZADO', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      await createTestUser(prisma, jwt, { 
-        email: 'rejected@example.com', 
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await createTestUser(prisma, jwt, {
+        email: 'rejected@example.com',
         dni: 'R123',
         password: 'Password123!',
         estado_reg: 'RECHAZADO',
-        asociacion_id: assoc.id 
+        asociacion_id: assoc.id,
       });
 
       const response = await request(app.getHttpServer())
@@ -146,13 +168,15 @@ describe('Auth (e2e)', () => {
     });
 
     it('should return 200 and a JWT if user is APROBADO', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { 
-        email: 'approved@example.com', 
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        email: 'approved@example.com',
         dni: 'A123',
         password: 'Password123!',
         estado_reg: 'APROBADO',
-        asociacion_id: assoc.id 
+        asociacion_id: assoc.id,
       });
 
       const response = await request(app.getHttpServer())
@@ -161,8 +185,8 @@ describe('Auth (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('access_token');
-      
-      const decoded = jwt.decode(response.body.access_token) as { sub: number };
+
+      const decoded = jwt.decode(response.body.access_token);
       expect(decoded.sub).toBe(user.user.id);
     });
   });
@@ -177,7 +201,7 @@ describe('Auth (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('access_token');
-      const decoded = jwt.decode(response.body.access_token) as { rol: string };
+      const decoded = jwt.decode(response.body.access_token);
       expect(decoded.rol).toBe('ADMIN_GENERAL');
     });
 
@@ -200,8 +224,13 @@ describe('Auth (e2e)', () => {
 
   describe('POST /auth/reset-password/request', () => {
     it('should set estado_blanqueo to PENDIENTE for existing user', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const { user } = await createTestUser(prisma, jwt, { dni: 'RESET01', asociacion_id: assoc.id });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const { user } = await createTestUser(prisma, jwt, {
+        dni: 'RESET01',
+        asociacion_id: assoc.id,
+      });
 
       const response = await request(app.getHttpServer())
         .post('/api/auth/reset-password/request')
@@ -210,7 +239,9 @@ describe('Auth (e2e)', () => {
 
       expect(response.body).toEqual({ mensaje: expect.any(String) });
 
-      const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.estado_blanqueo).toBe('PENDIENTE');
     });
 

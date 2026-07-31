@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query, ParseIntPipe, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Query,
+  ParseIntPipe,
+  NotFoundException,
+} from '@nestjs/common';
 import { AuditoriaService } from './auditoria.service';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';

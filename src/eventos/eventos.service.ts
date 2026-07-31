@@ -1,4 +1,11 @@
-import { Injectable, ForbiddenException, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+  ConflictException,
+  BadRequestException,
+  Logger,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EstadoSolicitud, EstadoRegistro, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
@@ -14,7 +21,19 @@ import { REQUISITOS_EXAMEN } from './config/requisitos-examen';
 
 const VALID_DISCIPLINAS = ['KENDO', 'IAIDO', 'JODO'];
 
-const GRAD_EXAMEN_VALIDAS = ['KYU_3', 'KYU_2', 'KYU_1', 'DAN_1', 'DAN_2', 'DAN_3', 'DAN_4', 'DAN_5', 'DAN_6', 'DAN_7', 'DAN_8'];
+const GRAD_EXAMEN_VALIDAS = [
+  'KYU_3',
+  'KYU_2',
+  'KYU_1',
+  'DAN_1',
+  'DAN_2',
+  'DAN_3',
+  'DAN_4',
+  'DAN_5',
+  'DAN_6',
+  'DAN_7',
+  'DAN_8',
+];
 
 const GraduacionRank: Record<string, number> = {
   SIN_GRADUACION: 0,
@@ -94,10 +113,14 @@ export class EventosService {
 
     if (user?.rol === 'ADMIN_ASOCIACION') {
       if (dto.tipo === 'EXAMEN') {
-        throw new ForbiddenException('Los administradores de asociación no pueden crear exámenes');
+        throw new ForbiddenException(
+          'Los administradores de asociación no pueden crear exámenes',
+        );
       }
       if (ambito !== 'REGIONAL') {
-        throw new ForbiddenException('Los administradores de asociación solo pueden crear eventos regionales');
+        throw new ForbiddenException(
+          'Los administradores de asociación solo pueden crear eventos regionales',
+        );
       }
     }
 
@@ -131,7 +154,7 @@ export class EventosService {
       include: this.includeSub,
       orderBy: { fecha_inicio: 'asc' },
     });
-    return eventos.map(e => this.formatEvento(e));
+    return eventos.map((e) => this.formatEvento(e));
   }
 
   async findAllAdmin(user: AuthUser) {
@@ -147,7 +170,7 @@ export class EventosService {
       include: this.includeSub,
       orderBy: { fecha_inicio: 'asc' },
     });
-    return eventos.map(e => this.formatEvento(e));
+    return eventos.map((e) => this.formatEvento(e));
   }
 
   async findOne(id: number) {
@@ -161,7 +184,9 @@ export class EventosService {
 
   private async checkEventOwnership(eventoId: number, user: AuthUser) {
     if (user.rol === 'ADMIN_GENERAL') return;
-    const evento = await this.prisma.evento.findUnique({ where: { id: eventoId } });
+    const evento = await this.prisma.evento.findUnique({
+      where: { id: eventoId },
+    });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     if (evento.creador_id !== user.id) {
       throw new ForbiddenException('Usted no tiene permisos sobre este evento');
@@ -180,10 +205,14 @@ export class EventosService {
     const ambito = dto.ambito ?? evento.ambito;
     if (user?.rol === 'ADMIN_ASOCIACION') {
       if (dto.tipo === 'EXAMEN') {
-        throw new ForbiddenException('Los administradores de asociación no pueden crear exámenes');
+        throw new ForbiddenException(
+          'Los administradores de asociación no pueden crear exámenes',
+        );
       }
       if (ambito !== 'REGIONAL') {
-        throw new ForbiddenException('Los administradores de asociación solo pueden crear eventos regionales');
+        throw new ForbiddenException(
+          'Los administradores de asociación solo pueden crear eventos regionales',
+        );
       }
     }
 
@@ -195,10 +224,13 @@ export class EventosService {
     const data: Prisma.EventoUpdateInput = {};
     if (dto.tipo !== undefined) data.tipo = dto.tipo;
     if (dto.ambito !== undefined) data.ambito = dto.ambito;
-    if (dto.fecha_inicio !== undefined) data.fecha_inicio = new Date(dto.fecha_inicio);
+    if (dto.fecha_inicio !== undefined)
+      data.fecha_inicio = new Date(dto.fecha_inicio);
     if (dto.fecha_fin !== undefined) data.fecha_fin = new Date(dto.fecha_fin);
-    if (dto.datos_lugar !== undefined) data.datos_lugar = dto.datos_lugar as Prisma.InputJsonValue;
-    if (dto.pago_fuera_sistema !== undefined) data.pago_fuera_sistema = dto.pago_fuera_sistema;
+    if (dto.datos_lugar !== undefined)
+      data.datos_lugar = dto.datos_lugar as Prisma.InputJsonValue;
+    if (dto.pago_fuera_sistema !== undefined)
+      data.pago_fuera_sistema = dto.pago_fuera_sistema;
     if (dto.archivos_info !== undefined) data.archivos_info = dto.archivos_info;
 
     await this.prisma.evento.update({ where: { id }, data });
@@ -211,7 +243,8 @@ export class EventosService {
     const evento = await this.prisma.evento.findUnique({ where: { id } });
     if (!evento) throw new NotFoundException('Evento no encontrado');
     await this.checkEventOwnership(id, user!);
-    if (evento.publicado) throw new BadRequestException('El evento ya está publicado');
+    if (evento.publicado)
+      throw new BadRequestException('El evento ya está publicado');
 
     const updated = await this.prisma.evento.update({
       where: { id },
@@ -225,11 +258,14 @@ export class EventosService {
     if (!evento) throw new NotFoundException('Evento no encontrado');
     await this.checkEventOwnership(id, user!);
 
-    const inscripcionesAprobadas = await this.prisma.inscripcionEvento.findFirst({
-      where: { evento_id: id, estado_aprob: 'APROBADO' as EstadoSolicitud },
-    });
+    const inscripcionesAprobadas =
+      await this.prisma.inscripcionEvento.findFirst({
+        where: { evento_id: id, estado_aprob: 'APROBADO' },
+      });
     if (inscripcionesAprobadas) {
-      throw new BadRequestException('No se puede eliminar el evento porque tiene inscripciones aprobadas');
+      throw new BadRequestException(
+        'No se puede eliminar el evento porque tiene inscripciones aprobadas',
+      );
     }
 
     await this.prisma.$transaction([
@@ -240,37 +276,57 @@ export class EventosService {
     return { eliminado: true };
   }
 
-  async inscribir(eventoId: number, usuarioId: number, dto?: InscribirEventoDto) {
+  async inscribir(
+    eventoId: number,
+    usuarioId: number,
+    dto?: InscribirEventoDto,
+  ) {
     const evento = await this.prisma.evento.findUnique({
       where: { id: eventoId },
       include: this.includeSub,
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    const usuario = await this.prisma.usuario.findUnique({ where: { id: usuarioId } });
+    const usuario = await this.prisma.usuario.findUnique({
+      where: { id: usuarioId },
+    });
     if (!usuario) throw new NotFoundException('Usuario no encontrado');
 
     if (usuario.estado_reg !== EstadoRegistro.APROBADO) {
-      throw new ForbiddenException('Su cuenta debe estar aprobada para inscribirse a eventos');
+      throw new ForbiddenException(
+        'Su cuenta debe estar aprobada para inscribirse a eventos',
+      );
     }
     if (!usuario.estado_pago) {
       const cuota = await this.feeConfigService.getFeeConfig();
       if (cuota) {
-        throw new ForbiddenException('Debe tener la cuota federativa al día para inscribirse. Contacte al administrador para regularizar su situación.');
+        throw new ForbiddenException(
+          'Debe tener la cuota federativa al día para inscribirse. Contacte al administrador para regularizar su situación.',
+        );
       }
     }
 
     const now = new Date();
 
     if (evento.torneo && !evento.torneo.inscripciones_abiertas) {
-      throw new BadRequestException('Las inscripciones para este evento están cerradas');
+      throw new BadRequestException(
+        'Las inscripciones para este evento están cerradas',
+      );
     }
 
-    if (evento.torneo?.fecha_limite_real && new Date(evento.torneo.fecha_limite_real) < now) {
-      throw new BadRequestException('La fecha límite de inscripción ya ha vencido');
+    if (
+      evento.torneo?.fecha_limite_real &&
+      new Date(evento.torneo.fecha_limite_real) < now
+    ) {
+      throw new BadRequestException(
+        'La fecha límite de inscripción ya ha vencido',
+      );
     }
 
-    if (new Date(evento.fecha_inicio) < now && evento.creador_id !== usuarioId) {
+    if (
+      new Date(evento.fecha_inicio) < now &&
+      evento.creador_id !== usuarioId
+    ) {
       throw new BadRequestException('El evento ya ha comenzado');
     }
 
@@ -281,20 +337,34 @@ export class EventosService {
       throw new ConflictException('Ya se encuentra inscripto en este evento');
     }
 
-    let categoriasArray = dto?.categorias?.length ? dto.categorias : [this.guessCategoria(evento.tipo, usuario)];
+    let categoriasArray = dto?.categorias?.length
+      ? dto.categorias
+      : [this.guessCategoria(evento.tipo, usuario)];
 
     if (evento.tipo === 'EXAMEN') {
       if (!dto?.disciplinas?.length) {
-        throw new BadRequestException('Debe seleccionar al menos una disciplina para rendir');
+        throw new BadRequestException(
+          'Debe seleccionar al menos una disciplina para rendir',
+        );
       }
-      categoriasArray = this.computeCategoriasExamen(dto.disciplinas, evento.examen, usuario);
+      categoriasArray = this.computeCategoriasExamen(
+        dto.disciplinas,
+        evento.examen,
+        usuario,
+      );
       for (let i = 0; i < dto.disciplinas.length; i++) {
-        this.validarRequisitoExamen(dto.disciplinas[i], categoriasArray[i], usuario);
+        this.validarRequisitoExamen(
+          dto.disciplinas[i],
+          categoriasArray[i],
+          usuario,
+        );
       }
     } else {
       const sub = evento.torneo ?? evento.seminario;
       if (!sub) {
-        throw new BadRequestException('El evento no tiene datos de inscripción configurados');
+        throw new BadRequestException(
+          'El evento no tiene datos de inscripción configurados',
+        );
       }
       this.validarCategorias(evento.tipo, sub, usuario, categoriasArray);
     }
@@ -316,12 +386,14 @@ export class EventosService {
   }
 
   async findInscripciones(eventoId: number, soloAprobados = false) {
-    const evento = await this.prisma.evento.findUnique({ where: { id: eventoId } });
+    const evento = await this.prisma.evento.findUnique({
+      where: { id: eventoId },
+    });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
     const where: Prisma.InscripcionEventoWhereInput = { evento_id: eventoId };
     if (soloAprobados) {
-      where.estado_aprob = 'APROBADO' as EstadoSolicitud;
+      where.estado_aprob = 'APROBADO';
     }
 
     const inscripciones = await this.prisma.inscripcionEvento.findMany({
@@ -330,7 +402,7 @@ export class EventosService {
       orderBy: { id: 'asc' },
     });
 
-    return inscripciones.map(i => this.formatInscripcion(i));
+    return inscripciones.map((i) => this.formatInscripcion(i));
   }
 
   async findMisInscripciones(usuarioId: number) {
@@ -340,10 +412,14 @@ export class EventosService {
       orderBy: { id: 'desc' },
     });
 
-    return inscripciones.map(i => this.formatInscripcion(i));
+    return inscripciones.map((i) => this.formatInscripcion(i));
   }
 
-  async aprobarInscripcion(inscripcionId: number, admin: AuthUser, accion: 'APROBAR' | 'RECHAZAR') {
+  async aprobarInscripcion(
+    inscripcionId: number,
+    admin: AuthUser,
+    accion: 'APROBAR' | 'RECHAZAR',
+  ) {
     const inscripcion = await this.prisma.inscripcionEvento.findUnique({
       where: { id: inscripcionId },
       include: { usuario: true, evento: true },
@@ -352,27 +428,44 @@ export class EventosService {
     if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
 
     if (admin.rol !== 'ADMIN_GENERAL') {
-      const adminUser = await this.prisma.usuario.findUnique({ where: { id: admin.id } });
-      if (!adminUser || adminUser.asociacion_id !== inscripcion.usuario.asociacion_id) {
-        throw new ForbiddenException('Usted no tiene permisos para aprobar inscripciones de otra asociación');
+      const adminUser = await this.prisma.usuario.findUnique({
+        where: { id: admin.id },
+      });
+      if (
+        !adminUser ||
+        adminUser.asociacion_id !== inscripcion.usuario.asociacion_id
+      ) {
+        throw new ForbiddenException(
+          'Usted no tiene permisos para aprobar inscripciones de otra asociación',
+        );
       }
     }
 
-    const nuevoEstado = accion === 'APROBAR' ? EstadoSolicitud.APROBADO : EstadoSolicitud.RECHAZADO;
+    const nuevoEstado =
+      accion === 'APROBAR'
+        ? EstadoSolicitud.APROBADO
+        : EstadoSolicitud.RECHAZADO;
     await this.prisma.inscripcionEvento.update({
       where: { id: inscripcionId },
       data: { estado_aprob: nuevoEstado },
     });
 
     const eventoLabel = `${inscripcion.evento.tipo} - ${new Date(inscripcion.evento.fecha_inicio).toLocaleDateString('es-AR')}`;
-    this.notificaciones.sendInscripcionStatusEmail(
-      inscripcion.usuario.email,
-      inscripcion.usuario.nombre,
-      eventoLabel,
-      accion,
-    ).catch(err => this.logger.warn(err, 'Error al enviar email de estado de inscripción'));
+    this.notificaciones
+      .sendInscripcionStatusEmail(
+        inscripcion.usuario.email,
+        inscripcion.usuario.nombre,
+        eventoLabel,
+        accion,
+      )
+      .catch((err) =>
+        this.logger.warn(err, 'Error al enviar email de estado de inscripción'),
+      );
 
-    return this.formatInscripcion({ ...inscripcion, estado_aprob: nuevoEstado });
+    return this.formatInscripcion({
+      ...inscripcion,
+      estado_aprob: nuevoEstado,
+    });
   }
 
   async pagarInscripcion(inscripcionId: number, usuarioId: number) {
@@ -392,7 +485,9 @@ export class EventosService {
       throw new ConflictException('Esta inscripción ya se encuentra pagada');
     }
     if (inscripcion.estado_aprob !== EstadoSolicitud.APROBADO) {
-      throw new ForbiddenException('La inscripción debe estar aprobada por su administrador antes de pagar');
+      throw new ForbiddenException(
+        'La inscripción debe estar aprobada por su administrador antes de pagar',
+      );
     }
 
     const costo = await this.calcularCostoInscripcion(inscripcion);
@@ -414,7 +509,11 @@ export class EventosService {
     );
   }
 
-  async editarInscripcion(inscripcionId: number, usuarioId: number, dto: InscribirEventoDto) {
+  async editarInscripcion(
+    inscripcionId: number,
+    usuarioId: number,
+    dto: InscribirEventoDto,
+  ) {
     const inscripcion = await this.prisma.inscripcionEvento.findUnique({
       where: { id: inscripcionId },
       include: { evento: { include: { torneo: true, examen: true } } },
@@ -425,39 +524,65 @@ export class EventosService {
       throw new ForbiddenException('Esta inscripción no le pertenece');
     }
 
-    if (inscripcion.evento.torneo?.fecha_limite_real && new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()) {
-      throw new BadRequestException('La fecha límite para modificar la inscripción ya ha vencido');
+    if (
+      inscripcion.evento.torneo?.fecha_limite_real &&
+      new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()
+    ) {
+      throw new BadRequestException(
+        'La fecha límite para modificar la inscripción ya ha vencido',
+      );
     }
 
-    if (inscripcion.evento.torneo && !inscripcion.evento.torneo.inscripciones_abiertas) {
-      throw new BadRequestException('Las inscripciones están cerradas, no puede modificar');
+    if (
+      inscripcion.evento.torneo &&
+      !inscripcion.evento.torneo.inscripciones_abiertas
+    ) {
+      throw new BadRequestException(
+        'Las inscripciones están cerradas, no puede modificar',
+      );
     }
 
     const data: Prisma.InscripcionEventoUpdateInput = {};
 
     if (inscripcion.evento.tipo === 'EXAMEN' && dto.disciplinas) {
-      const usuario = await this.prisma.usuario.findUnique({ where: { id: usuarioId } });
+      const usuario = await this.prisma.usuario.findUnique({
+        where: { id: usuarioId },
+      });
       if (!usuario) throw new NotFoundException('Usuario no encontrado');
-      const computedCategorias = this.computeCategoriasExamen(dto.disciplinas, inscripcion.evento.examen, usuario);
-      data.categoria_grad = computedCategorias as Prisma.InputJsonValue;
-      data.disciplinas = dto.disciplinas as Prisma.InputJsonValue;
+      const computedCategorias = this.computeCategoriasExamen(
+        dto.disciplinas,
+        inscripcion.evento.examen,
+        usuario,
+      );
+      data.categoria_grad = computedCategorias;
+      data.disciplinas = dto.disciplinas;
     } else {
-      if (dto.categorias !== undefined) data.categoria_grad = dto.categorias as Prisma.InputJsonValue;
-      if (dto.disciplinas !== undefined) data.disciplinas = dto.disciplinas as Prisma.InputJsonValue;
+      if (dto.categorias !== undefined) data.categoria_grad = dto.categorias;
+      if (dto.disciplinas !== undefined) data.disciplinas = dto.disciplinas;
     }
 
-    if (dto.necesidades_especiales !== undefined) data.necesidades_especiales = dto.necesidades_especiales;
-    if (dto.descripcion_necesidades !== undefined) data.descripcion_necesidades = dto.descripcion_necesidades;
+    if (dto.necesidades_especiales !== undefined)
+      data.necesidades_especiales = dto.necesidades_especiales;
+    if (dto.descripcion_necesidades !== undefined)
+      data.descripcion_necesidades = dto.descripcion_necesidades;
 
     await this.prisma.inscripcionEvento.update({
       where: { id: inscripcionId },
       data,
     });
 
-    return { modificado: true, mensaje: 'Si aplicaran devoluciones, comuníquese con el organizador del evento.' };
+    return {
+      modificado: true,
+      mensaje:
+        'Si aplicaran devoluciones, comuníquese con el organizador del evento.',
+    };
   }
 
-  async subirArchivoMedico(inscripcionId: number, file: Express.Multer.File, user: AuthUser) {
+  async subirArchivoMedico(
+    inscripcionId: number,
+    file: Express.Multer.File,
+    user: AuthUser,
+  ) {
     const inscripcion = await this.prisma.inscripcionEvento.findUnique({
       where: { id: inscripcionId },
     });
@@ -485,17 +610,33 @@ export class EventosService {
       throw new ForbiddenException('Esta inscripción no le pertenece');
     }
 
-    if (inscripcion.evento.torneo?.fecha_limite_real && new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()) {
-      throw new BadRequestException('La fecha límite para darse de baja ya ha vencido');
+    if (
+      inscripcion.evento.torneo?.fecha_limite_real &&
+      new Date(inscripcion.evento.torneo.fecha_limite_real) < new Date()
+    ) {
+      throw new BadRequestException(
+        'La fecha límite para darse de baja ya ha vencido',
+      );
     }
 
-    if (inscripcion.evento.torneo && !inscripcion.evento.torneo.inscripciones_abiertas) {
-      throw new BadRequestException('Las inscripciones están cerradas, no puede darse de baja');
+    if (
+      inscripcion.evento.torneo &&
+      !inscripcion.evento.torneo.inscripciones_abiertas
+    ) {
+      throw new BadRequestException(
+        'Las inscripciones están cerradas, no puede darse de baja',
+      );
     }
 
-    await this.prisma.inscripcionEvento.delete({ where: { id: inscripcionId } });
+    await this.prisma.inscripcionEvento.delete({
+      where: { id: inscripcionId },
+    });
 
-    return { eliminado: true, mensaje: 'Si aplicaran devoluciones, comuníquese con el organizador del evento.' };
+    return {
+      eliminado: true,
+      mensaje:
+        'Si aplicaran devoluciones, comuníquese con el organizador del evento.',
+    };
   }
 
   async pagoManual(inscripcionId: number, user: AuthUser) {
@@ -508,12 +649,16 @@ export class EventosService {
 
     if (user.rol === 'ADMIN_ASOCIACION') {
       if (inscripcion.evento.creador_id !== user.id) {
-        throw new ForbiddenException('Usted no tiene permisos para registrar pagos en este evento');
+        throw new ForbiddenException(
+          'Usted no tiene permisos para registrar pagos en este evento',
+        );
       }
     }
 
     if (!inscripcion.evento.pago_fuera_sistema) {
-      throw new BadRequestException('Este evento no permite pagos fuera del sistema');
+      throw new BadRequestException(
+        'Este evento no permite pagos fuera del sistema',
+      );
     }
 
     if (inscripcion.pagado || inscripcion.pagado_fuera_sistema) {
@@ -521,7 +666,9 @@ export class EventosService {
     }
 
     if (inscripcion.estado_aprob !== EstadoSolicitud.APROBADO) {
-      throw new ForbiddenException('La inscripción debe estar aprobada primero');
+      throw new ForbiddenException(
+        'La inscripción debe estar aprobada primero',
+      );
     }
 
     await this.prisma.inscripcionEvento.update({
@@ -560,7 +707,9 @@ export class EventosService {
       await this.prisma.examen.deleteMany({ where: { evento_id: eventoId } });
     }
     if (dto.tipo !== 'SEMINARIO') {
-      await this.prisma.seminario.deleteMany({ where: { evento_id: eventoId } });
+      await this.prisma.seminario.deleteMany({
+        where: { evento_id: eventoId },
+      });
     }
 
     if (dto.tipo === 'TORNEO') {
@@ -570,25 +719,35 @@ export class EventosService {
           evento_id: eventoId,
           disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
-          categorias: (dto.categorias ?? []) as unknown as Prisma.InputJsonValue,
+          categorias: (dto.categorias ??
+            []) as unknown as Prisma.InputJsonValue,
           inscripcion_multiple: dto.inscripcion_multiple ?? false,
           grad_min: dto.grad_min ?? null,
           grad_max: dto.grad_max ?? null,
           info_adicional: dto.info_adicional ?? null,
-          fecha_limite_informativa: dto.fecha_limite_informativa ? new Date(dto.fecha_limite_informativa) : null,
-          fecha_limite_real: dto.fecha_limite_real ? new Date(dto.fecha_limite_real) : null,
+          fecha_limite_informativa: dto.fecha_limite_informativa
+            ? new Date(dto.fecha_limite_informativa)
+            : null,
+          fecha_limite_real: dto.fecha_limite_real
+            ? new Date(dto.fecha_limite_real)
+            : null,
           inscripciones_abiertas: dto.inscripciones_abiertas ?? true,
         },
         update: {
           disciplina: dto.disciplina ?? 'KENDO',
           costo_inscripcion: dto.costo_inscripcion ?? 0,
-          categorias: (dto.categorias ?? []) as unknown as Prisma.InputJsonValue,
+          categorias: (dto.categorias ??
+            []) as unknown as Prisma.InputJsonValue,
           inscripcion_multiple: dto.inscripcion_multiple ?? false,
           grad_min: dto.grad_min ?? null,
           grad_max: dto.grad_max ?? null,
           info_adicional: dto.info_adicional ?? null,
-          fecha_limite_informativa: dto.fecha_limite_informativa ? new Date(dto.fecha_limite_informativa) : null,
-          fecha_limite_real: dto.fecha_limite_real ? new Date(dto.fecha_limite_real) : null,
+          fecha_limite_informativa: dto.fecha_limite_informativa
+            ? new Date(dto.fecha_limite_informativa)
+            : null,
+          fecha_limite_real: dto.fecha_limite_real
+            ? new Date(dto.fecha_limite_real)
+            : null,
           inscripciones_abiertas: dto.inscripciones_abiertas ?? true,
         },
       });
@@ -597,13 +756,15 @@ export class EventosService {
         where: { evento_id: eventoId },
         create: {
           evento_id: eventoId,
-          disciplinas: (dto.disciplinas ?? []) as unknown as Prisma.InputJsonValue,
-          graduaciones_a_rendir: (dto.graduaciones_a_rendir ?? []) as unknown as Prisma.InputJsonValue,
+          disciplinas: dto.disciplinas ?? [],
+          graduaciones_a_rendir: (dto.graduaciones_a_rendir ??
+            []) as unknown as Prisma.InputJsonValue,
           info_adicional: dto.info_adicional ?? null,
         },
         update: {
-          disciplinas: (dto.disciplinas ?? []) as unknown as Prisma.InputJsonValue,
-          graduaciones_a_rendir: (dto.graduaciones_a_rendir ?? []) as unknown as Prisma.InputJsonValue,
+          disciplinas: dto.disciplinas ?? [],
+          graduaciones_a_rendir: (dto.graduaciones_a_rendir ??
+            []) as unknown as Prisma.InputJsonValue,
           info_adicional: dto.info_adicional ?? null,
         },
       });
@@ -630,7 +791,9 @@ export class EventosService {
     const ambito = ambitoOverride ?? dto.ambito ?? 'REGIONAL';
 
     if (ambito === 'NACIONAL' && dto.pago_fuera_sistema) {
-      throw new BadRequestException('Los eventos nacionales no permiten pago fuera del sistema');
+      throw new BadRequestException(
+        'Los eventos nacionales no permiten pago fuera del sistema',
+      );
     }
 
     if (tipo === 'TORNEO') {
@@ -639,51 +802,83 @@ export class EventosService {
 
     if (tipo === 'EXAMEN') {
       if (ambito !== 'NACIONAL') {
-        throw new BadRequestException('Los exámenes deben ser de ámbito nacional');
+        throw new BadRequestException(
+          'Los exámenes deben ser de ámbito nacional',
+        );
       }
       if (dto.inscripcion_multiple) {
-        throw new BadRequestException('La inscripción múltiple no aplica para exámenes');
+        throw new BadRequestException(
+          'La inscripción múltiple no aplica para exámenes',
+        );
       }
-      if (!dto.disciplinas || !Array.isArray(dto.disciplinas) || dto.disciplinas.length === 0) {
-        throw new BadRequestException('Debe especificar al menos una disciplina para el examen');
+      if (
+        !dto.disciplinas ||
+        !Array.isArray(dto.disciplinas) ||
+        dto.disciplinas.length === 0
+      ) {
+        throw new BadRequestException(
+          'Debe especificar al menos una disciplina para el examen',
+        );
       }
       for (const d of dto.disciplinas) {
         if (!VALID_DISCIPLINAS.includes(d)) {
-          throw new BadRequestException(`Disciplina inválida: "${d}". Las opciones son: ${VALID_DISCIPLINAS.join(', ')}`);
+          throw new BadRequestException(
+            `Disciplina inválida: "${d}". Las opciones son: ${VALID_DISCIPLINAS.join(', ')}`,
+          );
         }
       }
-      if (!dto.graduaciones_a_rendir || !Array.isArray(dto.graduaciones_a_rendir) || dto.graduaciones_a_rendir.length === 0) {
-        throw new BadRequestException('Debe especificar al menos un rango de graduaciones a rendir');
+      if (
+        !dto.graduaciones_a_rendir ||
+        !Array.isArray(dto.graduaciones_a_rendir) ||
+        dto.graduaciones_a_rendir.length === 0
+      ) {
+        throw new BadRequestException(
+          'Debe especificar al menos un rango de graduaciones a rendir',
+        );
       }
       for (const r of dto.graduaciones_a_rendir) {
         if (!VALID_DISCIPLINAS.includes(r.disciplina)) {
-          throw new BadRequestException(`Disciplina inválida en rango: "${r.disciplina}"`);
+          throw new BadRequestException(
+            `Disciplina inválida en rango: "${r.disciplina}"`,
+          );
         }
         if (!GRAD_EXAMEN_VALIDAS.includes(r.grad_min)) {
-          throw new BadRequestException(`Graduación mínima inválida: "${r.grad_min}"`);
+          throw new BadRequestException(
+            `Graduación mínima inválida: "${r.grad_min}"`,
+          );
         }
         if (!GRAD_EXAMEN_VALIDAS.includes(r.grad_max)) {
-          throw new BadRequestException(`Graduación máxima inválida: "${r.grad_max}"`);
+          throw new BadRequestException(
+            `Graduación máxima inválida: "${r.grad_max}"`,
+          );
         }
         if (rankGrad(r.grad_min) > rankGrad(r.grad_max)) {
-          throw new BadRequestException(`El rango de graduaciones para ${r.disciplina} es inválido: ${r.grad_min} > ${r.grad_max}`);
+          throw new BadRequestException(
+            `El rango de graduaciones para ${r.disciplina} es inválido: ${r.grad_min} > ${r.grad_max}`,
+          );
         }
       }
       if (dto.costo_inscripcion !== undefined) {
-        throw new BadRequestException('Los exámenes no tienen costo de inscripción fijo; utilice la tabla de precios por graduación');
+        throw new BadRequestException(
+          'Los exámenes no tienen costo de inscripción fijo; utilice la tabla de precios por graduación',
+        );
       }
       if (dto.categorias) {
         throw new BadRequestException('Los exámenes no utilizan categorías');
       }
       if (dto.grad_min || dto.grad_max) {
-        throw new BadRequestException('Los exámenes utilizan rangos de graduaciones por disciplina en lugar de rango de graduación general');
+        throw new BadRequestException(
+          'Los exámenes utilizan rangos de graduaciones por disciplina en lugar de rango de graduación general',
+        );
       }
       return;
     }
 
     if (tipo === 'SEMINARIO') {
       if (dto.inscripcion_multiple) {
-        throw new BadRequestException('La inscripción múltiple no aplica para seminarios');
+        throw new BadRequestException(
+          'La inscripción múltiple no aplica para seminarios',
+        );
       }
       if (dto.categorias) {
         throw new BadRequestException('Los seminarios no utilizan categorías');
@@ -708,24 +903,42 @@ export class EventosService {
           const precio = await this.preciosExamenService.findByGraduacion(grad);
           total += precio.costo_inscripcion;
         } catch {
-          throw new BadRequestException(`No hay precio configurado para la graduación ${grad}`);
+          throw new BadRequestException(
+            `No hay precio configurado para la graduación ${grad}`,
+          );
         }
       }
       return total;
     }
 
-    return inscripcion.evento.torneo?.costo_inscripcion ?? inscripcion.evento.seminario?.costo_inscripcion ?? 0;
+    return (
+      inscripcion.evento.torneo?.costo_inscripcion ??
+      inscripcion.evento.seminario?.costo_inscripcion ??
+      0
+    );
   }
 
   private validarRequisitoExamen(
     disciplina: string,
     targetGrad: string,
-    usuario: Prisma.UsuarioGetPayload<{ select: { fecha_nacimiento: true; sexo: true; grad_kendo: true; f_grad_kendo: true; grad_iaido: true; f_grad_iaido: true; grad_jodo: true; f_grad_jodo: true } }>,
+    usuario: Prisma.UsuarioGetPayload<{
+      select: {
+        fecha_nacimiento: true;
+        sexo: true;
+        grad_kendo: true;
+        f_grad_kendo: true;
+        grad_iaido: true;
+        f_grad_iaido: true;
+        grad_jodo: true;
+        f_grad_jodo: true;
+      };
+    }>,
   ) {
     const fechaNac = new Date(usuario.fecha_nacimiento);
     const edad = this.calcularEdad(fechaNac);
     const gradKey = `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
-    const fGradKey = `f_grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
+    const fGradKey =
+      `f_grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
     const userGrad = usuario[gradKey] as string;
 
     const req = REQUISITOS_EXAMEN[targetGrad];
@@ -766,29 +979,50 @@ export class EventosService {
   private computeSiguienteGraduacion(currentGrad: string): string | null {
     const currentRank = rankGrad(currentGrad);
     if (currentRank === -1) return null;
-    const entry = Object.entries(GraduacionRank).find(([_, r]) => r === currentRank + 1);
+    const entry = Object.entries(GraduacionRank).find(
+      ([_, r]) => r === currentRank + 1,
+    );
     return entry ? entry[0] : null;
   }
 
   private computeCategoriasExamen(
     disciplinas: string[],
     examen: object | null,
-    usuario: Prisma.UsuarioGetPayload<{ select: { fecha_nacimiento: true; sexo: true; grad_kendo: true; f_grad_kendo: true; grad_iaido: true; f_grad_iaido: true; grad_jodo: true; f_grad_jodo: true } }>,
+    usuario: Prisma.UsuarioGetPayload<{
+      select: {
+        fecha_nacimiento: true;
+        sexo: true;
+        grad_kendo: true;
+        f_grad_kendo: true;
+        grad_iaido: true;
+        f_grad_iaido: true;
+        grad_jodo: true;
+        f_grad_jodo: true;
+      };
+    }>,
   ): string[] {
     if (!examen) {
       throw new BadRequestException('El examen no tiene datos configurados');
     }
     const exam = examen as { graduaciones_a_rendir: unknown };
-    const rangos = exam.graduaciones_a_rendir as Array<{ disciplina: string; grad_min: string; grad_max: string }> | null;
+    const rangos = exam.graduaciones_a_rendir as Array<{
+      disciplina: string;
+      grad_min: string;
+      grad_max: string;
+    }> | null;
     if (!rangos || !Array.isArray(rangos) || rangos.length === 0) {
-      throw new BadRequestException('El examen no tiene graduaciones configuradas');
+      throw new BadRequestException(
+        'El examen no tiene graduaciones configuradas',
+      );
     }
 
     const categorias: string[] = [];
     for (const disco of disciplinas) {
-      const rango = rangos.find(r => r.disciplina === disco);
+      const rango = rangos.find((r) => r.disciplina === disco);
       if (!rango) {
-        throw new BadRequestException(`La disciplina "${disco}" no está disponible en este examen`);
+        throw new BadRequestException(
+          `La disciplina "${disco}" no está disponible en este examen`,
+        );
       }
 
       const gradKey = `grad_${disco.toLowerCase()}` as keyof typeof usuario;
@@ -796,11 +1030,18 @@ export class EventosService {
 
       const nextGrad = this.computeSiguienteGraduacion(userGrad);
       if (!nextGrad) {
-        throw new BadRequestException(`Usted ya ha alcanzado la máxima graduación en ${disco}`);
+        throw new BadRequestException(
+          `Usted ya ha alcanzado la máxima graduación en ${disco}`,
+        );
       }
 
-      if (rankGrad(nextGrad) < rankGrad(rango.grad_min) || rankGrad(nextGrad) > rankGrad(rango.grad_max)) {
-        throw new BadRequestException(`La graduación "${nextGrad}" no está disponible para ${disco} en este examen (rango: ${rango.grad_min} - ${rango.grad_max})`);
+      if (
+        rankGrad(nextGrad) < rankGrad(rango.grad_min) ||
+        rankGrad(nextGrad) > rankGrad(rango.grad_max)
+      ) {
+        throw new BadRequestException(
+          `La graduación "${nextGrad}" no está disponible para ${disco} en este examen (rango: ${rango.grad_min} - ${rango.grad_max})`,
+        );
       }
 
       categorias.push(nextGrad);
@@ -812,39 +1053,66 @@ export class EventosService {
   private validarCategorias(
     tipo: string,
     sub: object,
-    usuario: { sexo: string; fecha_nacimiento: Date; grad_kendo?: string | null; grad_iaido?: string | null; grad_jodo?: string | null },
+    usuario: {
+      sexo: string;
+      fecha_nacimiento: Date;
+      grad_kendo?: string | null;
+      grad_iaido?: string | null;
+      grad_jodo?: string | null;
+    },
     categoriasArray: string[],
   ) {
     if (tipo === 'EXAMEN') {
-      const exam = sub as { graduaciones_a_rendir: unknown; disciplinas: unknown };
-      const rangos = exam.graduaciones_a_rendir as Array<{ disciplina: string; grad_min: string; grad_max: string }> | null;
+      const exam = sub as {
+        graduaciones_a_rendir: unknown;
+        disciplinas: unknown;
+      };
+      const rangos = exam.graduaciones_a_rendir as Array<{
+        disciplina: string;
+        grad_min: string;
+        grad_max: string;
+      }> | null;
       const disc = exam.disciplinas as string[] | null;
       if (!rangos || !disc) {
-        throw new BadRequestException('El examen no tiene configuradas las graduaciones a rendir');
+        throw new BadRequestException(
+          'El examen no tiene configuradas las graduaciones a rendir',
+        );
       }
       for (const cat of categoriasArray) {
         // Check if the graduation falls within any of the defined ranges for its disciplina
-        const inRange = rangos.some(r =>
-          disc.includes(r.disciplina) &&
-          rankGrad(cat) >= rankGrad(r.grad_min) &&
-          rankGrad(cat) <= rankGrad(r.grad_max)
+        const inRange = rangos.some(
+          (r) =>
+            disc.includes(r.disciplina) &&
+            rankGrad(cat) >= rankGrad(r.grad_min) &&
+            rankGrad(cat) <= rankGrad(r.grad_max),
         );
         if (!inRange) {
-          throw new BadRequestException(`La graduación "${cat}" no está disponible en este examen`);
+          throw new BadRequestException(
+            `La graduación "${cat}" no está disponible en este examen`,
+          );
         }
       }
       return;
     }
 
-    const torneo = sub as { disciplina: string; categorias: unknown; grad_min: string | null; grad_max: string | null };
+    const torneo = sub as {
+      disciplina: string;
+      categorias: unknown;
+      grad_min: string | null;
+      grad_max: string | null;
+    };
     const disciplina = torneo.disciplina;
 
     const catsDef = torneo.categorias;
     if (catsDef && Array.isArray(catsDef)) {
       for (const catName of categoriasArray) {
-        const cat = (catsDef as CategoriaDef[]).find(c => c.nombre === catName);
+        const cat = (catsDef as CategoriaDef[]).find(
+          (c) => c.nombre === catName,
+        );
         if (!cat) {
-          throw new BadRequestException(`La categoría "${catName}" no existe en este evento`);
+          throw new BadRequestException(
+            `La categoría "${catName}" no existe en este evento`,
+          );
         }
         this.validarCategoria(cat, usuario);
       }
@@ -852,23 +1120,34 @@ export class EventosService {
     }
 
     if (disciplina && categoriasArray.length > 0) {
-      const gradKey = `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
+      const gradKey =
+        `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
       const userGrad = usuario[gradKey] as string;
       const gradMin = (sub as Prisma.TorneoGetPayload<{}>).grad_min;
       const gradMax = (sub as Prisma.TorneoGetPayload<{}>).grad_max;
 
       if (gradMin && rankGrad(userGrad) < rankGrad(gradMin)) {
-        throw new ForbiddenException(`Su graduación actual no cumple con el requisito mínimo (${gradMin})`);
+        throw new ForbiddenException(
+          `Su graduación actual no cumple con el requisito mínimo (${gradMin})`,
+        );
       }
       if (gradMax && rankGrad(userGrad) > rankGrad(gradMax)) {
-        throw new ForbiddenException(`Su graduación actual supera el máximo permitido (${gradMax})`);
+        throw new ForbiddenException(
+          `Su graduación actual supera el máximo permitido (${gradMax})`,
+        );
       }
     }
   }
 
   private validarCategoria(
     cat: CategoriaDef,
-    usuario: { sexo: string; fecha_nacimiento: Date; grad_kendo?: string | null; grad_iaido?: string | null; grad_jodo?: string | null },
+    usuario: {
+      sexo: string;
+      fecha_nacimiento: Date;
+      grad_kendo?: string | null;
+      grad_iaido?: string | null;
+      grad_jodo?: string | null;
+    },
   ) {
     if (cat.grad_min || cat.grad_max) {
       const disco = cat.disciplina || 'KENDO';
@@ -876,10 +1155,14 @@ export class EventosService {
       const userGrad = usuario[gradKey] as string;
 
       if (cat.grad_min && rankGrad(userGrad) < rankGrad(cat.grad_min)) {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" requiere graduación mínima ${cat.grad_min}`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" requiere graduación mínima ${cat.grad_min}`,
+        );
       }
       if (cat.grad_max && rankGrad(userGrad) > rankGrad(cat.grad_max)) {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" requiere graduación máxima ${cat.grad_max}`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" requiere graduación máxima ${cat.grad_max}`,
+        );
       }
     }
 
@@ -888,11 +1171,15 @@ export class EventosService {
       const sexoUser = usuario.sexo;
 
       if (sexoUser === 'X' && generoCat === 'FEMENINO') {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" es exclusiva para Femenino, y su sexo registral no lo permite`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" es exclusiva para Femenino, y su sexo registral no lo permite`,
+        );
       }
 
       if (generoCat !== 'MIXTO' && sexoUser !== generoCat && sexoUser !== 'X') {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" es exclusiva para ${cat.genero}`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" es exclusiva para ${cat.genero}`,
+        );
       }
     }
 
@@ -900,7 +1187,9 @@ export class EventosService {
       const fechaNac = new Date(usuario.fecha_nacimiento);
       const edad = this.calcularEdad(fechaNac);
       if (edad < cat.edad_min) {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" requiere edad mínima de ${cat.edad_min} años`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" requiere edad mínima de ${cat.edad_min} años`,
+        );
       }
     }
 
@@ -908,12 +1197,17 @@ export class EventosService {
       const fechaNac = new Date(usuario.fecha_nacimiento);
       const edad = this.calcularEdad(fechaNac);
       if (edad > cat.edad_max) {
-        throw new ForbiddenException(`La categoría "${cat.nombre}" es para menores de ${cat.edad_max} años`);
+        throw new ForbiddenException(
+          `La categoría "${cat.nombre}" es para menores de ${cat.edad_max} años`,
+        );
       }
     }
   }
 
-  private guessCategoria(tipo: string, _usuario: { grad_kendo?: string | null }): string {
+  private guessCategoria(
+    tipo: string,
+    _usuario: { grad_kendo?: string | null },
+  ): string {
     if (tipo === 'EXAMEN') {
       return 'KYU_3';
     }
@@ -941,7 +1235,11 @@ export class EventosService {
     return Math.ceil(diff / (1000 * 60 * 60 * 24));
   }
 
-  private formatEvento(evento: Prisma.EventoGetPayload<{ include: { torneo: true; examen: true; seminario: true } }>) {
+  private formatEvento(
+    evento: Prisma.EventoGetPayload<{
+      include: { torneo: true; examen: true; seminario: true };
+    }>,
+  ) {
     return {
       id: evento.id,
       tipo: evento.tipo,
@@ -953,38 +1251,54 @@ export class EventosService {
       pago_fuera_sistema: evento.pago_fuera_sistema,
       archivos_info: evento.archivos_info,
       creador_id: evento.creador_id,
-      ...(evento.tipo === 'TORNEO' && evento.torneo ? { torneo: evento.torneo } : {}),
-      ...(evento.tipo === 'EXAMEN' && evento.examen ? { examen: evento.examen } : {}),
-      ...(evento.tipo === 'SEMINARIO' && evento.seminario ? { seminario: evento.seminario } : {}),
+      ...(evento.tipo === 'TORNEO' && evento.torneo
+        ? { torneo: evento.torneo }
+        : {}),
+      ...(evento.tipo === 'EXAMEN' && evento.examen
+        ? { examen: evento.examen }
+        : {}),
+      ...(evento.tipo === 'SEMINARIO' && evento.seminario
+        ? { seminario: evento.seminario }
+        : {}),
     };
   }
 
-  private formatInscripcion(inscripcion: Prisma.InscripcionEventoGetPayload<{ include: { evento: true; usuario: true } }>) {
+  private formatInscripcion(
+    inscripcion: Prisma.InscripcionEventoGetPayload<{
+      include: { evento: true; usuario: true };
+    }>,
+  ) {
     return {
       id: inscripcion.id,
       usuario_id: inscripcion.usuario_id,
       evento_id: inscripcion.evento_id,
       categorias: this.parseCategorias(inscripcion.categoria_grad),
-      disciplinas: inscripcion.disciplinas ? this.parseCategorias(inscripcion.disciplinas) : undefined,
+      disciplinas: inscripcion.disciplinas
+        ? this.parseCategorias(inscripcion.disciplinas)
+        : undefined,
       estado_aprob: inscripcion.estado_aprob,
       pagado: inscripcion.pagado,
       pagado_fuera_sistema: inscripcion.pagado_fuera_sistema,
       necesidades_especiales: inscripcion.necesidades_especiales,
       descripcion_necesidades: inscripcion.descripcion_necesidades,
       archivo_medico_url: inscripcion.archivo_medico_url,
-      usuario: inscripcion.usuario ? {
-        id: inscripcion.usuario.id,
-        nombre: `${inscripcion.usuario.nombre} ${inscripcion.usuario.apellido}`,
-        email: inscripcion.usuario.email,
-        dni: inscripcion.usuario.dni,
-        asociacion_id: inscripcion.usuario.asociacion_id,
-      } : undefined,
-      evento: inscripcion.evento ? {
-        id: inscripcion.evento.id,
-        tipo: inscripcion.evento.tipo,
-        fecha_inicio: inscripcion.evento.fecha_inicio,
-        fecha_fin: inscripcion.evento.fecha_fin,
-      } : undefined,
+      usuario: inscripcion.usuario
+        ? {
+            id: inscripcion.usuario.id,
+            nombre: `${inscripcion.usuario.nombre} ${inscripcion.usuario.apellido}`,
+            email: inscripcion.usuario.email,
+            dni: inscripcion.usuario.dni,
+            asociacion_id: inscripcion.usuario.asociacion_id,
+          }
+        : undefined,
+      evento: inscripcion.evento
+        ? {
+            id: inscripcion.evento.id,
+            tipo: inscripcion.evento.tipo,
+            fecha_inicio: inscripcion.evento.fecha_inicio,
+            fecha_fin: inscripcion.evento.fecha_fin,
+          }
+        : undefined,
     };
   }
 }

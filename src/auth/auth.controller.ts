@@ -37,7 +37,13 @@ export class AuthController {
   @Public()
   @Post('reset-password/complete')
   @HttpCode(HttpStatus.OK)
-  async completeReset(@Body() body: { dni: string; codigo: string; nueva_password: string }) {
-    return this.authService.completeReset(body.dni, body.codigo, body.nueva_password);
+  async completeReset(
+    @Body() body: { dni: string; codigo: string; nueva_password: string },
+  ) {
+    return this.authService.completeReset(
+      body.dni,
+      body.codigo,
+      body.nueva_password,
+    );
   }
 }

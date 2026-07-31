@@ -1,4 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MercadoPagoService } from '../pagos/mercado-pago.service';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
@@ -22,7 +27,8 @@ export class DiplomasService {
       const inscripcion = await this.prisma.inscripcionEvento.findUnique({
         where: { id: dto.inscripcion_id },
       });
-      if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+      if (!inscripcion)
+        throw new NotFoundException('Inscripción no encontrada');
       if (inscripcion.estado_aprob !== 'APROBADO') {
         throw new BadRequestException('La inscripción no está aprobada');
       }
@@ -31,16 +37,27 @@ export class DiplomasService {
       if (categorias && categorias[gradKey]) {
         graduacion = categorias[gradKey];
       } else if (!graduacion) {
-        throw new BadRequestException('No se pudo determinar la graduación del diploma');
+        throw new BadRequestException(
+          'No se pudo determinar la graduación del diploma',
+        );
       }
 
       const existing = await this.prisma.diplomaNacional.findUnique({
-        where: { inscripcion_id_disciplina: { inscripcion_id: dto.inscripcion_id, disciplina: dto.disciplina as any } },
+        where: {
+          inscripcion_id_disciplina: {
+            inscripcion_id: dto.inscripcion_id,
+            disciplina: dto.disciplina as any,
+          },
+        },
       });
-      if (existing) throw new ConflictException('Ya existe un diploma para esta inscripción y disciplina');
+      if (existing)
+        throw new ConflictException(
+          'Ya existe un diploma para esta inscripción y disciplina',
+        );
     }
 
-    if (!graduacion) throw new BadRequestException('La graduación es requerida');
+    if (!graduacion)
+      throw new BadRequestException('La graduación es requerida');
 
     const url_archivo = await this.filesService.upload(file);
 
@@ -53,12 +70,18 @@ export class DiplomasService {
         inscripcion_id: dto.inscripcion_id ?? null,
       },
       include: {
-        usuario: { select: { id: true, nombre: true, apellido: true, dni: true } },
+        usuario: {
+          select: { id: true, nombre: true, apellido: true, dni: true },
+        },
       },
     });
   }
 
-  async createLote(evento_id: number, files: Express.Multer.File[], archivosMeta: string) {
+  async createLote(
+    evento_id: number,
+    files: Express.Multer.File[],
+    archivosMeta: string,
+  ) {
     const evento = await this.prisma.evento.findUnique({
       where: { id: evento_id },
       include: {
@@ -69,9 +92,12 @@ export class DiplomasService {
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    const metas: { usuario_id: number; disciplina: string }[] = JSON.parse(archivosMeta);
+    const metas: { usuario_id: number; disciplina: string }[] =
+      JSON.parse(archivosMeta);
     if (files.length !== metas.length) {
-      throw new BadRequestException('La cantidad de archivos no coincide con los metadatos');
+      throw new BadRequestException(
+        'La cantidad de archivos no coincide con los metadatos',
+      );
     }
 
     const errors: string[] = [];
@@ -84,13 +110,17 @@ export class DiplomasService {
         (ins) => ins.usuario_id === meta.usuario_id,
       );
       if (!inscripcion) {
-        errors.push(`Usuario ${meta.usuario_id}: no tiene inscripción aprobada en este evento`);
+        errors.push(
+          `Usuario ${meta.usuario_id}: no tiene inscripción aprobada en este evento`,
+        );
         continue;
       }
       const categorias = inscripcion.categoria_grad as Record<string, string>;
       const graduacion = categorias?.[meta.disciplina];
       if (!graduacion) {
-        errors.push(`Usuario ${meta.usuario_id}: no se encontró graduación para ${meta.disciplina}`);
+        errors.push(
+          `Usuario ${meta.usuario_id}: no se encontró graduación para ${meta.disciplina}`,
+        );
         continue;
       }
       try {
@@ -107,9 +137,13 @@ export class DiplomasService {
         created.push(diploma);
       } catch (e: any) {
         if (e.code === 'P2002') {
-          errors.push(`Usuario ${meta.usuario_id} - ${meta.disciplina}: ya existe un diploma`);
+          errors.push(
+            `Usuario ${meta.usuario_id} - ${meta.disciplina}: ya existe un diploma`,
+          );
         } else {
-          errors.push(`Usuario ${meta.usuario_id} - ${meta.disciplina}: ${e.message}`);
+          errors.push(
+            `Usuario ${meta.usuario_id} - ${meta.disciplina}: ${e.message}`,
+          );
         }
       }
     }
@@ -123,7 +157,9 @@ export class DiplomasService {
     return this.prisma.diplomaNacional.findMany({
       where,
       include: {
-        usuario: { select: { id: true, nombre: true, apellido: true, dni: true } },
+        usuario: {
+          select: { id: true, nombre: true, apellido: true, dni: true },
+        },
         inscripcion: {
           select: { id: true, evento_id: true, estado_aprob: true },
         },
@@ -179,7 +215,10 @@ export class DiplomasService {
       },
       orderBy: { created_at: 'desc' },
     });
-    if (!diploma) throw new NotFoundException('No se encontró un diploma nacional de esa disciplina');
+    if (!diploma)
+      throw new NotFoundException(
+        'No se encontró un diploma nacional de esa disciplina',
+      );
 
     const config = await this.getConfig();
 
@@ -191,15 +230,18 @@ export class DiplomasService {
       },
     });
 
-    const userData = await this.prisma.usuario.findUnique({ where: { id: user.id } });
+    const userData = await this.prisma.usuario.findUnique({
+      where: { id: user.id },
+    });
     if (!userData) throw new NotFoundException('Usuario no encontrado');
 
-    const preference = await this.mercadopagoService.createReimpresionPreference(
-      user.id,
-      userData.email,
-      config.precio_reimpresion,
-      reimpresion.id,
-    );
+    const preference =
+      await this.mercadopagoService.createReimpresionPreference(
+        user.id,
+        userData.email,
+        config.precio_reimpresion,
+        reimpresion.id,
+      );
 
     return { reimpresion_id: reimpresion.id, preference };
   }
@@ -207,7 +249,9 @@ export class DiplomasService {
   async findReimpresiones() {
     return this.prisma.reimpresionDiploma.findMany({
       include: {
-        usuario: { select: { id: true, nombre: true, apellido: true, dni: true } },
+        usuario: {
+          select: { id: true, nombre: true, apellido: true, dni: true },
+        },
         diploma: {
           select: {
             id: true,

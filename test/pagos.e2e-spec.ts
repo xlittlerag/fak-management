@@ -3,7 +3,12 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 import MercadoPago, { Payment } from 'mercadopago';
 import { ConfigService } from '@nestjs/config';
 
@@ -19,16 +24,18 @@ describe('Pagos (e2e)', () => {
     ({ app, prisma, jwt } = await createTestApp());
 
     mpService = app.get(MercadoPagoService);
-    jest.spyOn(mpService, 'createFederativeFeePreference').mockImplementation(
-      async (userId: number, userEmail: string, amount: number) => ({
-        preferenceId: `mp_test_${userId}_${Date.now()}`,
-        initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_test_${userId}`,
-        externalReference: `fee_user_${userId}_ts_${Date.now()}`,
-        paymentMethods: {
-          excludedPaymentTypes: [{ id: 'credit_card' }],
-        },
-      })
-    );
+    jest
+      .spyOn(mpService, 'createFederativeFeePreference')
+      .mockImplementation(
+        async (userId: number, userEmail: string, amount: number) => ({
+          preferenceId: `mp_test_${userId}_${Date.now()}`,
+          initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_test_${userId}`,
+          externalReference: `fee_user_${userId}_ts_${Date.now()}`,
+          paymentMethods: {
+            excludedPaymentTypes: [{ id: 'credit_card' }],
+          },
+        }),
+      );
 
     jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
       id: 'test_payment_default',
@@ -48,7 +55,10 @@ describe('Pagos (e2e)', () => {
 
   async function seedFeeConfig() {
     await prisma.cuotaGlobal.create({
-      data: { monto_actual: 15000.00, fecha_vencimiento: new Date('2026-12-31T23:59:59Z') },
+      data: {
+        monto_actual: 15000.0,
+        fecha_vencimiento: new Date('2026-12-31T23:59:59Z'),
+      },
     });
   }
 
@@ -117,7 +127,9 @@ describe('Pagos (e2e)', () => {
       expect(response.body).toHaveProperty('received', true);
       expect(response.body).toHaveProperty('processed', true);
 
-      const updatedUser = await prisma.usuario.findUnique({ where: { id: user.id } });
+      const updatedUser = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
       expect(updatedUser).not.toBeNull();
       expect(updatedUser!.estado_pago).toBe(true);
       expect(updatedUser!.estado_reg).toBe('APROBADO');
@@ -192,7 +204,7 @@ describe('Pagos (e2e)', () => {
         .expect(400);
 
       expect(response.body.message).toEqual(
-        expect.arrayContaining([expect.stringMatching(/negativo/)])
+        expect.arrayContaining([expect.stringMatching(/negativo/)]),
       );
     });
 
@@ -246,7 +258,9 @@ describe('Pagos (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .expect(200);
 
-      expect(response.body.initPoint).toMatch(/^(https?:\/\/)?mercadopago\.com\/checkout\/v1\/preferences/);
+      expect(response.body.initPoint).toMatch(
+        /^(https?:\/\/)?mercadopago\.com\/checkout\/v1\/preferences/,
+      );
     });
 
     it('debería excluir tarjetas de crédito en las opciones de pago', async () => {
@@ -263,7 +277,7 @@ describe('Pagos (e2e)', () => {
       expect(response.body.paymentMethods.excludedPaymentTypes).toContainEqual(
         expect.objectContaining({
           id: 'credit_card',
-        })
+        }),
       );
     });
   });
@@ -288,7 +302,9 @@ describe('Pagos (e2e)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.processed).toBe(true);
 
-      const updatedUser = await prisma.usuario.findUnique({ where: { id: user.id } });
+      const updatedUser = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
       expect(updatedUser!.estado_pago).toBe(true);
       expect(updatedUser!.estado_reg).toBe('APROBADO');
     });
@@ -304,7 +320,12 @@ describe('Pagos (e2e)', () => {
           fecha_fin: new Date('2026-12-01T18:00:00.000Z'),
           datos_lugar: { direccion: 'Test', provincia: 'BUENOS_AIRES' },
           torneo: {
-            create: { costo_inscripcion: 5000, disciplina: 'KENDO', inscripcion_multiple: false, categorias: [] },
+            create: {
+              costo_inscripcion: 5000,
+              disciplina: 'KENDO',
+              inscripcion_multiple: false,
+              categorias: [],
+            },
           },
         },
         include: { torneo: true },
@@ -331,7 +352,9 @@ describe('Pagos (e2e)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.processed).toBe(true);
 
-      const updatedInscripcion = await prisma.inscripcionEvento.findUnique({ where: { id: inscripcion.id } });
+      const updatedInscripcion = await prisma.inscripcionEvento.findUnique({
+        where: { id: inscripcion.id },
+      });
       expect(updatedInscripcion!.pagado).toBe(true);
       expect(updatedInscripcion!.estado_aprob).toBe('APROBADO');
     });
@@ -367,7 +390,9 @@ describe('Pagos (e2e)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.processed).toBe(true);
 
-      const updatedReimpresion = await prisma.reimpresionDiploma.findUnique({ where: { id: reimpresion.id } });
+      const updatedReimpresion = await prisma.reimpresionDiploma.findUnique({
+        where: { id: reimpresion.id },
+      });
       expect(updatedReimpresion!.pagado).toBe(true);
       expect(updatedReimpresion!.mp_payment_id).toContain('sim_');
     });

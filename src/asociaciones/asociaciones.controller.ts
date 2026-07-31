@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { AsociacionesService } from './asociaciones.service';
 import { CreateAsociacionDto } from './dto/create-asociacion.dto';
 import { UpdateAsociacionDto } from './dto/update-asociacion.dto';
@@ -24,7 +33,10 @@ export class AsociacionesController {
 
   @Roles(Rol.ADMIN_GENERAL)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() updateAsociacionDto: UpdateAsociacionDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateAsociacionDto: UpdateAsociacionDto,
+  ) {
     return this.asociacionesService.update(id, updateAsociacionDto);
   }
 

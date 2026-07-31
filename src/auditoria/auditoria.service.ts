@@ -78,7 +78,9 @@ export class AuditoriaService {
     if (entries.length === 0) return [];
 
     const userIds = [
-      ...new Set(entries.filter(e => e.usuario_id).map(e => e.usuario_id as number)),
+      ...new Set(
+        entries.filter((e) => e.usuario_id).map((e) => e.usuario_id as number),
+      ),
     ];
 
     const entidadGroups = new Map<string, number[]>();
@@ -96,10 +98,10 @@ export class AuditoriaService {
       this.resolveEntidades(entidadGroups),
     ]);
 
-    return entries.map(entry => ({
+    return entries.map((entry) => ({
       ...entry,
       usuario_nombre: entry.usuario_id
-        ? userMap.get(entry.usuario_id) ?? null
+        ? (userMap.get(entry.usuario_id) ?? null)
         : null,
       entidad_nombre:
         entidadMaps.get(entry.entidad)?.get(entry.entidad_id) ??
@@ -113,7 +115,7 @@ export class AuditoriaService {
       where: { id: { in: ids } },
       select: { id: true, nombre: true, apellido: true },
     });
-    return new Map(users.map(u => [u.id, `${u.nombre} ${u.apellido}`]));
+    return new Map(users.map((u) => [u.id, `${u.nombre} ${u.apellido}`]));
   }
 
   private async resolveEntidades(
@@ -143,7 +145,7 @@ export class AuditoriaService {
         });
         return [
           entidad,
-          new Map(items.map(i => [i.id, `${i.nombre} ${i.apellido}`])),
+          new Map(items.map((i) => [i.id, `${i.nombre} ${i.apellido}`])),
         ];
       }
       case 'Asociacion': {
@@ -151,14 +153,14 @@ export class AuditoriaService {
           where: { id: { in: ids } },
           select: { id: true, nombre: true },
         });
-        return [entidad, new Map(items.map(i => [i.id, i.nombre]))];
+        return [entidad, new Map(items.map((i) => [i.id, i.nombre]))];
       }
       case 'Dojo': {
         const items = await this.prisma.dojo.findMany({
           where: { id: { in: ids } },
           select: { id: true, nombre: true },
         });
-        return [entidad, new Map(items.map(i => [i.id, i.nombre]))];
+        return [entidad, new Map(items.map((i) => [i.id, i.nombre]))];
       }
       case 'Evento': {
         const items = await this.prisma.evento.findMany({
@@ -167,10 +169,12 @@ export class AuditoriaService {
         });
         return [
           entidad,
-          new Map(items.map(i => [
-            i.id,
-            `${i.tipo} - ${i.fecha_inicio.toLocaleDateString('es-AR')}`,
-          ])),
+          new Map(
+            items.map((i) => [
+              i.id,
+              `${i.tipo} - ${i.fecha_inicio.toLocaleDateString('es-AR')}`,
+            ]),
+          ),
         ];
       }
       case 'InscripcionEvento': {
@@ -182,7 +186,7 @@ export class AuditoriaService {
             evento: { select: { tipo: true } },
           },
         });
-        const insUserIds = [...new Set(items.map(i => i.usuario_id))];
+        const insUserIds = [...new Set(items.map((i) => i.usuario_id))];
         const insUsers =
           insUserIds.length > 0
             ? await this.prisma.usuario.findMany({
@@ -191,12 +195,12 @@ export class AuditoriaService {
               })
             : [];
         const insUserMap = new Map(
-          insUsers.map(u => [u.id, `${u.nombre} ${u.apellido}`]),
+          insUsers.map((u) => [u.id, `${u.nombre} ${u.apellido}`]),
         );
         return [
           entidad,
           new Map(
-            items.map(i => [
+            items.map((i) => [
               i.id,
               `${insUserMap.get(i.usuario_id) ?? `Usuario #${i.usuario_id}`} → ${i.evento.tipo}`,
             ]),
@@ -208,7 +212,7 @@ export class AuditoriaService {
           where: { id: { in: ids } },
           select: { id: true, graduacion: true },
         });
-        return [entidad, new Map(items.map(i => [i.id, i.graduacion]))];
+        return [entidad, new Map(items.map((i) => [i.id, i.graduacion]))];
       }
       case 'CuotaGlobal': {
         const items = await this.prisma.cuotaGlobal.findMany({
@@ -217,7 +221,7 @@ export class AuditoriaService {
         });
         return [
           entidad,
-          new Map(items.map(i => [i.id, `$ ${i.monto_actual}`])),
+          new Map(items.map((i) => [i.id, `$ ${i.monto_actual}`])),
         ];
       }
       case 'DiplomaNacional': {
@@ -228,7 +232,7 @@ export class AuditoriaService {
         return [
           entidad,
           new Map(
-            items.map(i => [i.id, `${i.disciplina} - ${i.graduacion}`]),
+            items.map((i) => [i.id, `${i.disciplina} - ${i.graduacion}`]),
           ),
         ];
       }
@@ -239,7 +243,7 @@ export class AuditoriaService {
         });
         return [
           entidad,
-          new Map(items.map(i => [i.id, `Diploma #${i.diploma_id}`])),
+          new Map(items.map((i) => [i.id, `Diploma #${i.diploma_id}`])),
         ];
       }
       case 'CertificadoExterno': {
@@ -250,10 +254,7 @@ export class AuditoriaService {
         return [
           entidad,
           new Map(
-            items.map(i => [
-              i.id,
-              `${i.disciplina} - ${i.grad_solicitada}`,
-            ]),
+            items.map((i) => [i.id, `${i.disciplina} - ${i.grad_solicitada}`]),
           ),
         ];
       }
@@ -262,20 +263,20 @@ export class AuditoriaService {
           where: { id: { in: ids } },
           select: { id: true, disciplina: true },
         });
-        return [
-          entidad,
-          new Map(items.map(i => [i.id, i.disciplina])),
-        ];
+        return [entidad, new Map(items.map((i) => [i.id, i.disciplina]))];
       }
       case 'Torneo': {
         const items = await this.prisma.torneo.findMany({
           where: { id: { in: ids } },
-          select: { id: true, evento: { select: { tipo: true, fecha_inicio: true } } },
+          select: {
+            id: true,
+            evento: { select: { tipo: true, fecha_inicio: true } },
+          },
         });
         return [
           entidad,
           new Map(
-            items.map(i => [
+            items.map((i) => [
               i.id,
               `Torneo: ${i.evento.tipo} - ${i.evento.fecha_inicio.toLocaleDateString('es-AR')}`,
             ]),
@@ -285,12 +286,15 @@ export class AuditoriaService {
       case 'Examen': {
         const items = await this.prisma.examen.findMany({
           where: { id: { in: ids } },
-          select: { id: true, evento: { select: { tipo: true, fecha_inicio: true } } },
+          select: {
+            id: true,
+            evento: { select: { tipo: true, fecha_inicio: true } },
+          },
         });
         return [
           entidad,
           new Map(
-            items.map(i => [
+            items.map((i) => [
               i.id,
               `Examen: ${i.evento.tipo} - ${i.evento.fecha_inicio.toLocaleDateString('es-AR')}`,
             ]),
@@ -300,12 +304,15 @@ export class AuditoriaService {
       case 'Seminario': {
         const items = await this.prisma.seminario.findMany({
           where: { id: { in: ids } },
-          select: { id: true, evento: { select: { tipo: true, fecha_inicio: true } } },
+          select: {
+            id: true,
+            evento: { select: { tipo: true, fecha_inicio: true } },
+          },
         });
         return [
           entidad,
           new Map(
-            items.map(i => [
+            items.map((i) => [
               i.id,
               `Seminario: ${i.evento.tipo} - ${i.evento.fecha_inicio.toLocaleDateString('es-AR')}`,
             ]),

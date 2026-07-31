@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Patch, Body, Param, Req, ParseIntPipe, Query, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Req,
+  ParseIntPipe,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+  UploadedFiles,
+} from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { DiplomasService } from './diplomas.service';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
@@ -17,7 +30,9 @@ export class DiplomasController {
 
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }),
+  )
   create(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateDiplomaDto,
@@ -27,19 +42,27 @@ export class DiplomasController {
 
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas/lote')
-  @UseInterceptors(FilesInterceptor('files', 50, { limits: { fileSize: MAX_FILE_SIZE } }))
+  @UseInterceptors(
+    FilesInterceptor('files', 50, { limits: { fileSize: MAX_FILE_SIZE } }),
+  )
   createLote(
     @UploadedFiles() files: Express.Multer.File[],
     @Body('evento_id') evento_id: string,
     @Body('archivos_meta') archivosMeta: string,
   ) {
-    return this.diplomasService.createLote(parseInt(evento_id), files, archivosMeta);
+    return this.diplomasService.createLote(
+      parseInt(evento_id),
+      files,
+      archivosMeta,
+    );
   }
 
   @Roles(Rol.ADMIN_GENERAL)
   @Get('admin/diplomas')
   findAll(@Query('usuario_id') usuario_id?: string) {
-    return this.diplomasService.findAll(usuario_id ? parseInt(usuario_id) : undefined);
+    return this.diplomasService.findAll(
+      usuario_id ? parseInt(usuario_id) : undefined,
+    );
   }
 
   @Roles(Rol.ADMIN_GENERAL)

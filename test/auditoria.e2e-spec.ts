@@ -2,7 +2,12 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Auditoría (e2e)', () => {
   let app: INestApplication;
@@ -64,7 +69,11 @@ describe('Auditoría (e2e)', () => {
       expect(res.status).toBe(200);
 
       const log = await prisma.auditLog.findFirst({
-        where: { entidad: 'Asociacion', entidad_id: asociacionId, accion: 'UPDATE' },
+        where: {
+          entidad: 'Asociacion',
+          entidad_id: asociacionId,
+          accion: 'UPDATE',
+        },
         orderBy: { created_at: 'desc' },
       });
 
@@ -72,7 +81,9 @@ describe('Auditoría (e2e)', () => {
       expect(log!.usuario_id).toBe(admin.admin.id);
       expect(log!.datos_previos).not.toBeNull();
       expect(log!.datos_nuevos).not.toBeNull();
-      expect((log!.datos_nuevos as Record<string, unknown>).nombre).toBe('Asociación Modificada');
+      expect((log!.datos_nuevos as Record<string, unknown>).nombre).toBe(
+        'Asociación Modificada',
+      );
     });
 
     it('debería registrar un DELETE (soft) al eliminar una asociación', async () => {
@@ -92,14 +103,20 @@ describe('Auditoría (e2e)', () => {
       expect(res.status).toBe(200);
 
       const log = await prisma.auditLog.findFirst({
-        where: { entidad: 'Asociacion', entidad_id: asociacionId, accion: 'UPDATE' },
+        where: {
+          entidad: 'Asociacion',
+          entidad_id: asociacionId,
+          accion: 'UPDATE',
+        },
         orderBy: { created_at: 'desc' },
       });
 
       expect(log).not.toBeNull();
       expect(log!.datos_previos).not.toBeNull();
       expect(log!.datos_nuevos).not.toBeNull();
-      expect((log!.datos_nuevos as Record<string, unknown>).deleted_at).not.toBeNull();
+      expect(
+        (log!.datos_nuevos as Record<string, unknown>).deleted_at,
+      ).not.toBeNull();
     });
   });
 
@@ -121,7 +138,11 @@ describe('Auditoría (e2e)', () => {
         .send({ nombre: 'Test' });
 
       const log = await prisma.auditLog.findFirst({
-        where: { entidad: 'Asociacion', entidad_id: asociacionId, accion: 'UPDATE' },
+        where: {
+          entidad: 'Asociacion',
+          entidad_id: asociacionId,
+          accion: 'UPDATE',
+        },
         orderBy: { created_at: 'desc' },
       });
 
@@ -184,7 +205,9 @@ describe('Auditoría (e2e)', () => {
     });
 
     it('debería rechazar acceso sin autenticación', async () => {
-      const res = await request(app.getHttpServer()).get('/api/admin/auditoria');
+      const res = await request(app.getHttpServer()).get(
+        '/api/admin/auditoria',
+      );
 
       expect(res.status).toBe(401);
     });
@@ -200,7 +223,9 @@ describe('Auditoría (e2e)', () => {
     });
 
     it('debería rechazar acceso para ADMIN_ASOCIACION', async () => {
-      const adminUser = await createTestUser(prisma, jwt, { rol: 'ADMIN_ASOCIACION' });
+      const adminUser = await createTestUser(prisma, jwt, {
+        rol: 'ADMIN_ASOCIACION',
+      });
 
       const res = await request(app.getHttpServer())
         .get('/api/admin/auditoria')
@@ -247,7 +272,11 @@ describe('Auditoría (e2e)', () => {
       expect(res.status).toBe(200);
 
       const log = await prisma.auditLog.findFirst({
-        where: { entidad: 'Usuario', entidad_id: user.user.id, accion: 'UPDATE' },
+        where: {
+          entidad: 'Usuario',
+          entidad_id: user.user.id,
+          accion: 'UPDATE',
+        },
         orderBy: { created_at: 'desc' },
       });
 
@@ -258,8 +287,12 @@ describe('Auditoría (e2e)', () => {
       const nuevos = log!.datos_nuevos as Record<string, unknown> | null;
       expect(previos).not.toBeNull();
       expect(nuevos).not.toBeNull();
-      expect((previos as Record<string, unknown>).nombre).toBe(user.user.nombre);
-      expect((nuevos as Record<string, unknown>).nombre).toBe('Nombre Modificado');
+      expect((previos as Record<string, unknown>).nombre).toBe(
+        user.user.nombre,
+      );
+      expect((nuevos as Record<string, unknown>).nombre).toBe(
+        'Nombre Modificado',
+      );
     });
 
     it('no debería incluir el password en los logs de auditoría', async () => {
@@ -271,7 +304,11 @@ describe('Auditoría (e2e)', () => {
         .send({ password: 'NuevaPass123!', telefono: '123456789' });
 
       const log = await prisma.auditLog.findFirst({
-        where: { entidad: 'Usuario', entidad_id: user.user.id, accion: 'UPDATE' },
+        where: {
+          entidad: 'Usuario',
+          entidad_id: user.user.id,
+          accion: 'UPDATE',
+        },
         orderBy: { created_at: 'desc' },
       });
 

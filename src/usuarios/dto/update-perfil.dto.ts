@@ -1,4 +1,13 @@
-import { IsString, IsOptional, IsNotEmpty, IsDateString, IsEnum, MinLength, IsEmail, IsInt } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNotEmpty,
+  IsDateString,
+  IsEnum,
+  MinLength,
+  IsEmail,
+  IsInt,
+} from 'class-validator';
 import { Sexo, Provincia } from '@prisma/client';
 
 export class UpdatePerfilDto {

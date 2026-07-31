@@ -3,7 +3,12 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Certificados (e2e)', () => {
   let app: INestApplication;
@@ -93,10 +98,19 @@ describe('Certificados (e2e)', () => {
     });
 
     it('debería listar todos los certificados de la asociación para ADMIN_ASOCIACION', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test Assoc' } });
-      const user1 = await createTestUser(prisma, jwt, { asociacion_id: assoc.id });
-      const user2 = await createTestUser(prisma, jwt, { asociacion_id: assoc.id });
-      const adminAssoc = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, rol: 'ADMIN_ASOCIACION' });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test Assoc' },
+      });
+      const user1 = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+      });
+      const user2 = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+      });
+      const adminAssoc = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
 
       await request(app.getHttpServer())
         .post('/api/certificados')
@@ -123,9 +137,16 @@ describe('Certificados (e2e)', () => {
 
   describe('PATCH /certificados/:id/aprobar-asociacion', () => {
     it('debería permitir aprobar a admin de la misma asociación', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { asociacion_id: assoc.id });
-      const admin = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, rol: 'ADMIN_ASOCIACION' });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+      });
+      const admin = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
 
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
@@ -143,9 +164,16 @@ describe('Certificados (e2e)', () => {
     });
 
     it('debería rechazar si no está pendiente', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { asociacion_id: assoc.id });
-      const admin = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, rol: 'ADMIN_ASOCIACION' });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+      });
+      const admin = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
 
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')
@@ -168,9 +196,17 @@ describe('Certificados (e2e)', () => {
 
   describe('PATCH /certificados/:id/aprobar-general', () => {
     it('debería aprobar definitivamente y actualizar graduación', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, grad_kendo: 'KYU_1' });
-      const adminAssoc = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, rol: 'ADMIN_ASOCIACION' });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        grad_kendo: 'KYU_1',
+      });
+      const adminAssoc = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
       const adminGen = await createAdminGeneral(prisma, jwt);
 
       const certRes = await request(app.getHttpServer())
@@ -191,10 +227,14 @@ describe('Certificados (e2e)', () => {
       expect(res.status).toBe(200);
       expect(res.body.estado).toBe('APROBADO');
 
-      const updatedUser = await prisma.usuario.findUnique({ where: { id: user.user.id } });
+      const updatedUser = await prisma.usuario.findUnique({
+        where: { id: user.user.id },
+      });
       expect(updatedUser?.grad_kendo).toBe('DAN_1');
 
-      const history = await prisma.historialGraduacion.findMany({ where: { usuario_id: user.user.id } });
+      const history = await prisma.historialGraduacion.findMany({
+        where: { usuario_id: user.user.id },
+      });
       expect(history.length).toBe(1);
       expect(history[0].graduacion).toBe('DAN_1');
     });
@@ -220,9 +260,16 @@ describe('Certificados (e2e)', () => {
 
   describe('PATCH /certificados/:id/rechazar', () => {
     it('debería rechazar una certificación', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const user = await createTestUser(prisma, jwt, { asociacion_id: assoc.id });
-      const admin = await createTestUser(prisma, jwt, { asociacion_id: assoc.id, rol: 'ADMIN_ASOCIACION' });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+      });
+      const admin = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
 
       const certRes = await request(app.getHttpServer())
         .post('/api/certificados')

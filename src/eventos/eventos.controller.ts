@@ -1,4 +1,19 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Req, ParseIntPipe, HttpCode, HttpStatus, Query, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  Req,
+  ParseIntPipe,
+  HttpCode,
+  HttpStatus,
+  Query,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
@@ -18,7 +33,7 @@ export class EventosController {
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Post('eventos')
   create(@Body() dto: CreateEventoDto, @Req() req: Request) {
-    return this.eventosService.create(dto, req.user!);
+    return this.eventosService.create(dto, req.user);
   }
 
   @Public()
@@ -41,20 +56,24 @@ export class EventosController {
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEventoDto, @Req() req: Request) {
-    return this.eventosService.update(id, dto, req.user!);
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdateEventoDto,
+    @Req() req: Request,
+  ) {
+    return this.eventosService.update(id, dto, req.user);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Patch('eventos/:id/publicar')
   publicar(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    return this.eventosService.publicar(id, req.user!);
+    return this.eventosService.publicar(id, req.user);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Delete('eventos/:id')
   remove(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
-    return this.eventosService.remove(id, req.user!);
+    return this.eventosService.remove(id, req.user);
   }
 
   @Post('eventos/:id/inscribir')
@@ -69,7 +88,10 @@ export class EventosController {
 
   @Roles(Rol.ADMIN_ASOCIACION, Rol.ADMIN_GENERAL)
   @Get('eventos/:id/inscripciones')
-  findInscripciones(@Param('id', ParseIntPipe) id: number, @Query('aprobados') aprobados?: string) {
+  findInscripciones(
+    @Param('id', ParseIntPipe) id: number,
+    @Query('aprobados') aprobados?: string,
+  ) {
     return this.eventosService.findInscripciones(id, aprobados === 'true');
   }
 
@@ -90,10 +112,7 @@ export class EventosController {
 
   @Post('inscripciones/:id/pagar')
   @HttpCode(HttpStatus.OK)
-  pagarInscripcion(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  pagarInscripcion(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     return this.eventosService.pagarInscripcion(id, req.user!.id);
   }
 
@@ -107,7 +126,9 @@ export class EventosController {
   }
 
   @Patch('inscripciones/:id/archivo-medico')
-  @UseInterceptors(FileInterceptor('archivo_medico', { limits: { fileSize: MAX_FILE_SIZE } }))
+  @UseInterceptors(
+    FileInterceptor('archivo_medico', { limits: { fileSize: MAX_FILE_SIZE } }),
+  )
   @HttpCode(HttpStatus.OK)
   subirArchivoMedico(
     @Param('id', ParseIntPipe) id: number,
@@ -119,20 +140,14 @@ export class EventosController {
 
   @Delete('inscripciones/:id')
   @HttpCode(HttpStatus.OK)
-  bajaInscripcion(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  bajaInscripcion(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     return this.eventosService.bajaInscripcion(id, req.user!.id);
   }
 
   @Roles(Rol.ADMIN_GENERAL, Rol.ADMIN_ASOCIACION)
   @Post('inscripciones/:id/pago-manual')
   @HttpCode(HttpStatus.OK)
-  pagoManual(
-    @Param('id', ParseIntPipe) id: number,
-    @Req() req: Request,
-  ) {
+  pagoManual(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
     return this.eventosService.pagoManual(id, req.user!);
   }
 

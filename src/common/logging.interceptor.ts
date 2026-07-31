@@ -1,5 +1,9 @@
 import {
-  Injectable, NestInterceptor, ExecutionContext, CallHandler, Logger,
+  Injectable,
+  NestInterceptor,
+  ExecutionContext,
+  CallHandler,
+  Logger,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
@@ -9,7 +13,10 @@ import type { Request, Response } from 'express';
 const TRUNCATE_LIMIT = 20;
 
 const SENSITIVE_HEADERS = new Set([
-  'authorization', 'cookie', 'set-cookie', 'x-api-key',
+  'authorization',
+  'cookie',
+  'set-cookie',
+  'x-api-key',
 ]);
 
 function truncate(value: unknown): unknown {
@@ -29,7 +36,9 @@ function truncate(value: unknown): unknown {
   return value;
 }
 
-function sanitizeHeaders(headers: Record<string, unknown>): Record<string, unknown> {
+function sanitizeHeaders(
+  headers: Record<string, unknown>,
+): Record<string, unknown> {
   const safe: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(headers)) {
     if (!SENSITIVE_HEADERS.has(key.toLowerCase())) {
@@ -62,7 +71,7 @@ export class LoggingInterceptor implements NestInterceptor {
       method: req.method,
       url: req.originalUrl ?? req.url,
       query: truncate(req.query),
-      headers: sanitizeHeaders(req.headers as Record<string, unknown>),
+      headers: sanitizeHeaders(req.headers),
       body: truncate(req.body),
     };
 
@@ -86,7 +95,8 @@ export class LoggingInterceptor implements NestInterceptor {
         },
         error: (error: Error) => {
           const duration = Date.now() - startTime;
-          const statusCode = (error as Error & { status?: number }).status ?? 500;
+          const statusCode =
+            (error as Error & { status?: number }).status ?? 500;
           const logFn = statusCode >= 500 ? 'error' : 'warn';
 
           this.logger[logFn]({

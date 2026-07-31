@@ -3,7 +3,12 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { NotificacionesService } from '../src/notificaciones/notificaciones.service';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Notificaciones (e2e)', () => {
   let app: INestApplication;
@@ -27,10 +32,16 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Registro de usuario', () => {
     it('debería enviar email de bienvenida al registrarse', async () => {
-      const spy = jest.spyOn(notificaciones, 'sendWelcomeEmail').mockResolvedValue();
+      const spy = jest
+        .spyOn(notificaciones, 'sendWelcomeEmail')
+        .mockResolvedValue();
 
-      const asociacion = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'Dojo Test', asociacion_id: asociacion.id } });
+      const asociacion = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Dojo Test', asociacion_id: asociacion.id },
+      });
 
       const res = await request(app.getHttpServer())
         .post('/api/auth/register')
@@ -60,16 +71,24 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Solicitud de reseteo de contraseña', () => {
     it('debería enviar email con código de reseteo', async () => {
-      const spy = jest.spyOn(notificaciones, 'sendPasswordResetEmail').mockResolvedValue();
+      const spy = jest
+        .spyOn(notificaciones, 'sendPasswordResetEmail')
+        .mockResolvedValue();
 
-      const { user } = await createTestUser(prisma, jwt, { email: 'reset@example.com' });
+      const { user } = await createTestUser(prisma, jwt, {
+        email: 'reset@example.com',
+      });
 
       const res = await request(app.getHttpServer())
         .post('/api/auth/reset-password/request')
         .send({ dni: user.dni });
 
       expect(res.status).toBe(201);
-      expect(spy).toHaveBeenCalledWith('reset@example.com', 'Test', expect.any(String));
+      expect(spy).toHaveBeenCalledWith(
+        'reset@example.com',
+        'Test',
+        expect.any(String),
+      );
 
       spy.mockRestore();
     });
@@ -77,10 +96,15 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Aprobación/rechazo de inscripción', () => {
     it('debería enviar email al aprobar una inscripción', async () => {
-      const spy = jest.spyOn(notificaciones, 'sendInscripcionStatusEmail').mockResolvedValue();
+      const spy = jest
+        .spyOn(notificaciones, 'sendInscripcionStatusEmail')
+        .mockResolvedValue();
 
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user: usuario, token: userToken } = await createTestUser(prisma, jwt);
+      const { user: usuario, token: userToken } = await createTestUser(
+        prisma,
+        jwt,
+      );
 
       const eventoRes = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -121,10 +145,15 @@ describe('Notificaciones (e2e)', () => {
     });
 
     it('debería enviar email al rechazar una inscripción', async () => {
-      const spy = jest.spyOn(notificaciones, 'sendInscripcionStatusEmail').mockResolvedValue();
+      const spy = jest
+        .spyOn(notificaciones, 'sendInscripcionStatusEmail')
+        .mockResolvedValue();
 
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user: usuario, token: userToken } = await createTestUser(prisma, jwt);
+      const { user: usuario, token: userToken } = await createTestUser(
+        prisma,
+        jwt,
+      );
 
       const eventoRes = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -163,10 +192,14 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Cambio de estado de certificación', () => {
     it('debería enviar email al rechazar certificación', async () => {
-      const spy = jest.spyOn(notificaciones, 'sendCertificacionStatusEmail').mockResolvedValue();
+      const spy = jest
+        .spyOn(notificaciones, 'sendCertificacionStatusEmail')
+        .mockResolvedValue();
 
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user: usuario } = await createTestUser(prisma, jwt, { email: 'cert@example.com' });
+      const { user: usuario } = await createTestUser(prisma, jwt, {
+        email: 'cert@example.com',
+      });
 
       // Create certificado directly in DB to avoid file upload issues
       const cert = await prisma.certificadoExterno.create({
@@ -200,7 +233,11 @@ describe('Notificaciones (e2e)', () => {
       // NotificacionesService se crea con transporter=null cuando no hay SMTP_HOST
       // El método send no debe lanzar error
       await expect(
-        notificaciones['send']({ to: 'test@test.com', subject: 'Test', html: '<p>test</p>' }),
+        notificaciones['send']({
+          to: 'test@test.com',
+          subject: 'Test',
+          html: '<p>test</p>',
+        }),
       ).resolves.toBeUndefined();
     });
   });

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Param, ParseIntPipe, Patch, Delete, BadRequestException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Delete,
+  BadRequestException,
+} from '@nestjs/common';
 import { DojosService } from './dojos.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateDojoDto } from './dto/create-dojo.dto';
@@ -16,7 +26,9 @@ export class DojosController {
 
   @Public()
   @Get('asociacion/:asociacion_id')
-  findAllByAsociacion(@Param('asociacion_id', ParseIntPipe) asociacion_id: number) {
+  findAllByAsociacion(
+    @Param('asociacion_id', ParseIntPipe) asociacion_id: number,
+  ) {
     return this.dojosService.findAllByAsociacion(asociacion_id);
   }
 
@@ -24,10 +36,14 @@ export class DojosController {
   @Post()
   async create(@Body() dto: CreateDojoDto) {
     const asociacion_id = Number(dto.asociacion_id);
-    
-    const asociacion = await this.prisma.asociacion.findUnique({ where: { id: asociacion_id } });
+
+    const asociacion = await this.prisma.asociacion.findUnique({
+      where: { id: asociacion_id },
+    });
     if (!asociacion) {
-        throw new BadRequestException(`Association with ID ${asociacion_id} not found.`);
+      throw new BadRequestException(
+        `Association with ID ${asociacion_id} not found.`,
+      );
     }
 
     return this.dojosService.create({

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreatePrecioExamenDto } from './dto/create-precio-examen.dto';
 import { UpdatePrecioExamenDto } from './dto/update-precio-examen.dto';
@@ -20,8 +24,13 @@ export class PreciosExamenService {
   }
 
   async findByGraduacion(graduacion: string) {
-    const precio = await this.prisma.precioExamen.findUnique({ where: { graduacion } });
-    if (!precio) throw new NotFoundException(`No hay precio configurado para la graduación ${graduacion}`);
+    const precio = await this.prisma.precioExamen.findUnique({
+      where: { graduacion },
+    });
+    if (!precio)
+      throw new NotFoundException(
+        `No hay precio configurado para la graduación ${graduacion}`,
+      );
     return precio;
   }
 
@@ -30,7 +39,9 @@ export class PreciosExamenService {
       where: { graduacion: dto.graduacion },
     });
     if (existing) {
-      throw new ConflictException(`Ya existe un precio para la graduación ${dto.graduacion}`);
+      throw new ConflictException(
+        `Ya existe un precio para la graduación ${dto.graduacion}`,
+      );
     }
     return this.prisma.precioExamen.create({ data: dto });
   }

@@ -2,7 +2,12 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('PreciosExamen (e2e)', () => {
   let app: INestApplication;
@@ -37,7 +42,11 @@ describe('PreciosExamen (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
+        .send({
+          graduacion: 'DAN_1',
+          costo_inscripcion: 5000,
+          costo_registro: 2000,
+        })
         .expect(201);
       expect(res.body.graduacion).toBe('DAN_1');
       expect(res.body.costo_inscripcion).toBe(5000);
@@ -47,7 +56,11 @@ describe('PreciosExamen (e2e)', () => {
     it('debería rechazar creación sin autenticación', async () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
-        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
+        .send({
+          graduacion: 'DAN_1',
+          costo_inscripcion: 5000,
+          costo_registro: 2000,
+        })
         .expect(401);
     });
 
@@ -56,7 +69,11 @@ describe('PreciosExamen (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${token}`)
-        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
+        .send({
+          graduacion: 'DAN_1',
+          costo_inscripcion: 5000,
+          costo_registro: 2000,
+        })
         .expect(403);
     });
 
@@ -65,13 +82,21 @@ describe('PreciosExamen (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo_inscripcion: 5000, costo_registro: 2000 })
+        .send({
+          graduacion: 'DAN_1',
+          costo_inscripcion: 5000,
+          costo_registro: 2000,
+        })
         .expect(201);
 
       await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_1', costo_inscripcion: 6000, costo_registro: 3000 })
+        .send({
+          graduacion: 'DAN_1',
+          costo_inscripcion: 6000,
+          costo_registro: 3000,
+        })
         .expect(409);
     });
   });
@@ -82,7 +107,11 @@ describe('PreciosExamen (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'KYU_1', costo_inscripcion: 3000, costo_registro: 1000 })
+        .send({
+          graduacion: 'KYU_1',
+          costo_inscripcion: 3000,
+          costo_registro: 1000,
+        })
         .expect(201);
 
       const res = await request(app.getHttpServer())
@@ -102,7 +131,11 @@ describe('PreciosExamen (e2e)', () => {
       const created = await request(app.getHttpServer())
         .post('/api/precios-examen')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ graduacion: 'DAN_2', costo_inscripcion: 7000, costo_registro: 3000 })
+        .send({
+          graduacion: 'DAN_2',
+          costo_inscripcion: 7000,
+          costo_registro: 3000,
+        })
         .expect(201);
 
       await request(app.getHttpServer())

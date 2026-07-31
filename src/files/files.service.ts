@@ -4,7 +4,12 @@ import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 
-const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+const ALLOWED_MIMES = [
+  'image/jpeg',
+  'image/png',
+  'image/jpg',
+  'application/pdf',
+];
 const MAX_SIZE = 10 * 1024 * 1024; // 10MB
 
 @Injectable()
@@ -22,10 +27,14 @@ export class FilesService {
       throw new BadRequestException('Debe adjuntar un archivo');
     }
     if (!ALLOWED_MIMES.includes(file.mimetype)) {
-      throw new BadRequestException('Formato no permitido. Solo JPG, PNG y PDF');
+      throw new BadRequestException(
+        'Formato no permitido. Solo JPG, PNG y PDF',
+      );
     }
     if (file.size > MAX_SIZE) {
-      throw new BadRequestException('El archivo supera el tamaño máximo de 10MB');
+      throw new BadRequestException(
+        'El archivo supera el tamaño máximo de 10MB',
+      );
     }
 
     const ext = file.originalname.split('.').pop();

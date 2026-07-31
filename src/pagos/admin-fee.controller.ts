@@ -11,7 +11,10 @@ export class AdminFeeController {
   @Patch('fee')
   @Roles(Rol.ADMIN_GENERAL)
   async setFeeConfig(@Body() dto: SetFeeDto) {
-    return this.feeConfigService.upsertFeeConfig(dto.monto_actual, dto.fecha_vencimiento);
+    return this.feeConfigService.upsertFeeConfig(
+      dto.monto_actual,
+      dto.fecha_vencimiento,
+    );
   }
 
   @Get('fee')

@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateAsociacionDto } from './dto/create-asociacion.dto';
 import { UpdateAsociacionDto } from './dto/update-asociacion.dto';
@@ -9,7 +13,7 @@ export class AsociacionesService {
 
   findAll() {
     return this.prisma.asociacion.findMany({
-      where: { 
+      where: {
         deleted_at: null,
       },
     });
@@ -42,7 +46,9 @@ export class AsociacionesService {
     });
 
     if (dojoCount > 0) {
-      throw new BadRequestException('No se puede eliminar una asociación que tiene dojos activos.');
+      throw new BadRequestException(
+        'No se puede eliminar una asociación que tiene dojos activos.',
+      );
     }
 
     return this.prisma.asociacion.update({

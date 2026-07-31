@@ -10,4 +10,3 @@ export class SetFeeDto {
   @IsNotEmpty({ message: 'La fecha de vencimiento es obligatoria' })
   fecha_vencimiento: string;
 }
-

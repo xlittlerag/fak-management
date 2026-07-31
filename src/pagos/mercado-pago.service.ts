@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import MercadoPago, { Preference, Payment } from 'mercadopago';
@@ -19,7 +23,9 @@ export class MercadoPagoService {
     private configService: ConfigService,
   ) {
     this.client = new MercadoPago({
-      accessToken: this.configService.getOrThrow<string>('MERCADO_PAGO_ACCESS_TOKEN'),
+      accessToken: this.configService.getOrThrow<string>(
+        'MERCADO_PAGO_ACCESS_TOKEN',
+      ),
       options: { timeout: 5000 },
     });
   }
@@ -28,13 +34,18 @@ export class MercadoPagoService {
     return this.configService.get<string>('MERCADO_PAGO_SIMULATED') === 'true';
   }
 
-  async createFederativeFeePreference(userId: number, userEmail: string, amount: number) {
+  async createFederativeFeePreference(
+    userId: number,
+    userEmail: string,
+    amount: number,
+  ) {
     const externalReference = `fee_user_${userId}_ts_${Date.now()}`;
 
     if (this.isSimulated) {
       return {
         preferenceId: `sim_${externalReference}`,
-        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        initPoint:
+          'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
         externalReference,
         paymentMethods: { excludedPaymentTypes: [{ id: 'credit_card' }] },
         simulated: true,
@@ -79,7 +90,9 @@ export class MercadoPagoService {
 
       return {
         preferenceId: preferenceResponse.id,
-        initPoint: preferenceResponse.init_point || preferenceResponse.sandbox_init_point,
+        initPoint:
+          preferenceResponse.init_point ||
+          preferenceResponse.sandbox_init_point,
         externalReference: preferenceResponse.external_reference,
         paymentMethods: {
           excludedPaymentTypes: [
@@ -90,20 +103,30 @@ export class MercadoPagoService {
         },
       };
     } catch (error) {
-      this.logger.error(`Error al crear preferencia de pago: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error al crear preferencia de pago: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'No se pudo crear la preferencia de pago',
       );
     }
   }
 
-  async createInscriptionPreference(userId: number, userEmail: string, amount: number, inscripcionId: number, eventoId: number) {
+  async createInscriptionPreference(
+    userId: number,
+    userEmail: string,
+    amount: number,
+    inscripcionId: number,
+    eventoId: number,
+  ) {
     const externalReference = `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`;
 
     if (this.isSimulated) {
       return {
         preferenceId: `sim_${externalReference}`,
-        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        initPoint:
+          'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
         externalReference,
         simulated: true,
       };
@@ -147,11 +170,16 @@ export class MercadoPagoService {
 
       return {
         preferenceId: preferenceResponse.id,
-        initPoint: preferenceResponse.init_point || preferenceResponse.sandbox_init_point,
+        initPoint:
+          preferenceResponse.init_point ||
+          preferenceResponse.sandbox_init_point,
         externalReference: preferenceResponse.external_reference,
       };
     } catch (error) {
-      this.logger.error(`Error al crear preferencia de pago de inscripción: ${error.message}`, error.stack);
+      this.logger.error(
+        `Error al crear preferencia de pago de inscripción: ${error.message}`,
+        error.stack,
+      );
       throw new InternalServerErrorException(
         'No se pudo crear la preferencia de pago',
       );
@@ -202,7 +230,9 @@ export class MercadoPagoService {
 
       return { processed: false };
     } catch (error) {
-      this.logger.error(`Error al consultar pago ${paymentId}: ${error.message}`);
+      this.logger.error(
+        `Error al consultar pago ${paymentId}: ${error.message}`,
+      );
       return { processed: false };
     }
   }
@@ -240,8 +270,13 @@ export class MercadoPagoService {
     };
   }
 
-  private async processInscriptionPayment(paymentId: string, reference: string) {
-    const match = reference.match(/inscripcion_user_(\d+)_evento_(\d+)_insc_(\d+)_ts_\d+/);
+  private async processInscriptionPayment(
+    paymentId: string,
+    reference: string,
+  ) {
+    const match = reference.match(
+      /inscripcion_user_(\d+)_evento_(\d+)_insc_(\d+)_ts_\d+/,
+    );
     if (!match) return { processed: false };
 
     const userId = parseInt(match[1]);
@@ -275,7 +310,10 @@ export class MercadoPagoService {
     };
   }
 
-  private async processReimpresionPayment(paymentId: string, reference: string) {
+  private async processReimpresionPayment(
+    paymentId: string,
+    reference: string,
+  ) {
     const match = reference.match(/reimpresion_user_(\d+)_reimp_(\d+)_ts_\d+/);
     if (!match) return { processed: false };
 
@@ -311,13 +349,19 @@ export class MercadoPagoService {
     };
   }
 
-  async createReimpresionPreference(userId: number, userEmail: string, amount: number, reimpresionId: number) {
+  async createReimpresionPreference(
+    userId: number,
+    userEmail: string,
+    amount: number,
+    reimpresionId: number,
+  ) {
     const externalReference = `reimpresion_user_${userId}_reimp_${reimpresionId}_ts_${Date.now()}`;
 
     if (this.isSimulated) {
       return {
         preferenceId: `sim_${externalReference}`,
-        initPoint: 'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
+        initPoint:
+          'https://simulacion.mercadopago.com/checkout/v1/preferences/sim',
         externalReference,
         simulated: true,
       };
@@ -355,12 +399,19 @@ export class MercadoPagoService {
 
       return {
         preferenceId: preferenceResponse.id,
-        initPoint: preferenceResponse.init_point || preferenceResponse.sandbox_init_point,
+        initPoint:
+          preferenceResponse.init_point ||
+          preferenceResponse.sandbox_init_point,
         externalReference: preferenceResponse.external_reference,
       };
     } catch (error) {
-      this.logger.error(`Error al crear preferencia de reimpresión: ${error.message}`, error.stack);
-      throw new InternalServerErrorException('No se pudo crear la preferencia de pago');
+      this.logger.error(
+        `Error al crear preferencia de reimpresión: ${error.message}`,
+        error.stack,
+      );
+      throw new InternalServerErrorException(
+        'No se pudo crear la preferencia de pago',
+      );
     }
   }
 
@@ -376,13 +427,20 @@ export class MercadoPagoService {
     return user || null;
   }
 
-  async simulatePayment(externalReference: string, status: 'approved' | 'rejected' = 'approved') {
+  async simulatePayment(
+    externalReference: string,
+    status: 'approved' | 'rejected' = 'approved',
+  ) {
     if (!this.isSimulated) {
       throw new InternalServerErrorException('Modo simulado no habilitado');
     }
 
     if (status !== 'approved') {
-      return { success: false, processed: false, message: 'Solo pagos aprobados se procesan' };
+      return {
+        success: false,
+        processed: false,
+        message: 'Solo pagos aprobados se procesan',
+      };
     }
 
     const fakePaymentId = `sim_${Date.now()}`;
@@ -397,6 +455,10 @@ export class MercadoPagoService {
       return this.processReimpresionPayment(fakePaymentId, externalReference);
     }
 
-    return { success: false, processed: false, message: 'Referencia externa inválida' };
+    return {
+      success: false,
+      processed: false,
+      message: 'Referencia externa inválida',
+    };
   }
 }

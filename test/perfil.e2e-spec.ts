@@ -28,9 +28,9 @@ describe('Perfil (e2e)', () => {
 
   describe('GET /usuarios/perfil', () => {
     it('should return own profile data', async () => {
-      const { user, token } = await createTestUser(prisma, jwt, { 
+      const { user, token } = await createTestUser(prisma, jwt, {
         nombre: 'Original',
-        email: 'profile@test.com' 
+        email: 'profile@test.com',
       });
 
       const response = await request(app.getHttpServer())
@@ -46,9 +46,9 @@ describe('Perfil (e2e)', () => {
 
   describe('PATCH /usuarios/perfil', () => {
     it('should update own profile data', async () => {
-      const { user, token } = await createTestUser(prisma, jwt, { 
+      const { user, token } = await createTestUser(prisma, jwt, {
         nombre: 'Original',
-        apellido: 'User'
+        apellido: 'User',
       });
 
       const updateDto = {
@@ -64,14 +64,18 @@ describe('Perfil (e2e)', () => {
         .send(updateDto)
         .expect(200);
 
-      const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.nombre).toBe('Updated');
       expect(updated?.apellido).toBe('Modified');
       expect(updated?.sexo).toBe('FEMENINO');
     });
 
     it('should update password if provided', async () => {
-      const { user, token } = await createTestUser(prisma, jwt, { password: 'OldPassword123!' });
+      const { user, token } = await createTestUser(prisma, jwt, {
+        password: 'OldPassword123!',
+      });
 
       await request(app.getHttpServer())
         .patch('/api/usuarios/perfil')
@@ -87,10 +91,12 @@ describe('Perfil (e2e)', () => {
     });
 
     it('should update dojo_id if provided', async () => {
-      const { user, token } = await createTestUser(prisma, jwt, { nombre: 'Original' });
+      const { user, token } = await createTestUser(prisma, jwt, {
+        nombre: 'Original',
+      });
       // Create a second dojo to switch to
-      const newDojo = await prisma.dojo.create({ 
-        data: { nombre: 'New Dojo', asociacion_id: user.asociacion_id } 
+      const newDojo = await prisma.dojo.create({
+        data: { nombre: 'New Dojo', asociacion_id: user.asociacion_id },
       });
 
       await request(app.getHttpServer())
@@ -99,7 +105,9 @@ describe('Perfil (e2e)', () => {
         .send({ dojo_id: newDojo.id, telefono: '1188888888' })
         .expect(200);
 
-      const updated = await prisma.usuario.findUnique({ where: { id: user.id } });
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
       expect(updated?.dojo_id).toBe(newDojo.id);
     });
   });
@@ -109,7 +117,10 @@ describe('Perfil (e2e)', () => {
       const { token } = await createTestUser(prisma, jwt);
 
       await prisma.cuotaGlobal.create({
-        data: { monto_actual: 15000.00, fecha_vencimiento: new Date('2026-12-31T23:59:59Z') },
+        data: {
+          monto_actual: 15000.0,
+          fecha_vencimiento: new Date('2026-12-31T23:59:59Z'),
+        },
       });
 
       const response = await request(app.getHttpServer())

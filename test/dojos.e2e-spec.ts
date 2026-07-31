@@ -2,7 +2,12 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Dojos (e2e)', () => {
   let app: INestApplication;
@@ -24,8 +29,12 @@ describe('Dojos (e2e)', () => {
 
   describe('GET /dojos/asociacion/:id', () => {
     it('should be public (no auth required)', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      await prisma.dojo.create({ data: { nombre: 'Dojo 1', asociacion_id: assoc.id } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await prisma.dojo.create({
+        data: { nombre: 'Dojo 1', asociacion_id: assoc.id },
+      });
 
       await request(app.getHttpServer())
         .get(`/api/dojos/asociacion/${assoc.id}`)
@@ -33,9 +42,19 @@ describe('Dojos (e2e)', () => {
     });
 
     it('should return dojos for the association and exclude soft-deleted', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const d1 = await prisma.dojo.create({ data: { nombre: 'Activo', asociacion_id: assoc.id } });
-      const d2 = await prisma.dojo.create({ data: { nombre: 'Eliminado', asociacion_id: assoc.id, deleted_at: new Date() } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const d1 = await prisma.dojo.create({
+        data: { nombre: 'Activo', asociacion_id: assoc.id },
+      });
+      const d2 = await prisma.dojo.create({
+        data: {
+          nombre: 'Eliminado',
+          asociacion_id: assoc.id,
+          deleted_at: new Date(),
+        },
+      });
 
       const response = await request(app.getHttpServer())
         .get(`/api/dojos/asociacion/${assoc.id}`)
@@ -46,7 +65,9 @@ describe('Dojos (e2e)', () => {
     });
 
     it('should return empty array for association with no dojos', async () => {
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Empty' } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Empty' },
+      });
 
       const response = await request(app.getHttpServer())
         .get(`/api/dojos/asociacion/${assoc.id}`)
@@ -59,7 +80,9 @@ describe('Dojos (e2e)', () => {
   describe('POST /dojos', () => {
     it('should create a dojo when provided with a valid association_id', async () => {
       const admin = await createTestUser(prisma, jwt, { rol: 'ADMIN_GENERAL' });
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Nueva Asociacion' } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Nueva Asociacion' },
+      });
 
       await request(app.getHttpServer())
         .post('/api/dojos')
@@ -70,7 +93,9 @@ describe('Dojos (e2e)', () => {
 
     it('should return 403 for BASICO user', async () => {
       const { token } = await createTestUser(prisma, jwt, { rol: 'BASICO' });
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Nueva' } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Nueva' },
+      });
 
       await request(app.getHttpServer())
         .post('/api/dojos')
@@ -83,8 +108,12 @@ describe('Dojos (e2e)', () => {
   describe('PATCH /dojos/:id', () => {
     it('should update dojo name', async () => {
       const { token } = await createAdminGeneral(prisma, jwt);
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'Viejo', asociacion_id: assoc.id } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Viejo', asociacion_id: assoc.id },
+      });
 
       const response = await request(app.getHttpServer())
         .patch(`/api/dojos/${dojo.id}`)
@@ -109,13 +138,17 @@ describe('Dojos (e2e)', () => {
   describe('DELETE /dojos/:id', () => {
     it('should return 400 when deleting a dojo with practitioners', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Federacion' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'Dojo de prueba', asociacion_id: assoc.id } });
-      
-      await createTestUser(prisma, jwt, { 
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Federacion' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Dojo de prueba', asociacion_id: assoc.id },
+      });
+
+      await createTestUser(prisma, jwt, {
         dni: 'practitioner1',
-        asociacion_id: assoc.id, 
-        dojo_id: dojo.id 
+        asociacion_id: assoc.id,
+        dojo_id: dojo.id,
       });
 
       await request(app.getHttpServer())
@@ -126,8 +159,12 @@ describe('Dojos (e2e)', () => {
 
     it('should soft-delete a dojo with no practitioners', async () => {
       const { token } = await createAdminGeneral(prisma, jwt);
-      const assoc = await prisma.asociacion.create({ data: { nombre: 'Test' } });
-      const dojo = await prisma.dojo.create({ data: { nombre: 'ABorrar', asociacion_id: assoc.id } });
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'ABorrar', asociacion_id: assoc.id },
+      });
 
       await request(app.getHttpServer())
         .delete(`/api/dojos/${dojo.id}`)

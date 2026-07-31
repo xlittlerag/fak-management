@@ -1,4 +1,15 @@
-import { Controller, Get, Post, Patch, Body, Param, Req, ParseIntPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  Req,
+  ParseIntPipe,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CertificadosService } from './certificados.service';
 import { CreateCertificadoDto } from './dto/create-certificado.dto';
@@ -13,7 +24,9 @@ export class CertificadosController {
   constructor(private readonly certificadosService: CertificadosService) {}
 
   @Post('certificados')
-  @UseInterceptors(FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }))
+  @UseInterceptors(
+    FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }),
+  )
   create(
     @UploadedFile() file: Express.Multer.File,
     @Body() dto: CreateCertificadoDto,
@@ -29,7 +42,10 @@ export class CertificadosController {
 
   @Roles(Rol.ADMIN_ASOCIACION)
   @Patch('certificados/:id/aprobar-asociacion')
-  aprobarAsociacion(@Param('id', ParseIntPipe) id: number, @Req() req: Request) {
+  aprobarAsociacion(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: Request,
+  ) {
     return this.certificadosService.aprobarAsociacion(id, req.user!);
   }
 

@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, ParseIntPipe } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Param,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { PreciosExamenService } from './precios-examen.service';
 import { CreatePrecioExamenDto } from './dto/create-precio-examen.dto';
 import { UpdatePrecioExamenDto } from './dto/update-precio-examen.dto';
@@ -30,7 +39,10 @@ export class PreciosExamenController {
 
   @Roles(Rol.ADMIN_GENERAL)
   @Patch(':id')
-  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdatePrecioExamenDto) {
+  update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() dto: UpdatePrecioExamenDto,
+  ) {
     return this.preciosExamenService.update(id, dto);
   }
 

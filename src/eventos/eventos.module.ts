@@ -7,7 +7,12 @@ import { FilesModule } from '../files/files.module';
 import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
-  imports: [PagosModule, PreciosExamenModule, FilesModule, NotificacionesModule],
+  imports: [
+    PagosModule,
+    PreciosExamenModule,
+    FilesModule,
+    NotificacionesModule,
+  ],
   controllers: [EventosController],
   providers: [EventosService],
 })

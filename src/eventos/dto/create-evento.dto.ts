@@ -1,4 +1,14 @@
-import { IsString, IsDateString, IsObject, IsOptional, IsNumber, Min, IsArray, IsBoolean, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsDateString,
+  IsObject,
+  IsOptional,
+  IsNumber,
+  Min,
+  IsArray,
+  IsBoolean,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class CategoriaDto {

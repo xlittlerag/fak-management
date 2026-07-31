@@ -3,7 +3,12 @@ import request from 'supertest';
 import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { MercadoPagoService } from '../src/pagos/mercado-pago.service';
-import { createTestApp, cleanupDb, createTestUser, createAdminGeneral } from './test-utils';
+import {
+  createTestApp,
+  cleanupDb,
+  createTestUser,
+  createAdminGeneral,
+} from './test-utils';
 
 describe('Eventos (e2e)', () => {
   let app: INestApplication;
@@ -14,13 +19,21 @@ describe('Eventos (e2e)', () => {
   beforeAll(async () => {
     ({ app, prisma, jwt } = await createTestApp());
     mpService = app.get(MercadoPagoService);
-    jest.spyOn(mpService, 'createInscriptionPreference').mockImplementation(
-      async (userId: number, userEmail: string, amount: number, inscripcionId: number, eventoId: number) => ({
-        preferenceId: `mp_insc_${inscripcionId}_${Date.now()}`,
-        initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_insc_${inscripcionId}`,
-        externalReference: `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`,
-      })
-    );
+    jest
+      .spyOn(mpService, 'createInscriptionPreference')
+      .mockImplementation(
+        async (
+          userId: number,
+          userEmail: string,
+          amount: number,
+          inscripcionId: number,
+          eventoId: number,
+        ) => ({
+          preferenceId: `mp_insc_${inscripcionId}_${Date.now()}`,
+          initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_insc_${inscripcionId}`,
+          externalReference: `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`,
+        }),
+      );
   });
 
   beforeEach(async () => {
@@ -43,7 +56,10 @@ describe('Eventos (e2e)', () => {
           tipo: 'TORNEO',
           fecha_inicio: '2026-12-01T09:00:00Z',
           fecha_fin: '2026-12-01T18:00:00Z',
-          datos_lugar: { direccion: 'Polideportivo Central', provincia: 'CABA' },
+          datos_lugar: {
+            direccion: 'Polideportivo Central',
+            provincia: 'CABA',
+          },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,
           categorias: [
@@ -117,7 +133,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo Central', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         });
 
       const response = await request(app.getHttpServer())
@@ -126,13 +144,13 @@ describe('Eventos (e2e)', () => {
 
       expect(response.body.tipo).toBe('EXAMEN');
       expect(response.body.examen.disciplinas).toEqual(['KENDO']);
-      expect(response.body.examen.graduaciones_a_rendir).toEqual([{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]);
+      expect(response.body.examen.graduaciones_a_rendir).toEqual([
+        { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+      ]);
     });
 
     it('debería retornar 404 si el evento no existe', async () => {
-      await request(app.getHttpServer())
-        .get('/api/eventos/99999')
-        .expect(404);
+      await request(app.getHttpServer()).get('/api/eventos/99999').expect(404);
     });
   });
 
@@ -188,7 +206,9 @@ describe('Eventos (e2e)', () => {
 
     it('debería eliminar un evento con inscripciones pendientes (limpiándolas)', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -224,7 +244,9 @@ describe('Eventos (e2e)', () => {
 
     it('NO debería eliminar un evento con inscripciones aprobadas', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
       const adminAssoc = await createTestUser(prisma, jwt, {
         rol: 'ADMIN_ASOCIACION',
         asociacion_id: asociacionId,
@@ -259,7 +281,9 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .expect(400);
 
-      const eventoExiste = await prisma.evento.findUnique({ where: { id: evento.body.id } });
+      const eventoExiste = await prisma.evento.findUnique({
+        where: { id: evento.body.id },
+      });
       expect(eventoExiste).not.toBeNull();
     });
   });
@@ -267,7 +291,9 @@ describe('Eventos (e2e)', () => {
   describe('POST /eventos/:id/inscribir — Inscripción', () => {
     it('debería inscribir a un usuario activo en un evento', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { user, token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -292,7 +318,9 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar inscripción si el usuario no tiene la cuota al día', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: false });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: false,
+      });
 
       await prisma.cuotaGlobal.create({
         data: { monto_actual: 5000, fecha_vencimiento: new Date('2099-12-31') },
@@ -318,7 +346,9 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar inscripción duplicada', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -345,7 +375,10 @@ describe('Eventos (e2e)', () => {
 
     it('debería validar categoría al inscribir en torneo', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'KYU_1' });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'KYU_1',
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -374,7 +407,10 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar inscripción en categoría que no corresponde a la graduación', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'KYU_1' });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'KYU_1',
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -402,7 +438,10 @@ describe('Eventos (e2e)', () => {
   describe('Validación de requisitos de examen', () => {
     it('debería inscribir auto-computando KYU_3 desde SIN_GRADUACION', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'SIN_GRADUACION' });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'SIN_GRADUACION',
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -413,7 +452,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         });
 
       const res = await request(app.getHttpServer())
@@ -428,7 +469,10 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar si la graduación siguiente no está en el rango del examen', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'SIN_GRADUACION' });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'SIN_GRADUACION',
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -440,7 +484,9 @@ describe('Eventos (e2e)', () => {
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           // Solo KYU_2 en adelante, pero SIN_GRADUACION → siguiente es KYU_3 (no en rango)
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_2', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_2', grad_max: 'DAN_8' },
+          ],
         });
 
       await request(app.getHttpServer())
@@ -470,7 +516,9 @@ describe('Eventos (e2e)', () => {
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           // KYU_1 → siguiente es DAN_1 (en rango)
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' },
+          ],
         });
 
       // DAN_1 requires 6 months after KYU_1, user only has 1 month
@@ -501,7 +549,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_4' },
+          ],
         });
 
       // DAN_1 requires at least 13 years old
@@ -514,7 +564,10 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar inscripción en examen sin disciplinas en el body', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true, grad_kendo: 'SIN_GRADUACION' });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'SIN_GRADUACION',
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -525,7 +578,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         });
 
       await request(app.getHttpServer())
@@ -539,7 +594,9 @@ describe('Eventos (e2e)', () => {
   describe('PATCH /inscripciones/:id/aprobar — Aprobar inscripción', () => {
     it('debería aprobar una inscripción como admin de asociación', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
       const adminAssoc = await createTestUser(prisma, jwt, {
         rol: 'ADMIN_ASOCIACION',
         asociacion_id: asociacionId,
@@ -574,7 +631,9 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar aprobación de inscripción de otra asociación', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
       const otherAssoc = await createTestUser(prisma, jwt, {
         rol: 'ADMIN_ASOCIACION',
         estado_pago: true,
@@ -608,7 +667,9 @@ describe('Eventos (e2e)', () => {
   describe('POST /inscripciones/:id/pagar — Pago de inscripción', () => {
     it('debería generar preferencia de pago para inscripción aprobada', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { user, token, asociacionId } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { user, token, asociacionId } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
       const adminAssoc = await createTestUser(prisma, jwt, {
         rol: 'ADMIN_ASOCIACION',
         asociacion_id: asociacionId,
@@ -649,7 +710,9 @@ describe('Eventos (e2e)', () => {
 
     it('debería rechazar pago si la inscripción no está aprobada', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -678,7 +741,9 @@ describe('Eventos (e2e)', () => {
   describe('GET /mis-inscripciones — Mis inscripciones', () => {
     it('debería listar inscripciones del usuario autenticado', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
-      const { token } = await createTestUser(prisma, jwt, { estado_pago: true });
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+      });
 
       const evento = await request(app.getHttpServer())
         .post('/api/eventos')
@@ -742,7 +807,9 @@ describe('Eventos (e2e)', () => {
           fecha_inicio: '2026-12-01T09:00:00Z',
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
         })
         .expect(400);
     });
@@ -758,7 +825,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
           costo_inscripcion: 5000,
         })
         .expect(400);
@@ -792,7 +861,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
           inscripcion_multiple: true,
         })
         .expect(400);
@@ -809,7 +880,9 @@ describe('Eventos (e2e)', () => {
           fecha_fin: '2026-12-01T18:00:00Z',
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
-          graduaciones_a_rendir: [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
           ambito: 'REGIONAL',
         })
         .expect(201);
@@ -843,9 +916,7 @@ describe('Eventos (e2e)', () => {
     });
 
     it('debería listar eventos sin autenticación (público)', async () => {
-      await request(app.getHttpServer())
-        .get('/api/eventos')
-        .expect(200);
+      await request(app.getHttpServer()).get('/api/eventos').expect(200);
     });
   });
 });

@@ -1,4 +1,13 @@
-import { Controller, Get, Patch, Param, Body, Req, ParseIntPipe, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  Body,
+  Req,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { UsuariosService } from './usuarios.service';
 import { UpdateAprobacionDto } from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
@@ -18,7 +27,10 @@ export class UsuariosController {
     @Query('skip') skip?: string,
     @Query('take') take?: string,
   ) {
-    return this.usuariosService.findAll(req.user!, { skip: skip ? Number(skip) : undefined, take: take ? Number(take) : undefined });
+    return this.usuariosService.findAll(req.user!, {
+      skip: skip ? Number(skip) : undefined,
+      take: take ? Number(take) : undefined,
+    });
   }
 
   @Get('perfil')
@@ -44,10 +56,7 @@ export class UsuariosController {
 
   @Roles(Rol.ADMIN_GENERAL)
   @Patch(':id/rol')
-  updateRol(
-    @Param('id', ParseIntPipe) id: number,
-    @Body('rol') rol: Rol,
-  ) {
+  updateRol(@Param('id', ParseIntPipe) id: number, @Body('rol') rol: Rol) {
     return this.usuariosService.updateRol(id, rol);
   }
 
