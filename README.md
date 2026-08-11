@@ -20,7 +20,11 @@ El proyecto es una aplicación Monorepo dividida en:
    ```bash
    pnpm install
    ```
-2. Configurar el archivo `.env` en la raíz (ver `.env.example`).
+2. Configurar el archivo `.env` en la raíz:
+   ```bash
+   cp .env.example .env
+   ```
+   Al menos reemplazar `JWT_SECRET` por un valor aleatorio, p.ej. `openssl rand -hex 64`.
 
 ### Ejecución con Podman
 
@@ -47,10 +51,29 @@ podman run -d -p 3000:3000 \
 
 ### Ejecución en Desarrollo
 
-#### 1. Base de Datos
+#### 1. Base de Datos (SQLite)
 
-SQLite no necesita servidor. El archivo `dev.db` se crea automáticamente al
-ejecutar `npx prisma db push`.
+SQLite no necesita servidor. Crear el esquema y cargar los registros iniciales:
+
+```bash
+npx prisma db push   # crea el archivo dev.db en la raíz con el esquema actual
+pnpm run seed        # carga los datos de prueba (asociaciones, dojos, usuarios, eventos...)
+```
+
+- `npx prisma db push` crea `dev.db` automáticamente; `npx prisma generate` ya
+  se ejecuta vía `postinstall` al instalar dependencias.
+- `pnpm run seed` es idempotente: limpia y recrea los datos de prueba. Solo debe
+  usarse en desarrollo/test.
+
+#### Usuarios de prueba (seed)
+
+| Rol                                  | Login                        | Password    |
+| ------------------------------------ | ---------------------------- | ----------- |
+| Admin General                        | `POST /api/auth/admin-login` | `Admin123!` |
+| Admin de Asociación (Yoshinkan)      | `dni: 11111111`              | `Test1234!` |
+| Usuario básico                       | `dni: 55555555`              | `Test1234!` |
+
+Todos los usuarios del seed comparten la contraseña `Test1234!`.
 
 #### 2. Backend
 
@@ -58,12 +81,21 @@ ejecutar `npx prisma db push`.
 pnpm run start:dev
 ```
 
+Se sirve en `http://localhost:3000` (API bajo `/api`).
+
 #### 3. Frontend
 
 ```bash
 cd frontend
 pnpm run dev
 ```
+
+Se sirve en `http://localhost:5173`. En modo desarrollo el frontend apunta a
+`http://localhost:3000/api` (CORS habilitado en el backend).
+
+> **Nota (Mercado Pago):** para probar pagos sin checkout real, setear
+> `MERCADO_PAGO_SIMULATED=true` en `.env` antes de iniciar el backend (modo
+> simulado, iteración 10).
 
 ## 🧪 Pruebas
 
