@@ -1057,7 +1057,7 @@ describe('Mesas examinadoras (e2e)', () => {
       ]);
     });
 
-    it('refleja las instancias aprobadas, desaprobadas y el registro de pago', async () => {
+    it('refleja las instancias aprobadas y el registro de pago en la disciplina completa', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { evento, insc } = await setupCandidato(
         admin.token,
@@ -1081,7 +1081,7 @@ describe('Mesas examinadoras (e2e)', () => {
         inscripcion_id: insc.id,
         disciplina: 'KENDO',
         instancia: 'KATA',
-        aprobado: false,
+        aprobado: true,
       }).expect(201);
       await registrarPago(admin.token, insc.id, 'KENDO').expect(201);
 
@@ -1100,7 +1100,7 @@ describe('Mesas examinadoras (e2e)', () => {
         disciplina: 'KENDO',
         graduacion: 'KYU_1',
         instancia: 'KATA',
-        aprobado: false,
+        aprobado: true,
         mesa_id: expect.any(Number),
         registro_pagado: true,
         graduacion_aplicada: false,
@@ -1161,51 +1161,7 @@ describe('Mesas examinadoras (e2e)', () => {
       });
     });
 
-    it('no aplica la graduación si el registro está pagado pero no se aprobaron todas las instancias', async () => {
-      const admin = await createAdminGeneral(prisma, jwt);
-      const { user, evento, insc } = await setupCandidato(
-        admin.token,
-        { grad_kendo: 'SIN_GRADUACION' },
-        ['KENDO'],
-      );
-      await crearMesa(admin.token, evento.id, {
-        disciplina: 'KENDO',
-        examinadores: ['Juan Pérez'],
-        grad_min: 'KYU_3',
-        grad_max: 'KYU_1',
-      }).expect(201);
-
-      await cargarResultado(admin.token, {
-        inscripcion_id: insc.id,
-        disciplina: 'KENDO',
-        instancia: 'PRACTICO',
-        aprobado: false,
-      }).expect(201);
-      await registrarPago(admin.token, insc.id, 'KENDO').expect(201);
-
-      const updated = await prisma.usuario.findUnique({
-        where: { id: user.id },
-      });
-      expect(updated?.grad_kendo).toBe('SIN_GRADUACION');
-
-      const historial = await prisma.historialGraduacion.findMany({
-        where: { usuario_id: user.id },
-      });
-      expect(historial).toHaveLength(0);
-
-      const registro = await prisma.registroExamen.findUnique({
-        where: {
-          inscripcion_id_disciplina: {
-            inscripcion_id: insc.id,
-            disciplina: 'KENDO',
-          },
-        },
-      });
-      expect(registro?.pagado).toBe(true);
-      expect(registro?.graduacion_aplicada).toBe(false);
-    });
-
-    it('no aplica la graduación si faltan instancias aunque el registro esté pagado', async () => {
+    it('registra el pago cuando todas las instancias de la disciplina están aprobadas', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { user, evento, insc } = await setupCandidato(
         admin.token,
@@ -1225,7 +1181,95 @@ describe('Mesas examinadoras (e2e)', () => {
         instancia: 'PRACTICO',
         aprobado: true,
       }).expect(201);
+      await cargarResultado(admin.token, {
+        inscripcion_id: insc.id,
+        disciplina: 'KENDO',
+        instancia: 'KATA',
+        aprobado: true,
+      }).expect(201);
       await registrarPago(admin.token, insc.id, 'KENDO').expect(201);
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
+      expect(updated?.grad_kendo).toBe('KYU_2');
+
+      const registro = await prisma.registroExamen.findUnique({
+        where: {
+          inscripcion_id_disciplina: {
+            inscripcion_id: insc.id,
+            disciplina: 'KENDO',
+          },
+        },
+      });
+      expect(registro?.pagado).toBe(true);
+      expect(registro?.graduacion_aplicada).toBe(false);
+    });
+
+    it('rechaza registrar el pago si una instancia está desaprobada', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { user, evento, insc } = await setupCandidato(
+        admin.token,
+        { grad_kendo: 'SIN_GRADUACION' },
+        ['KENDO'],
+      );
+      await crearMesa(admin.token, evento.id, {
+        disciplina: 'KENDO',
+        examinadores: ['Juan Pérez'],
+        grad_min: 'KYU_3',
+        grad_max: 'KYU_1',
+      }).expect(201);
+
+      await cargarResultado(admin.token, {
+        inscripcion_id: insc.id,
+        disciplina: 'KENDO',
+        instancia: 'PRACTICO',
+        aprobado: false,
+      }).expect(201);
+      await registrarPago(admin.token, insc.id, 'KENDO').expect(400);
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
+      expect(updated?.grad_kendo).toBe('SIN_GRADUACION');
+
+      const historial = await prisma.historialGraduacion.findMany({
+        where: { usuario_id: user.id },
+      });
+      expect(historial).toHaveLength(0);
+
+      const registro = await prisma.registroExamen.findUnique({
+        where: {
+          inscripcion_id_disciplina: {
+            inscripcion_id: insc.id,
+            disciplina: 'KENDO',
+          },
+        },
+      });
+      expect(registro).toBeNull();
+    });
+
+    it('rechaza registrar el pago si faltan instancias aprobadas', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { user, evento, insc } = await setupCandidato(
+        admin.token,
+        { grad_kendo: 'KYU_2' },
+        ['KENDO'],
+      );
+      await crearMesa(admin.token, evento.id, {
+        disciplina: 'KENDO',
+        examinadores: ['Juan Pérez'],
+        grad_min: 'KYU_3',
+        grad_max: 'DAN_8',
+      }).expect(201);
+
+      await cargarResultado(admin.token, {
+        inscripcion_id: insc.id,
+        disciplina: 'KENDO',
+        instancia: 'PRACTICO',
+        aprobado: true,
+      }).expect(201);
+      await registrarPago(admin.token, insc.id, 'KENDO').expect(400);
 
       const updated = await prisma.usuario.findUnique({
         where: { id: user.id },
@@ -1305,7 +1349,7 @@ describe('Mesas examinadoras (e2e)', () => {
       expect(registro?.graduacion_aplicada).toBe(false);
     });
 
-    it('no aplica la graduación si alguna instancia está desaprobada', async () => {
+    it('rechaza registrar el pago si alguna instancia está desaprobada', async () => {
       const admin = await createAdminGeneral(prisma, jwt);
       const { user, evento, insc } = await setupCandidato(
         admin.token,
@@ -1331,7 +1375,7 @@ describe('Mesas examinadoras (e2e)', () => {
         instancia: 'KATA',
         aprobado: false,
       }).expect(201);
-      await registrarPago(admin.token, insc.id, 'KENDO').expect(201);
+      await registrarPago(admin.token, insc.id, 'KENDO').expect(400);
 
       const updated = await prisma.usuario.findUnique({
         where: { id: user.id },

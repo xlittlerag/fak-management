@@ -426,6 +426,7 @@ export default function Mesas() {
                       const firstNonApproved = instancias.findIndex(
                         (i) => i.aprobado !== true,
                       );
+                      const todasAprobadas = firstNonApproved === -1;
                       const fallo =
                         firstNonApproved >= 0 &&
                         instancias[firstNonApproved].aprobado === false;
@@ -527,7 +528,7 @@ export default function Mesas() {
                                   ? 'Pagado y graduado'
                                   : 'Pagado'}
                               </span>
-                            ) : (
+                            ) : todasAprobadas ? (
                               <button
                                 onClick={() =>
                                   handleRegistrarPago(
@@ -539,6 +540,10 @@ export default function Mesas() {
                               >
                                 Registrar pago
                               </button>
+                            ) : (
+                              <span class="text-slate-400 text-xs whitespace-nowrap">
+                                Requiere aprobar todas las instancias
+                              </span>
                             )}
                           </td>
                           <td class="px-4 py-2 text-right">

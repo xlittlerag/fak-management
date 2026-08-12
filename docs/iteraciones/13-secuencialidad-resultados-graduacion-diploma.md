@@ -22,7 +22,7 @@
   - Body: `{ inscripcion_id, disciplina, aprobada_hasta?: PRACTICO|KATA|ESCRITO, desaprobada?: PRACTICO|KATA|ESCRITO, mesa_id? }`.
   - Semántica: `aprobada_hasta` fija el último prefijo aprobado (las anteriores se `upsert` en `true`); `desaprobada` marca como `false` la primera no-aprobada (debe ser inmediatamente posterior al prefijo, si no → 400); las posteriores se eliminan (vuelven a pendiente).
   - La asignación de mesa se resuelve **antes** de abrir la transacción (reutilizando `asignarMesa`; 1 compatible → automática, ≥2 requiere `mesa_id`, 0 → 400) para no usar `this.prisma` dentro de `$transaction`.
-- **`registrarPago`:** ya no invoca a `aplicarGraduacionSiCorresponde` (que se elimina). Solo marca `pagado = true`.
+- **`registrarPago`:** ya no invoca a `aplicarGraduacionSiCorresponde` (que se elimina). Solo marca `pagado = true`, y **solo si todas las instancias requeridas de la disciplina están aprobadas** — si alguna falta o está desaprobada → 400 *"El registro solo puede pagarse si el candidato aprobó todas las instancias de la disciplina"* (el cobro físico se hace únicamente a aprobados; un pago en estado desaprobado sería un clic erróneo).
 
 ### `src/mesas/dto/cargar-avance.dto.ts` (nuevo) y `src/mesas/mesas.controller.ts`
 - `POST /admin/resultados/avance` (ADMIN_GENERAL), validado con el DTO nuevo.
@@ -48,7 +48,7 @@ Sin cambios de schema (no hace falta `prisma db push`): `graduacion_aplicada` ya
   - Botón "Desaprobado"/"Quitar desaprobado" sobre la primera no-aprobada → `desaprobada` con el prefijo anterior.
   - Todo re-editable (bajar la barra o corregir una falla).
 - Selector de mesa por (candidato, disciplina) cuando hay 2+ compatibles; se exige al crear nuevas filas.
-- Columna "Registro pago" y badge "Pagado y graduado" (ahora se enciende al emitir el diploma).
+- Columna "Registro pago": el botón "Registrar pago" solo se muestra cuando la disciplina está completamente aprobada (todas las instancias en verde); en caso contrario aparece la nota *"Requiere aprobar todas las instancias"*. El badge "Pagado y graduado" ahora se enciende al emitir el diploma.
 - Ayuda actualizada: la graduación se efectiviza desde **Diplomas**.
 
 ## 4. Tests E2E
@@ -56,7 +56,7 @@ Sin cambios de schema (no hace falta `prisma db push`): `graduacion_aplicada` ya
 - `test/mesas.e2e-spec.ts`:
   - Guard secuencial: KATA sin PRÁCTICO → 400; ESCRITO sin las dos anteriores → 400.
   - Describe `Avance secuencial`: marcar hasta KATA rellena el prefijo; bajar la barra vuelve pendiente; marcar Desaprobado registra la falla; rechaza desaprobar sin prefijo; requiere `mesa_id` con varias mesas; rechaza editar tras diploma (`graduacion_aplicada`).
-  - Describe `Registro de pago (graduación diferida al diploma)`: `registrarPago` ya **no** aplica graduación (grad sin cambio, historial vacío, `graduacion_aplicada = false`).
+  - Describe `Registro de pago (graduación diferida al diploma)`: `registrarPago` ya **no** aplica graduación (grad sin cambio, historial vacío, `graduacion_aplicada = false`); se rechaza el pago (400) si una instancia está desaprobada o si faltan instancias aprobadas, y se acepta solo con la disciplina completa.
 - `test/diplomas.e2e-spec.ts`:
   - Describe `Graduación por diploma`: evidencia completa → 201 + grad/historial/`graduacion_aplicada`; sin evidencia → 400; sin pago → 400; manual sin inscripción → solo upload.
   - Tests previos de inscripción (individual + lote) ahora siembran la evidencia de examen para seguir creando diplomas.
@@ -69,7 +69,7 @@ Sin cambios de schema (no hace falta `prisma db push`): `graduacion_aplicada` ya
 
 - [x] No se puede cargar una etapa posterior sin haber aprobado las anteriores (400), en `cargarResultado` y por construcción en `avance`.
 - [x] `POST /admin/resultados/avance` reescribe el prefijo atómicamente; bajar la barra limpia las posteriores; marcar Desaprobado deja las anteriores como prefijo.
-- [x] `registrarPago` ya no efectiviza la graduación.
+- [x] `registrarPago` ya no efectiviza la graduación y solo se habilita con todas las instancias de la disciplina aprobadas.
 - [x] El diploma de examen aplica la graduación solo con todas las instancias + pago; rechazo claro si no corresponde (400 / error en lote).
 - [x] Ediciones de resultados bloqueadas tras la graduación otorgada por diploma.
 - [x] Barra de progreso en `Mesas.tsx` reemplaza los botones por instancia.

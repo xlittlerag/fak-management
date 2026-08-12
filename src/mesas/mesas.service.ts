@@ -528,6 +528,32 @@ export class MesasService {
       );
     }
 
+    const graduacion = this.parseArray(inscripcion.categoria_grad)[idx];
+    if (!graduacion) {
+      throw new BadRequestException(
+        'No se pudo determinar la graduación a rendir',
+      );
+    }
+
+    const requeridas = instanciasRequeridas(disciplina, graduacion);
+    if (requeridas.length === 0) {
+      throw new BadRequestException(
+        'No se puede registrar el pago para esta disciplina y graduación',
+      );
+    }
+
+    const resultados = await this.prisma.resultadoExamen.findMany({
+      where: { inscripcion_id: inscripcionId, disciplina },
+    });
+    const todasAprobadas = requeridas.every((instancia) =>
+      resultados.some((r) => r.instancia === instancia && r.aprobado === true),
+    );
+    if (!todasAprobadas) {
+      throw new BadRequestException(
+        'El registro solo puede pagarse si el candidato aprobó todas las instancias de la disciplina',
+      );
+    }
+
     const registro = await this.prisma.registroExamen.upsert({
       where: {
         inscripcion_id_disciplina: {
