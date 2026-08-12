@@ -31,7 +31,7 @@ async function main() {
 
   const count = await prisma.adminGeneral.count();
   if (count === 0) {
-    const password = process.env.ADMIN_PASSWORD || 'Admin123!';
+    const password = process.env.ADMIN_PASSWORD || 'Admin123';
     const hash = await bcrypt.hash(password, 10);
     await prisma.adminGeneral.create({
       data: { dni: '00000000', password: hash },
@@ -45,6 +45,12 @@ async function main() {
 }
 main().catch(e => { console.error('Error al crear admin:', e); process.exit(1); });
 " 2>&1
+
+if [ "${SEED_DATABASE}" = "true" ]; then
+  echo "→ Cargando datos de prueba (SEED_DATABASE=true)..."
+  cd /app
+  DATABASE_URL="file:${DB_DIR}/${DB_FILE}" pnpm exec tsx prisma/seed.ts 2>&1
+fi
 
 echo "→ Iniciando aplicación..."
 cd /app

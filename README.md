@@ -37,7 +37,7 @@ podman run -d -p 3000:3000 \
   -e JWT_SECRET="$(openssl rand -hex 64)" \
   -e MERCADO_PAGO_ACCESS_TOKEN="test" \
   -e MERCADO_PAGO_SIMULATED="true" \
-  -e ADMIN_PASSWORD="Admin123!" \
+  -e ADMIN_PASSWORD="Admin123" \
   -v kendo-db:/app/data \
   -v kendo-uploads:/app/uploads \
   kendo-manager
@@ -47,6 +47,12 @@ podman run -d -p 3000:3000 \
 #   --health-cmd="node -e \"require('http').get('http://localhost:3000/',()=>process.exit(0)).on('error',()=>process.exit(1))\"" \
 #   --health-interval=30s \
 #   --health-start-period=15s
+```
+
+> **Nota:** en producción el arranque crea únicamente el admin general bootstrap
+> (password = `ADMIN_PASSWORD`, default `Admin123`) y **no** carga datos de prueba.
+> Para entornos de prueba iniciales, agregar `-e SEED_DATABASE="true"` en el primer
+> `run` (default `false`).
 ```
 
 ### Ejecución en Desarrollo
@@ -69,7 +75,7 @@ pnpm run seed        # carga los datos de prueba (asociaciones, dojos, usuarios,
 
 | Rol                                  | Login                        | Password    |
 | ------------------------------------ | ---------------------------- | ----------- |
-| Admin General                        | `POST /api/auth/admin-login` | `Admin123!` |
+| Admin General                        | `POST /api/auth/admin-login` | `Admin123`  |
 | Admin de Asociación (Yoshinkan)      | `dni: 11111111`              | `Test1234!` |
 | Usuario básico                       | `dni: 55555555`              | `Test1234!` |
 

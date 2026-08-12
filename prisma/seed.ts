@@ -22,7 +22,7 @@ async function main() {
   const prisma = new PrismaClient({ adapter });
 
   const pwd = await bcrypt.hash('Test1234!', 10);
-  const adminPwd = await bcrypt.hash('Admin123!', 10);
+  const adminPwd = await bcrypt.hash('Admin123', 10);
 
   // 0. Admin General (login via POST /auth/admin-login with password)
   await prisma.adminGeneral.upsert({
@@ -370,7 +370,7 @@ async function main() {
   const eventoCount = createdEventos.length;
   const eventoTypes = eventosSeed.map(e => e.tipo).join(', ');
   console.log(`   ${userCount} usuarios, ${eventoCount} eventos (${eventoTypes}), diplomas, certificaciones y más.`);
-  console.log(`   Admin login: POST /auth/admin-login { password: "Admin123!" }`);
+  console.log(`   Admin login: POST /auth/admin-login { password: "Admin123" }`);
   console.log(`   User login:  POST /auth/login { dni: "11111111", password: "Test1234!" }`);
 }
 
