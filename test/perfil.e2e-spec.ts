@@ -115,7 +115,7 @@ describe('Perfil (e2e)', () => {
       await prisma.cuotaGlobal.create({
         data: {
           monto_actual: 15000.0,
-          fecha_vencimiento: new Date('2026-12-31T23:59:59Z'),
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000),
         },
       });
 

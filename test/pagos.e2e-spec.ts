@@ -54,7 +54,7 @@ describe('Pagos (e2e)', () => {
     await prisma.cuotaGlobal.create({
       data: {
         monto_actual: 15000.0,
-        fecha_vencimiento: new Date('2026-12-31T23:59:59Z'),
+        fecha_vencimiento: new Date(Date.now() + 30 * 86400000),
       },
     });
   }
@@ -185,7 +185,10 @@ describe('Pagos (e2e)', () => {
       const response = await request(app.getHttpServer())
         .patch('/api/admin/fee')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ monto_actual: 'no-un-numero', fecha_vencimiento: '2026-12-31' })
+        .send({
+          monto_actual: 'no-un-numero',
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
+        })
         .expect(400);
 
       expect(Array.isArray(response.body.message)).toBe(true);
@@ -197,7 +200,10 @@ describe('Pagos (e2e)', () => {
       const response = await request(app.getHttpServer())
         .patch('/api/admin/fee')
         .set('Authorization', `Bearer ${admin.token}`)
-        .send({ monto_actual: -100, fecha_vencimiento: '2026-12-31' })
+        .send({
+          monto_actual: -100,
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
+        })
         .expect(400);
 
       expect(response.body.message).toEqual(
@@ -223,7 +229,10 @@ describe('Pagos (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/admin/fee')
         .set('Authorization', `Bearer ${token}`)
-        .send({ monto_actual: 15000, fecha_vencimiento: '2026-12-31' })
+        .send({
+          monto_actual: 15000,
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
+        })
         .expect(403);
     });
   });
@@ -313,8 +322,8 @@ describe('Pagos (e2e)', () => {
       const evento = await prisma.evento.create({
         data: {
           tipo: 'TORNEO',
-          fecha_inicio: new Date('2026-12-01T10:00:00.000Z'),
-          fecha_fin: new Date('2026-12-01T18:00:00.000Z'),
+          fecha_inicio: new Date(Date.now() + 86400000),
+          fecha_fin: new Date(Date.now() + 86400000 + 8 * 3600000),
           datos_lugar: { direccion: 'Test', provincia: 'BUENOS_AIRES' },
           torneo: {
             create: {

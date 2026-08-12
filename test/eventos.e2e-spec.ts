@@ -54,8 +54,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'TORNEO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: {
             direccion: 'Polideportivo Central',
             provincia: 'CABA',
@@ -83,8 +85,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -101,8 +105,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -129,8 +135,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo Central', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -162,8 +170,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -187,8 +197,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -215,8 +227,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -258,8 +272,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -300,8 +316,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -323,7 +341,10 @@ describe('Eventos (e2e)', () => {
       });
 
       await prisma.cuotaGlobal.create({
-        data: { monto_actual: 5000, fecha_vencimiento: new Date('2099-12-31') },
+        data: {
+          monto_actual: 5000,
+          fecha_vencimiento: new Date(Date.now() + 365 * 86400000),
+        },
       });
 
       const evento = await request(app.getHttpServer())
@@ -331,8 +352,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -355,8 +378,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -385,8 +410,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'TORNEO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,
@@ -417,8 +444,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'TORNEO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,
@@ -448,8 +477,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -479,8 +510,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           // Solo KYU_2 en adelante, pero SIN_GRADUACION → siguiente es KYU_3 (no en rango)
@@ -511,8 +544,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           // KYU_1 → siguiente es DAN_1 (en rango)
@@ -545,8 +580,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -574,8 +611,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -608,8 +647,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -644,8 +685,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -681,8 +724,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,
@@ -719,8 +764,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,
@@ -750,8 +797,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -780,8 +829,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo Central', provincia: 'CABA' },
           disciplinas: ['KENDO', 'IAIDO'],
           graduaciones_a_rendir: [
@@ -804,8 +855,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           graduaciones_a_rendir: [
             { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
@@ -821,8 +874,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -840,8 +895,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'SEMINARIO',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 0,
@@ -857,8 +914,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -876,8 +935,10 @@ describe('Eventos (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           tipo: 'EXAMEN',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Dojo', provincia: 'CABA' },
           disciplinas: ['KENDO'],
           graduaciones_a_rendir: [
@@ -897,8 +958,10 @@ describe('Eventos (e2e)', () => {
         .send({
           tipo: 'TORNEO',
           ambito: 'NACIONAL',
-          fecha_inicio: '2026-12-01T09:00:00Z',
-          fecha_fin: '2026-12-01T18:00:00Z',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
           datos_lugar: { direccion: 'Test', provincia: 'CABA' },
           disciplina: 'KENDO',
           costo_inscripcion: 5000,

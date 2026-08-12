@@ -74,7 +74,7 @@ describe('Admin Features (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           monto_actual: 15000.0,
-          fecha_vencimiento: '2026-12-31T23:59:59Z',
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
         })
         .expect(200);
 
@@ -91,7 +91,7 @@ describe('Admin Features (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           monto_actual: 15000.0,
-          fecha_vencimiento: '2026-12-31T23:59:59Z',
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
         })
         .expect(200);
 
@@ -101,7 +101,7 @@ describe('Admin Features (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           monto_actual: 16000.0,
-          fecha_vencimiento: '2026-12-31T23:59:59Z',
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
         })
         .expect(200);
 
@@ -129,7 +129,7 @@ describe('Admin Features (e2e)', () => {
         .set('Authorization', `Bearer ${admin.token}`)
         .send({
           monto_actual: 15000.0,
-          fecha_vencimiento: '2026-12-31T23:59:59Z',
+          fecha_vencimiento: new Date(Date.now() + 30 * 86400000).toISOString(),
         })
         .expect(200);
 
