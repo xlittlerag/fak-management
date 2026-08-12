@@ -357,10 +357,27 @@ export default function Mesas() {
         <div class="px-6 py-4 border-b border-slate-100">
           <h4 class="font-semibold text-slate-800">Resultados por candidato</h4>
         </div>
-        {resultados.length === 0 ? (
-          <p class="px-6 py-8 text-center text-slate-500 text-sm">
-            No hay candidatos con inscripción aprobada en este examen.
+        <div class="px-6 py-3 border-b border-slate-100 bg-blue-50/60">
+          <p class="text-xs text-slate-600">
+            <span class="font-semibold">¿Cómo se cargan los resultados?</span> Cargá cada
+            instancia (Práctico / Kata / Escrito) con «Aprobar» o «Desaprobar». Cuando la
+            mesa correspondiente, registre su pago: si el candidato aprobó todas las
+            instancias, la graduación se aplica automáticamente.
           </p>
+        </div>
+        {resultados.length === 0 ? (
+          <div class="px-6 py-8 text-center">
+            <p class="text-slate-500 text-sm mb-4">
+              Los candidatos aparecen cuando su inscripción al examen está aprobada.
+              Apruebe las inscripciones desde Gestión de Eventos.
+            </p>
+            <button
+              onClick={() => route(`/dashboard/inscripciones?eventoId=${eventoId}`)}
+              class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+            >
+              Ver inscripciones
+            </button>
+          </div>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">

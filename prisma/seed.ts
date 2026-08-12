@@ -267,13 +267,13 @@ async function main() {
   // Examen Julio pasado — inscripciones aprobadas con graduaciones para diplomas
   const insExamen1 = await makeInscripcion(examenJulio.id, user('maria@test.com').id,
     { disciplinas: ['KENDO', 'IAIDO'], estado: 'APROBADO', pagado: true,
-      grad_cat: { KENDO: 'DAN_2', IAIDO: 'KYU_3' } });
+      grad_cat: ['DAN_2', 'KYU_3'] });
   const insExamen2 = await makeInscripcion(examenJulio.id, user('diego@test.com').id,
     { disciplinas: ['KENDO'], estado: 'APROBADO', pagado: true,
-      grad_cat: { KENDO: 'DAN_3' } });
+      grad_cat: ['DAN_3'] });
   const insExamen3 = await makeInscripcion(examenJulio.id, user('laura@test.com').id,
     { disciplinas: ['KENDO', 'IAIDO'], estado: 'APROBADO', pagado: true,
-      grad_cat: { KENDO: 'DAN_1', IAIDO: 'KYU_2' } });
+      grad_cat: ['DAN_1', 'KYU_2'] });
   await makeInscripcion(examenJulio.id, user('ana@test.com').id,
     { disciplinas: ['KENDO'], estado: 'PENDIENTE', pagado: false,
       necesidades: true, descNecesidades: 'Dificultad visual parcial.' });
@@ -286,7 +286,8 @@ async function main() {
 
   // Examen Diciembre futuro — algunas pre-inscripciones
   await makeInscripcion(examenDic.id, user('pedro@test.com').id,
-    { disciplinas: ['KENDO'], estado: 'APROBADO', pagado: true });
+    { disciplinas: ['KENDO'], estado: 'APROBADO', pagado: true,
+      grad_cat: ['DAN_4'] });
   await makeInscripcion(examenDic.id, user('martin@test.com').id,
     { disciplinas: ['KENDO'], estado: 'PENDIENTE', pagado: false });
 
