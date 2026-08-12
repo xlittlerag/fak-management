@@ -24,7 +24,8 @@ El proyecto es una aplicación Monorepo dividida en:
    ```bash
    cp .env.example .env
    ```
-   Al menos reemplazar `JWT_SECRET` por un valor aleatorio, p.ej. `openssl rand -hex 64`.
+   Al menos reemplazar `JWT_SECRET` por un valor aleatorio, p.ej.
+   `openssl rand -hex 64`.
 
 ### Ejecución con Podman
 
@@ -50,10 +51,9 @@ podman run -d -p 3000:3000 \
 ```
 
 > **Nota:** en producción el arranque crea únicamente el admin general bootstrap
-> (password = `ADMIN_PASSWORD`, default `Admin123`) y **no** carga datos de prueba.
-> Para entornos de prueba iniciales, agregar `-e SEED_DATABASE="true"` en el primer
-> `run` (default `false`).
-```
+> (password = `ADMIN_PASSWORD`, default `Admin123`) y **no** carga datos de
+> prueba. Para entornos de prueba iniciales, agregar `-e SEED_DATABASE="true"`
+> en el primer `run` (default `false`).
 
 ### Ejecución en Desarrollo
 
@@ -73,11 +73,11 @@ pnpm run seed        # carga los datos de prueba (asociaciones, dojos, usuarios,
 
 #### Usuarios de prueba (seed)
 
-| Rol                                  | Login                        | Password    |
-| ------------------------------------ | ---------------------------- | ----------- |
-| Admin General                        | `POST /api/auth/admin-login` | `Admin123`  |
-| Admin de Asociación (Yoshinkan)      | `dni: 11111111`              | `Test1234!` |
-| Usuario básico                       | `dni: 55555555`              | `Test1234!` |
+| Rol                             | Login                        | Password    |
+| ------------------------------- | ---------------------------- | ----------- |
+| Admin General                   | `POST /api/auth/admin-login` | `Admin123`  |
+| Admin de Asociación (Yoshinkan) | `dni: 11111111`              | `Test1234!` |
+| Usuario básico                  | `dni: 55555555`              | `Test1234!` |
 
 Todos los usuarios del seed comparten la contraseña `Test1234!`.
 
