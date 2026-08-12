@@ -15,6 +15,25 @@ describe('Diplomas (e2e)', () => {
   let prisma: PrismaService;
   let jwt: JwtService;
 
+  const seedEvidenciaExamen = async (
+    inscripcionId: number,
+    disciplina: string,
+    instancias: string[],
+    pagado = true,
+  ) => {
+    await prisma.resultadoExamen.createMany({
+      data: instancias.map((instancia) => ({
+        inscripcion_id: inscripcionId,
+        disciplina,
+        instancia: instancia as 'PRACTICO' | 'KATA' | 'ESCRITO',
+        aprobado: true,
+      })),
+    });
+    await prisma.registroExamen.create({
+      data: { inscripcion_id: inscripcionId, disciplina, pagado },
+    });
+  };
+
   beforeAll(async () => {
     ({ app, prisma, jwt } = await createTestApp());
     const mpService = app.get(MercadoPagoService);
@@ -108,6 +127,12 @@ describe('Diplomas (e2e)', () => {
         },
       });
 
+      await seedEvidenciaExamen(inscRes.body.id, 'KENDO', [
+        'PRACTICO',
+        'KATA',
+        'ESCRITO',
+      ]);
+
       const res1 = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
@@ -167,6 +192,12 @@ describe('Diplomas (e2e)', () => {
             categoria_grad: { KENDO: 'DAN_1' },
           },
         });
+
+        await seedEvidenciaExamen(inscRes.body.id, 'KENDO', [
+          'PRACTICO',
+          'KATA',
+          'ESCRITO',
+        ]);
       }
 
       const res = await request(app.getHttpServer())
@@ -219,6 +250,184 @@ describe('Diplomas (e2e)', () => {
       expect(res.status).toBe(201);
       expect(res.body.created).toBe(0);
       expect(res.body.errors.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Graduación por diploma', () => {
+    const crearInscripcionExamen = async (
+      adminToken: string,
+      userToken: string,
+      categoriaGrad: Record<string, string>,
+    ) => {
+      const eventoRes = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          tipo: 'EXAMEN',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(Date.now() + 2 * 86400000).toISOString(),
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          ambito: 'NACIONAL',
+          disciplinas: ['KENDO'],
+          graduaciones_a_rendir: [
+            { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
+        });
+
+      const inscRes = await request(app.getHttpServer())
+        .post(`/api/eventos/${eventoRes.body.id}/inscribir`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ disciplinas: ['KENDO'] });
+
+      const disciplina = Object.keys(categoriaGrad)[0];
+      await prisma.inscripcionEvento.update({
+        where: { id: inscRes.body.id },
+        data: {
+          estado_aprob: 'APROBADO',
+          pagado: true,
+          categoria_grad: categoriaGrad,
+        },
+      });
+      return {
+        eventoId: eventoRes.body.id,
+        inscripcionId: inscRes.body.id,
+        disciplina,
+      };
+    };
+
+    const subirDiploma = (
+      adminToken: string,
+      usuarioId: number,
+      inscripcionId: number,
+      disciplina: string,
+    ) =>
+      request(app.getHttpServer())
+        .post('/api/admin/diplomas')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(usuarioId))
+        .field('disciplina', disciplina)
+        .field('inscripcion_id', String(inscripcionId));
+
+    it('aplica la graduación al cargar el diploma con evidencia completa', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const user = await createTestUser(prisma, jwt, {
+        grad_kendo: 'SIN_GRADUACION',
+      });
+      const { inscripcionId, disciplina } = await crearInscripcionExamen(
+        admin.token,
+        user.token,
+        { KENDO: 'KYU_3' },
+      );
+      await seedEvidenciaExamen(inscripcionId, disciplina, ['PRACTICO']);
+
+      const res = await subirDiploma(
+        admin.token,
+        user.user.id,
+        inscripcionId,
+        disciplina,
+      );
+      expect(res.status).toBe(201);
+      expect(res.body.graduacion).toBe('KYU_3');
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.user.id },
+      });
+      expect(updated?.grad_kendo).toBe('KYU_3');
+      expect(updated?.f_grad_kendo).not.toBeNull();
+
+      const historial = await prisma.historialGraduacion.findMany({
+        where: { usuario_id: user.user.id },
+      });
+      expect(historial).toHaveLength(1);
+      expect(historial[0]).toMatchObject({
+        disciplina: 'KENDO',
+        graduacion: 'KYU_3',
+      });
+      expect(historial[0].otorgado_por).toContain('Diploma nacional');
+
+      const registro = await prisma.registroExamen.findUnique({
+        where: {
+          inscripcion_id_disciplina: {
+            inscripcion_id: inscripcionId,
+            disciplina,
+          },
+        },
+      });
+      expect(registro?.graduacion_aplicada).toBe(true);
+    });
+
+    it('rechaza el diploma sin la evidencia completa en un examen', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const user = await createTestUser(prisma, jwt, {
+        grad_kendo: 'SIN_GRADUACION',
+      });
+      const { inscripcionId, disciplina } = await crearInscripcionExamen(
+        admin.token,
+        user.token,
+        { KENDO: 'DAN_1' },
+      );
+      await seedEvidenciaExamen(inscripcionId, disciplina, ['PRACTICO']);
+
+      const res = await subirDiploma(
+        admin.token,
+        user.user.id,
+        inscripcionId,
+        disciplina,
+      );
+      expect(res.status).toBe(400);
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.user.id },
+      });
+      expect(updated?.grad_kendo).toBe('SIN_GRADUACION');
+    });
+
+    it('rechaza el diploma si no se registró el pago del examen', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const user = await createTestUser(prisma, jwt, {
+        grad_kendo: 'SIN_GRADUACION',
+      });
+      const { inscripcionId, disciplina } = await crearInscripcionExamen(
+        admin.token,
+        user.token,
+        { KENDO: 'KYU_3' },
+      );
+      await seedEvidenciaExamen(inscripcionId, disciplina, ['PRACTICO'], false);
+
+      const res = await subirDiploma(
+        admin.token,
+        user.user.id,
+        inscripcionId,
+        disciplina,
+      );
+      expect(res.status).toBe(400);
+    });
+
+    it('el diploma sin inscripción no aplica graduación', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const user = await createTestUser(prisma, jwt, {
+        grad_kendo: 'SIN_GRADUACION',
+      });
+
+      const res = await request(app.getHttpServer())
+        .post('/api/admin/diplomas')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .attach('file', Buffer.from('test'), 'd.pdf')
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
+      expect(res.status).toBe(201);
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.user.id },
+      });
+      expect(updated?.grad_kendo).toBe('SIN_GRADUACION');
+
+      const historial = await prisma.historialGraduacion.findMany({
+        where: { usuario_id: user.user.id },
+      });
+      expect(historial).toHaveLength(0);
     });
   });
 

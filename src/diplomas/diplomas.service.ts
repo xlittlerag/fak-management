@@ -12,6 +12,7 @@ import { CreateDiplomaDto } from './dto/create-diploma.dto';
 import { ReimprimirDto } from './dto/reimprimir.dto';
 import { UpdateConfigDto } from './dto/update-config.dto';
 import { FilesService } from '../files/files.service';
+import { instanciasRequeridas } from '../eventos/config/instancias-examen';
 
 @Injectable()
 export class DiplomasService {
@@ -23,10 +24,13 @@ export class DiplomasService {
 
   async create(file: Express.Multer.File, dto: CreateDiplomaDto) {
     let graduacion = dto.graduacion;
+    let inscripcionId: number | null = null;
+    let esExamen = false;
 
     if (dto.inscripcion_id) {
       const inscripcion = await this.prisma.inscripcionEvento.findUnique({
         where: { id: dto.inscripcion_id },
+        include: { evento: true },
       });
       if (!inscripcion)
         throw new NotFoundException('Inscripción no encontrada');
@@ -55,6 +59,14 @@ export class DiplomasService {
         throw new ConflictException(
           'Ya existe un diploma para esta inscripción y disciplina',
         );
+
+      inscripcionId = inscripcion.id;
+      esExamen = inscripcion.evento.tipo === 'EXAMEN';
+      await this.validarEvidenciaExamen(
+        dto.inscripcion_id,
+        dto.disciplina,
+        graduacion,
+      );
     }
 
     if (!graduacion)
@@ -62,19 +74,33 @@ export class DiplomasService {
 
     const url_archivo = await this.filesService.upload(file);
 
-    return this.prisma.diplomaNacional.create({
-      data: {
-        usuario_id: dto.usuario_id,
-        url_archivo,
-        disciplina: dto.disciplina as Disciplina,
-        graduacion: graduacion as Graduacion,
-        inscripcion_id: dto.inscripcion_id ?? null,
-      },
-      include: {
-        usuario: {
-          select: { id: true, nombre: true, apellido: true, dni: true },
+    return this.prisma.$transaction(async (tx) => {
+      const diploma = await tx.diplomaNacional.create({
+        data: {
+          usuario_id: dto.usuario_id,
+          url_archivo,
+          disciplina: dto.disciplina as Disciplina,
+          graduacion: graduacion as Graduacion,
+          inscripcion_id: dto.inscripcion_id ?? null,
         },
-      },
+        include: {
+          usuario: {
+            select: { id: true, nombre: true, apellido: true, dni: true },
+          },
+        },
+      });
+
+      if (esExamen && inscripcionId) {
+        await this.aplicarGraduacionPorDiploma(
+          tx,
+          inscripcionId,
+          dto.disciplina,
+          graduacion,
+          diploma.id,
+        );
+      }
+
+      return diploma;
     });
   }
 
@@ -128,14 +154,61 @@ export class DiplomasService {
       }
       try {
         const url_archivo = await this.filesService.upload(file);
-        const diploma = await this.prisma.diplomaNacional.create({
-          data: {
-            usuario_id: meta.usuario_id,
-            url_archivo,
-            disciplina: meta.disciplina as Disciplina,
-            graduacion: graduacion as Graduacion,
-            inscripcion_id: inscripcion.id,
-          },
+        const diploma = await this.prisma.$transaction(async (tx) => {
+          const created = await tx.diplomaNacional.create({
+            data: {
+              usuario_id: meta.usuario_id,
+              url_archivo,
+              disciplina: meta.disciplina as Disciplina,
+              graduacion: graduacion as Graduacion,
+              inscripcion_id: inscripcion.id,
+            },
+          });
+
+          if (evento.tipo === 'EXAMEN') {
+            const requeridas = instanciasRequeridas(
+              meta.disciplina,
+              graduacion,
+            );
+            if (requeridas.length === 0) {
+              throw new BadRequestException(
+                'No se puede otorgar esta graduación mediante un diploma de examen',
+              );
+            }
+            const [resultados, registro] = await Promise.all([
+              tx.resultadoExamen.findMany({
+                where: {
+                  inscripcion_id: inscripcion.id,
+                  disciplina: meta.disciplina,
+                },
+              }),
+              tx.registroExamen.findUnique({
+                where: {
+                  inscripcion_id_disciplina: {
+                    inscripcion_id: inscripcion.id,
+                    disciplina: meta.disciplina,
+                  },
+                },
+              }),
+            ]);
+            const completas = requeridas.every((inst) =>
+              resultados.some((r) => r.instancia === inst && r.aprobado),
+            );
+            if (!completas || !registro?.pagado) {
+              throw new BadRequestException(
+                'El candidato no tiene aprobadas todas las instancias del examen ni el pago registrado para esta disciplina',
+              );
+            }
+            await this.aplicarGraduacionPorDiploma(
+              tx,
+              inscripcion.id,
+              meta.disciplina,
+              graduacion,
+              created.id,
+            );
+          }
+
+          return created;
         });
         created.push(diploma);
       } catch (e) {
@@ -183,6 +256,93 @@ export class DiplomasService {
         created_at: true,
       },
       orderBy: { created_at: 'desc' },
+    });
+  }
+
+  private async validarEvidenciaExamen(
+    inscripcionId: number,
+    disciplina: string,
+    graduacion: string,
+  ) {
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+      include: { evento: true },
+    });
+    if (!inscripcion) return;
+    if (inscripcion.evento.tipo !== 'EXAMEN') return;
+
+    const instancias = instanciasRequeridas(disciplina, graduacion);
+    if (instancias.length === 0) {
+      throw new BadRequestException(
+        'No se puede otorgar esta graduación mediante un diploma de examen',
+      );
+    }
+
+    const [resultados, registro] = await Promise.all([
+      this.prisma.resultadoExamen.findMany({
+        where: { inscripcion_id: inscripcionId, disciplina },
+      }),
+      this.prisma.registroExamen.findUnique({
+        where: {
+          inscripcion_id_disciplina: {
+            inscripcion_id: inscripcionId,
+            disciplina,
+          },
+        },
+      }),
+    ]);
+
+    const completas = instancias.every((inst) =>
+      resultados.some((r) => r.instancia === inst && r.aprobado),
+    );
+
+    if (!completas || !registro?.pagado) {
+      throw new BadRequestException(
+        'El candidato no tiene aprobadas todas las instancias del examen ni el pago registrado para esta disciplina',
+      );
+    }
+  }
+
+  private async aplicarGraduacionPorDiploma(
+    tx: Prisma.TransactionClient,
+    inscripcionId: number,
+    disciplina: string,
+    graduacion: string,
+    diplomaId: number,
+  ) {
+    const inscripcion = await tx.inscripcionEvento.findUnique({
+      where: { id: inscripcionId },
+    });
+    if (!inscripcion) return;
+
+    const gradKey = `grad_${disciplina.toLowerCase()}` as
+      'grad_kendo' | 'grad_iaido' | 'grad_jodo';
+    const fGradKey = `f_grad_${disciplina.toLowerCase()}` as
+      'f_grad_kendo' | 'f_grad_iaido' | 'f_grad_jodo';
+
+    await tx.usuario.update({
+      where: { id: inscripcion.usuario_id },
+      data: { [gradKey]: graduacion as Graduacion, [fGradKey]: new Date() },
+    });
+
+    await tx.historialGraduacion.create({
+      data: {
+        usuario_id: inscripcion.usuario_id,
+        disciplina: disciplina as Disciplina,
+        graduacion: graduacion as Graduacion,
+        fecha_obtencion: new Date(),
+        otorgado_por: `Diploma nacional #${diplomaId}`,
+      },
+    });
+
+    await tx.registroExamen.update({
+      where: {
+        inscripcion_id_disciplina: {
+          inscripcion_id: inscripcionId,
+          disciplina,
+        },
+      },
+      data: { graduacion_aplicada: true },
     });
   }
 

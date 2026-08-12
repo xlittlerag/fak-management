@@ -13,6 +13,7 @@ import { MesasService } from './mesas.service';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { CargarResultadoDto } from './dto/cargar-resultado.dto';
+import { CargarAvanceDto } from './dto/cargar-avance.dto';
 import { RegistrarPagoDto } from './dto/registrar-pago.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
@@ -64,6 +65,12 @@ export class MesasController {
   @Post('resultados')
   cargarResultado(@Body() dto: CargarResultadoDto, @Req() req: Request) {
     return this.mesasService.cargarResultado(dto, req.user!);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Post('resultados/avance')
+  cargarAvance(@Body() dto: CargarAvanceDto, @Req() req: Request) {
+    return this.mesasService.cargarAvance(dto, req.user!);
   }
 
   @Roles(Rol.ADMIN_GENERAL)

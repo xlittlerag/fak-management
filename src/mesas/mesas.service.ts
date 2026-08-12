@@ -4,12 +4,13 @@ import {
   ConflictException,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Disciplina, Graduacion } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateMesaDto } from './dto/create-mesa.dto';
 import { UpdateMesaDto } from './dto/update-mesa.dto';
 import { CargarResultadoDto } from './dto/cargar-resultado.dto';
+import { CargarAvanceDto } from './dto/cargar-avance.dto';
 import { instanciasRequeridas } from '../eventos/config/instancias-examen';
 
 const VALID_DISCIPLINAS = ['KENDO', 'IAIDO', 'JODO'];
@@ -277,6 +278,33 @@ export class MesasService {
       );
     }
 
+    const idxInstancia = instanciasValidas.indexOf(instancia);
+    if (idxInstancia > 0) {
+      const anteriores = instanciasValidas.slice(0, idxInstancia);
+      const resultadosPrevios = await this.prisma.resultadoExamen.findMany({
+        where: { inscripcion_id, disciplina, instancia: { in: anteriores } },
+      });
+      for (const anterior of anteriores) {
+        const previo = resultadosPrevios.find((r) => r.instancia === anterior);
+        if (!previo || !previo.aprobado) {
+          throw new BadRequestException(
+            `Debe aprobar ${this.labelInstancia(anterior)} antes de poder cargar ${this.labelInstancia(instancia)}`,
+          );
+        }
+      }
+    }
+
+    const registroExistente = await this.prisma.registroExamen.findUnique({
+      where: {
+        inscripcion_id_disciplina: { inscripcion_id, disciplina },
+      },
+    });
+    if (registroExistente?.graduacion_aplicada) {
+      throw new BadRequestException(
+        'La graduación ya fue otorgada mediante el diploma; no se pueden modificar los resultados',
+      );
+    }
+
     const mesaAsignadaId = await this.asignarMesa(
       inscripcion.evento_id,
       disciplina,
@@ -309,6 +337,173 @@ export class MesasService {
     return this.formatResultado(resultado);
   }
 
+  async cargarAvance(dto: CargarAvanceDto, user: AuthUser) {
+    const { inscripcion_id, disciplina, aprobada_hasta, desaprobada, mesa_id } =
+      dto;
+
+    const inscripcion = await this.prisma.inscripcionEvento.findUnique({
+      where: { id: inscripcion_id },
+      include: { evento: { include: { examen: true } } },
+    });
+    if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
+    if (inscripcion.evento.tipo !== 'EXAMEN') {
+      throw new BadRequestException(
+        'Los resultados solo se cargan para exámenes',
+      );
+    }
+    if (inscripcion.estado_aprob !== 'APROBADO') {
+      throw new BadRequestException(
+        'La inscripción debe estar aprobada para cargar resultados',
+      );
+    }
+
+    const disciplinas = this.parseArray(inscripcion.disciplinas);
+    const targets = this.parseArray(inscripcion.categoria_grad);
+    const idx = disciplinas.indexOf(disciplina);
+    if (idx === -1) {
+      throw new BadRequestException(
+        'La disciplina no corresponde a la inscripción',
+      );
+    }
+    const graduacion = targets[idx];
+    if (!graduacion) {
+      throw new BadRequestException(
+        'No se pudo determinar la graduación a rendir',
+      );
+    }
+
+    const instancias = instanciasRequeridas(disciplina, graduacion);
+    if (instancias.length === 0) {
+      throw new BadRequestException(
+        'No se pueden cargar resultados para esta disciplina y graduación',
+      );
+    }
+
+    const idxHasta = aprobada_hasta ? instancias.indexOf(aprobada_hasta) : -1;
+    const idxDesaprobada = desaprobada ? instancias.indexOf(desaprobada) : -1;
+    if (aprobada_hasta && idxHasta === -1) {
+      throw new BadRequestException(
+        'La instancia aprobada no corresponde a esta disciplina y graduación',
+      );
+    }
+    if (desaprobada && idxDesaprobada === -1) {
+      throw new BadRequestException(
+        'La instancia desaprobada no corresponde a esta disciplina y graduación',
+      );
+    }
+    if (desaprobada && idxDesaprobada !== (aprobada_hasta ? idxHasta + 1 : 0)) {
+      throw new BadRequestException(
+        'No se puede desaprobar una instancia sin tener aprobadas las anteriores',
+      );
+    }
+
+    const prefixLen = aprobada_hasta ? idxHasta + 1 : 0;
+    const clearStart = desaprobada ? idxDesaprobada + 1 : prefixLen;
+
+    const registro = await this.prisma.registroExamen.findUnique({
+      where: {
+        inscripcion_id_disciplina: { inscripcion_id, disciplina },
+      },
+    });
+    if (registro?.graduacion_aplicada) {
+      throw new BadRequestException(
+        'La graduación ya fue otorgada mediante el diploma; no se pueden modificar los resultados',
+      );
+    }
+
+    const prevResults = await this.prisma.resultadoExamen.findMany({
+      where: { inscripcion_id, disciplina },
+    });
+    const prevByInst = new Map(prevResults.map((r) => [r.instancia, r]));
+
+    const aAprobar = instancias.slice(0, prefixLen);
+    const aResgistrar = [...aAprobar, ...(desaprobada ? [desaprobada] : [])];
+    const planMesas = new Map<string, number>();
+    for (const instancia of aResgistrar) {
+      if (planMesas.has(instancia)) continue;
+      const previo = prevByInst.get(instancia);
+      planMesas.set(
+        instancia,
+        previo?.mesa_id ??
+          (await this.asignarMesa(
+            inscripcion.evento_id,
+            disciplina,
+            graduacion,
+            mesa_id,
+          )),
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      for (const instancia of aAprobar) {
+        await tx.resultadoExamen.upsert({
+          where: {
+            inscripcion_id_disciplina_instancia: {
+              inscripcion_id,
+              disciplina,
+              instancia,
+            },
+          },
+          create: {
+            inscripcion_id,
+            disciplina,
+            instancia,
+            mesa_id: planMesas.get(instancia),
+            aprobado: true,
+            cargado_por: user.id,
+          },
+          update: {
+            mesa_id: planMesas.get(instancia),
+            aprobado: true,
+            cargado_por: user.id,
+          },
+        });
+      }
+
+      if (desaprobada) {
+        await tx.resultadoExamen.upsert({
+          where: {
+            inscripcion_id_disciplina_instancia: {
+              inscripcion_id,
+              disciplina,
+              instancia: desaprobada,
+            },
+          },
+          create: {
+            inscripcion_id,
+            disciplina,
+            instancia: desaprobada,
+            mesa_id: planMesas.get(desaprobada),
+            aprobado: false,
+            cargado_por: user.id,
+          },
+          update: {
+            mesa_id: planMesas.get(desaprobada),
+            aprobado: false,
+            cargado_por: user.id,
+          },
+        });
+      }
+
+      const aLimpiar = instancias.slice(clearStart);
+      for (const instancia of aLimpiar) {
+        if (prevByInst.has(instancia)) {
+          await tx.resultadoExamen.delete({
+            where: {
+              inscripcion_id_disciplina_instancia: {
+                inscripcion_id,
+                disciplina,
+                instancia,
+              },
+            },
+          });
+        }
+      }
+
+      return { message: 'Resultados actualizados correctamente' };
+    });
+  }
+
   async registrarPago(
     inscripcionId: number,
     disciplina: string,
@@ -326,17 +521,10 @@ export class MesasService {
     }
 
     const disciplinas = this.parseArray(inscripcion.disciplinas);
-    const targets = this.parseArray(inscripcion.categoria_grad);
     const idx = disciplinas.indexOf(disciplina);
     if (idx === -1) {
       throw new BadRequestException(
         'La disciplina no corresponde a la inscripción',
-      );
-    }
-    const graduacion = targets[idx];
-    if (!graduacion) {
-      throw new BadRequestException(
-        'No se pudo determinar la graduación a rendir',
       );
     }
 
@@ -359,25 +547,6 @@ export class MesasService {
         cargado_por: user.id,
       },
     });
-
-    if (!registro.graduacion_aplicada) {
-      const aplicada = await this.aplicarGraduacionSiCorresponde(
-        inscripcion,
-        disciplina,
-        graduacion,
-      );
-      if (aplicada) {
-        const updated = await this.prisma.registroExamen.findUnique({
-          where: {
-            inscripcion_id_disciplina: {
-              inscripcion_id: inscripcionId,
-              disciplina,
-            },
-          },
-        });
-        if (updated) return this.formatRegistro(updated);
-      }
-    }
 
     return this.formatRegistro(registro);
   }
@@ -421,58 +590,16 @@ export class MesasService {
     return compatibles[0].id;
   }
 
-  private async aplicarGraduacionSiCorresponde(
-    inscripcion: {
-      id: number;
-      usuario_id: number;
-    },
-    disciplina: string,
-    graduacion: string,
-  ): Promise<boolean> {
-    const instancias = instanciasRequeridas(disciplina, graduacion);
-    if (instancias.length === 0) return false;
-
-    const resultados = await this.prisma.resultadoExamen.findMany({
-      where: { inscripcion_id: inscripcion.id, disciplina },
-    });
-
-    const completas = instancias.every((inst) =>
-      resultados.some((r) => r.instancia === inst && r.aprobado),
+  private labelInstancia(instancia: string): string {
+    return (
+      (
+        {
+          PRACTICO: 'Práctico',
+          KATA: 'Kata',
+          ESCRITO: 'Escrito',
+        } as Record<string, string>
+      )[instancia] ?? instancia
     );
-    if (!completas) return false;
-
-    const gradKey = `grad_${disciplina.toLowerCase()}`;
-    const fGradKey = `f_grad_${disciplina.toLowerCase()}`;
-
-    await this.prisma.usuario.update({
-      where: { id: inscripcion.usuario_id },
-      data: {
-        [gradKey]: graduacion as Graduacion,
-        [fGradKey]: new Date(),
-      },
-    });
-
-    await this.prisma.historialGraduacion.create({
-      data: {
-        usuario_id: inscripcion.usuario_id,
-        disciplina: disciplina as Disciplina,
-        graduacion: graduacion as Graduacion,
-        fecha_obtencion: new Date(),
-        otorgado_por: `Mesa examinadora #${inscripcion.id}`,
-      },
-    });
-
-    await this.prisma.registroExamen.update({
-      where: {
-        inscripcion_id_disciplina: {
-          inscripcion_id: inscripcion.id,
-          disciplina,
-        },
-      },
-      data: { graduacion_aplicada: true },
-    });
-
-    return true;
   }
 
   private validarDisciplina(disciplina: string) {

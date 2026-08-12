@@ -218,38 +218,52 @@ export default function Mesas() {
 
   const [mesaSeleccionada, setMesaSeleccionada] = useState<Record<string, number>>({});
 
-  const handleCargarResultado = async (
+  const mesaKey = (inscripcionId: number, disciplina: string) =>
+    `${inscripcionId}-${disciplina}`;
+
+  const handleAvance = async (
     inscripcionId: number,
-    instancia: InstanciaResultado,
-    aprobado: boolean,
+    disciplina: string,
+    graduacion: string,
+    aprobada_hasta: string | null,
+    desaprobada: string | null,
+    instancias: InstanciaResultado[],
   ) => {
     setError('');
     setMsg('');
-    const compatibles = mesasCompatibles(instancia.disciplina, instancia.graduacion);
-    const key = `${inscripcionId}-${instancia.disciplina}-${instancia.instancia}`;
-    const mesa_id = compatibles.length > 1 ? mesaSeleccionada[key] : undefined;
-    if (compatibles.length > 1 && !mesa_id) {
-      setError('Seleccione la mesa antes de cargar el resultado');
+    const compatibles = mesasCompatibles(disciplina, graduacion);
+    const firstNonApproved = instancias.findIndex((i) => i.aprobado !== true);
+
+    const willCreateRows =
+      (aprobada_hasta
+        ? instancias.findIndex((i) => i.instancia === aprobada_hasta) >=
+          firstNonApproved
+        : false) ||
+      !!desaprobada;
+
+    const key = mesaKey(inscripcionId, disciplina);
+    const mesa_id =
+      compatibles.length > 1 ? mesaSeleccionada[key] : undefined;
+    if (willCreateRows && compatibles.length > 1 && !mesa_id) {
+      setError('Seleccione la mesa antes de actualizar los resultados');
       return;
     }
     try {
-      await api.post('/admin/resultados', {
+      await api.post('/admin/resultados/avance', {
         inscripcion_id: inscripcionId,
-        disciplina: instancia.disciplina,
-        instancia: instancia.instancia,
-        aprobado,
-        mesa_id,
+        disciplina,
+        aprobada_hasta: aprobada_hasta ?? null,
+        desaprobada: desaprobada ?? null,
+        ...(mesa_id ? { mesa_id } : {}),
       });
-      setMsg(
-        aprobado
-          ? 'Instancia aprobada correctamente'
-          : 'Instancia desaprobada correctamente',
-      );
+      setMsg('Resultados actualizados correctamente');
       fetchData();
     } catch (err: unknown) {
       const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
       const m = axiosErr.response?.data?.message;
-      setError(Array.isArray(m) ? m.join(' - ') : m || 'Error al cargar el resultado');
+      setError(
+        Array.isArray(m) ? m.join(' - ') : m || 'Error al actualizar los resultados',
+      );
     }
   };
 
@@ -359,10 +373,12 @@ export default function Mesas() {
         </div>
         <div class="px-6 py-3 border-b border-slate-100 bg-blue-50/60">
           <p class="text-xs text-slate-600">
-            <span class="font-semibold">¿Cómo se cargan los resultados?</span> Cargá cada
-            instancia (Práctico / Kata / Escrito) con «Aprobar» o «Desaprobar». Cuando la
-            mesa correspondiente, registre su pago: si el candidato aprobó todas las
-            instancias, la graduación se aplica automáticamente.
+            <span class="font-semibold">¿Cómo se cargan los resultados?</span> Las
+            instancias se aprueban en orden: Práctico → Kata → Escrito. Haga clic en la
+            instancia hasta la que el candidato aprobó (las anteriores se rellenan solas)
+            o use «Desaprobado» en la primera que no aprobó. Todo es re-editable. La
+            graduación se hace efectiva cuando la federación carga el diploma desde
+            Diplomas.
           </p>
         </div>
         {resultados.length === 0 ? (
@@ -387,99 +403,176 @@ export default function Mesas() {
                   <th class="px-4 py-2">DNI</th>
                   <th class="px-4 py-2">Disciplina</th>
                   <th class="px-4 py-2">Graduación a rendir</th>
-                  <th class="px-4 py-2">Instancia</th>
-                  <th class="px-4 py-2">Estado</th>
+                  <th class="px-4 py-2">Instancias</th>
                   <th class="px-4 py-2">Mesa</th>
                   <th class="px-4 py-2">Registro pago</th>
                   <th class="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-slate-200">
-                {resultados.map((candidato) => (
-                  candidato.instancias.map((inst) => {
-                    const key = `${candidato.inscripcion_id}-${inst.disciplina}-${inst.instancia}`;
-                    const compatibles = mesasCompatibles(inst.disciplina, inst.graduacion);
-                    return (
-                      <tr key={key} class="hover:bg-slate-50">
-                        <td class="px-4 py-2 font-medium">{candidato.usuario.nombre}</td>
-                        <td class="px-4 py-2 text-slate-600">{candidato.usuario.dni}</td>
-                        <td class="px-4 py-2">{DISC_LABEL[inst.disciplina] || inst.disciplina}</td>
-                        <td class="px-4 py-2 text-slate-600">{GRAD_LABEL[inst.graduacion] || inst.graduacion}</td>
-                        <td class="px-4 py-2">{INSTANCIA_LABEL[inst.instancia] || inst.instancia}</td>
-                        <td class="px-4 py-2">
-                          {inst.aprobado === null ? (
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">
-                              Sin cargar
-                            </span>
-                          ) : inst.aprobado ? (
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">
-                              Aprobado
-                            </span>
-                          ) : (
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-50 text-red-700">
-                              Desaprobado
-                            </span>
-                          )}
-                        </td>
-                        <td class="px-4 py-2 text-slate-600">
-                          {inst.mesa_id
-                            ? `#${inst.mesa_id}`
-                            : inst.aprobado === null && compatibles.length > 1
-                              ? (
-                                <select
-                                  value={mesaSeleccionada[key] || ''}
-                                  onChange={(e: Event) => {
-                                    setMesaSeleccionada({
-                                      ...mesaSeleccionada,
-                                      [key]: Number((e.target as HTMLSelectElement).value),
-                                    });
-                                  }}
-                                  class="border border-slate-300 rounded px-2 py-1 text-xs"
-                                >
-                                  <option value="">Seleccionar mesa</option>
-                                  {compatibles.map((m) => (
-                                    <option key={m.id} value={m.id}>#{m.id}</option>
-                                  ))}
-                                </select>
-                              )
-                              : '—'}
-                        </td>
-                        <td class="px-4 py-2">
-                          {inst.registro_pagado ? (
-                            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">
-                              {inst.graduacion_aplicada ? 'Pagado y graduado' : 'Pagado'}
-                            </span>
-                          ) : (
-                            <button
-                              onClick={() => handleRegistrarPago(candidato.inscripcion_id, inst.disciplina)}
-                              class="text-blue-600 hover:underline whitespace-nowrap"
-                            >
-                              Registrar pago
-                            </button>
-                          )}
-                        </td>
-                        <td class="px-4 py-2 text-right space-x-2">
-                          {inst.aprobado === null && (
-                            <>
-                              <button
-                                onClick={() => handleCargarResultado(candidato.inscripcion_id, inst, true)}
-                                class="text-green-600 hover:underline"
+                {resultados.flatMap((candidato) => {
+                  const grupos = new Map<string, InstanciaResultado[]>();
+                  for (const inst of candidato.instancias) {
+                    if (!grupos.has(inst.disciplina)) {
+                      grupos.set(inst.disciplina, []);
+                    }
+                    grupos.get(inst.disciplina)!.push(inst);
+                  }
+                  return [...grupos.entries()].map(
+                    ([disciplina, instancias]) => {
+                      const graduacion = instancias[0].graduacion;
+                      const registro = instancias[0];
+                      const compatibles = mesasCompatibles(disciplina, graduacion);
+                      const firstNonApproved = instancias.findIndex(
+                        (i) => i.aprobado !== true,
+                      );
+                      const fallo =
+                        firstNonApproved >= 0 &&
+                        instancias[firstNonApproved].aprobado === false;
+                      const mesaActual =
+                        firstNonApproved >= 0
+                          ? instancias[firstNonApproved].mesa_id
+                          : instancias[instancias.length - 1]?.mesa_id ?? null;
+                      const mesaSelKey = mesaKey(
+                        candidato.inscripcion_id,
+                        disciplina,
+                      );
+                      return (
+                        <tr
+                          key={`${candidato.inscripcion_id}-${disciplina}`}
+                          class="hover:bg-slate-50"
+                        >
+                          <td class="px-4 py-2 font-medium">
+                            {candidato.usuario.nombre}
+                          </td>
+                          <td class="px-4 py-2 text-slate-600">
+                            {candidato.usuario.dni}
+                          </td>
+                          <td class="px-4 py-2">
+                            {DISC_LABEL[disciplina] || disciplina}
+                          </td>
+                          <td class="px-4 py-2 text-slate-600">
+                            {GRAD_LABEL[graduacion] || graduacion}
+                          </td>
+                          <td class="px-4 py-2">
+                            <div class="flex flex-wrap items-center gap-1">
+                              {instancias.map((inst, i) => {
+                                let cls =
+                                  'border border-slate-300 text-slate-600 bg-white';
+                                if (inst.aprobado === true) {
+                                  cls =
+                                    'bg-green-600 text-white border-green-600';
+                                } else if (inst.aprobado === false) {
+                                  cls =
+                                    'bg-red-600 text-white border-red-600';
+                                }
+                                return (
+                                  <div
+                                    class="flex items-center gap-1"
+                                    key={inst.instancia}
+                                  >
+                                    <button
+                                      onClick={() =>
+                                        handleAvance(
+                                          candidato.inscripcion_id,
+                                          disciplina,
+                                          graduacion,
+                                          inst.instancia,
+                                          null,
+                                          instancias,
+                                        )
+                                      }
+                                      title={`Hacer click para aprobar hasta ${INSTANCIA_LABEL[inst.instancia]}`}
+                                      class={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors ${cls}`}
+                                    >
+                                      {INSTANCIA_LABEL[inst.instancia] || inst.instancia}
+                                    </button>
+                                    {i < instancias.length - 1 && (
+                                      <span class="text-slate-300 text-xs">→</span>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </td>
+                          <td class="px-4 py-2 text-slate-600">
+                            {mesaActual ? (
+                              `#${mesaActual}`
+                            ) : compatibles.length > 1 ? (
+                              <select
+                                value={mesaSeleccionada[mesaSelKey] || ''}
+                                onChange={(e: Event) => {
+                                  setMesaSeleccionada({
+                                    ...mesaSeleccionada,
+                                    [mesaSelKey]: Number(
+                                      (e.target as HTMLSelectElement).value,
+                                    ),
+                                  });
+                                }}
+                                class="border border-slate-300 rounded px-2 py-1 text-xs"
                               >
-                                Aprobar
-                              </button>
+                                <option value="">Seleccionar mesa</option>
+                                {compatibles.map((m) => (
+                                  <option key={m.id} value={m.id}>#{m.id}</option>
+                                ))}
+                              </select>
+                            ) : (
+                              '—'
+                            )}
+                          </td>
+                          <td class="px-4 py-2">
+                            {registro.registro_pagado ? (
+                              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">
+                                {registro.graduacion_aplicada
+                                  ? 'Pagado y graduado'
+                                  : 'Pagado'}
+                              </span>
+                            ) : (
                               <button
-                                onClick={() => handleCargarResultado(candidato.inscripcion_id, inst, false)}
-                                class="text-red-600 hover:underline"
+                                onClick={() =>
+                                  handleRegistrarPago(
+                                    candidato.inscripcion_id,
+                                    disciplina,
+                                  )
+                                }
+                                class="text-blue-600 hover:underline whitespace-nowrap"
                               >
-                                Desaprobar
+                                Registrar pago
                               </button>
-                            </>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })
-                ))}
+                            )}
+                          </td>
+                          <td class="px-4 py-2 text-right">
+                            {firstNonApproved >= 0 && (
+                              <button
+                                onClick={() =>
+                                  handleAvance(
+                                    candidato.inscripcion_id,
+                                    disciplina,
+                                    graduacion,
+                                    firstNonApproved > 0
+                                      ? instancias[firstNonApproved - 1].instancia
+                                      : null,
+                                    fallo
+                                      ? null
+                                      : instancias[firstNonApproved].instancia,
+                                    instancias,
+                                  )
+                                }
+                                class={`hover:underline ${
+                                  fallo
+                                    ? 'text-slate-500'
+                                    : 'text-red-600'
+                                }`}
+                              >
+                                {fallo ? 'Quitar desaprobado' : 'Desaprobado'}
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    },
+                  );
+                })}
               </tbody>
             </table>
           </div>
