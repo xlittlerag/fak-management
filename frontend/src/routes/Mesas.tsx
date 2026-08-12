@@ -114,7 +114,8 @@ export default function Mesas() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    fetchData();
+    if (eventoId) fetchData();
+    else setLoading(false);
   }, [eventoId]);
 
   const fetchData = async () => {
@@ -267,6 +268,23 @@ export default function Mesas() {
   };
 
   if (loading) return <div class="p-8"><Spinner text="Cargando examen..." /></div>;
+
+  if (!eventoId) {
+    return (
+      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center">
+        <h4 class="font-semibold text-slate-800 mb-2">Mesas examinadoras</h4>
+        <p class="text-slate-500 text-sm mb-4">
+          Seleccione un examen desde Gestión de Eventos para administrar sus mesas.
+        </p>
+        <button
+          onClick={() => route('/dashboard/eventos-admin')}
+          class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+        >
+          Ir a Gestión de Eventos
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div class="space-y-6">

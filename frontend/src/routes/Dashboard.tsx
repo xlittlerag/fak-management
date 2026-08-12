@@ -71,7 +71,6 @@ export default function Dashboard() {
         { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
         { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
         { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
-        { label: 'Mesas examinadoras', path: '/dashboard/mesas', roles: ['ADMIN_GENERAL'] },
         { label: 'Bajas Pendientes', path: '/dashboard/bajas', roles: ['ADMIN_GENERAL'] },
       ],
     },
