@@ -97,7 +97,8 @@ pnpm run dev
 ```
 
 Se sirve en `http://localhost:5173`. En modo desarrollo el frontend apunta a
-`http://localhost:3000/api` (CORS habilitado en el backend).
+`http://localhost:3000/api` (CORS habilitado en el backend solo para
+`http://localhost:5173`; si usa otro puerto, agregue `CORS_ORIGIN` en `.env`).
 
 > **Nota (Mercado Pago):** para probar pagos sin checkout real, setear
 > `MERCADO_PAGO_SIMULATED=true` en `.env` antes de iniciar el backend (modo
