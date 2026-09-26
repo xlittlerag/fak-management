@@ -291,6 +291,15 @@ describe('Auth (e2e)', () => {
       expect(sessionRes.body.email).toBe('cookie@example.com');
     });
 
+    it('un origen no permitido no recibe concesión CORS con credenciales', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/session')
+        .set('Origin', 'https://sitio-malicioso.example')
+        .expect(401);
+
+      expect(res.headers['access-control-allow-origin']).toBeUndefined();
+    });
+
     it('el logout limpia la cookie y la sesión deja de ser válida', async () => {
       const assoc = await prisma.asociacion.create({
         data: { nombre: 'Test' },

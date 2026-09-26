@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
+import { corsOrigins } from './utils/cors-origins';
 import { validationMessages } from './utils/validation-messages';
 import { GlobalExceptionFilter } from './common/http-exception.filter';
 
@@ -28,8 +29,9 @@ async function bootstrap() {
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
-  // credentials: true para que el navegador envíe la cookie httpOnly de sesión.
-  app.enableCors({ origin: true, credentials: true });
+  // credentials: true para que el navegador envíe la cookie httpOnly de
+  // sesión, pero solo hacia orígenes explícitos (ver corsOrigins).
+  app.enableCors({ origin: corsOrigins(), credentials: true });
   await app.listen(process.env.PORT ?? 3000);
 }
 void bootstrap();

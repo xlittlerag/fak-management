@@ -11,6 +11,7 @@ import { ThrottlerStorage } from '@nestjs/throttler';
 import { validationMessages } from '../src/utils/validation-messages';
 import * as bcrypt from 'bcrypt';
 import cookieParser from 'cookie-parser';
+import { corsOrigins } from '../src/utils/cors-origins';
 
 export async function createTestApp(): Promise<{
   app: INestApplication;
@@ -34,7 +35,7 @@ export async function createTestApp(): Promise<{
   const app = moduleFixture.createNestApplication();
   app.setGlobalPrefix('api');
   app.use(cookieParser());
-  app.enableCors({ origin: true, credentials: true });
+  app.enableCors({ origin: corsOrigins(), credentials: true });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
