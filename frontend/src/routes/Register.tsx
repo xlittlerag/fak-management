@@ -116,23 +116,23 @@ export default function Register() {
         <form onSubmit={handleSubmit} class="space-y-4">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-              <input name="nombre" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <label htmlFor="reg-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+              <input name="nombre" id="reg-nombre" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
-              <input name="apellido" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <label htmlFor="reg-apellido" class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+              <input name="apellido" id="reg-apellido" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input name="email" type="email" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <label htmlFor="reg-email" class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+              <input name="email" id="reg-email" type="email" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-              <input name="password" type="password" required onChange={handleChange} onBlur={() => setPassTouched(true)} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <label htmlFor="reg-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+              <input name="password" id="reg-password" type="password" required onChange={handleChange} onBlur={() => setPassTouched(true)} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               {passTouched && formData.password && (
                 <div class="mt-2">
                   <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
@@ -148,25 +148,25 @@ export default function Register() {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
-              <input name="dni" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <label htmlFor="reg-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
+              <input name="dni" id="reg-dni" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Fecha Nac.</label>
-              <input name="fecha_nacimiento" type="date" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <label htmlFor="reg-fecha-nacimiento" class="block text-sm font-medium text-slate-700 mb-1">Fecha Nac.</label>
+              <input name="fecha_nacimiento" id="reg-fecha-nacimiento" type="date" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
-              <select name="sexo" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label htmlFor="reg-sexo" class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
+              <select name="sexo" id="reg-sexo" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 {SEXOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Asociación</label>
-              <select name="asociacion_id" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label htmlFor="reg-asociacion" class="block text-sm font-medium text-slate-700 mb-1">Asociación</label>
+              <select name="asociacion_id" id="reg-asociacion" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="">Seleccionar...</option>
                 {asociaciones.map(a => (
                   <option key={a.id} value={a.id}>{a.nombre}</option>
@@ -174,8 +174,8 @@ export default function Register() {
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Dojo</label>
-              <select name="dojo_id" required={dojos.length > 0} disabled={!formData.asociacion_id || dojos.length === 0} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label htmlFor="reg-dojo" class="block text-sm font-medium text-slate-700 mb-1">Dojo</label>
+              <select name="dojo_id" id="reg-dojo" required={dojos.length > 0} disabled={!formData.asociacion_id || dojos.length === 0} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 <option value="">Seleccionar...</option>
                 {dojos.map(d => (
                   <option key={d.id} value={d.id}>{d.nombre}</option>
@@ -188,35 +188,35 @@ export default function Register() {
             <h3 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Domicilio Real</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
-                <input name="calle_altura" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <label htmlFor="reg-calle-altura" class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
+                <input name="calle_altura" id="reg-calle-altura" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto (Opcional)</label>
-                <input name="piso_depto" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <label htmlFor="reg-piso-depto" class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto (Opcional)</label>
+                <input name="piso_depto" id="reg-piso-depto" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
-                <input name="ciudad" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <label htmlFor="reg-ciudad" class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
+                <input name="ciudad" id="reg-ciudad" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
-                <select name="provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                <label htmlFor="reg-provincia" class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
+                <select name="provincia" id="reg-provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                   {PROVINCIAS.map(p => (
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
-                <input name="codigo_postal" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+                <label htmlFor="reg-codigo-postal" class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
+                <input name="codigo_postal" id="reg-codigo-postal" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
               </div>
             </div>
             <div class="mt-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
-              <input name="telefono" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              <label htmlFor="reg-telefono" class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+              <input name="telefono" id="reg-telefono" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
           </div>
 

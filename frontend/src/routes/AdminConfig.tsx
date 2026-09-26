@@ -59,8 +59,9 @@ function ConfigFakEmail() {
 
       <div class="max-w-md space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+          <label htmlFor="config-fak-email" class="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
           <input
+            id="config-fak-email"
             type="email"
             value={fakEmail}
             onInput={(e: Event) => setFakEmail((e.target as HTMLInputElement).value)}
@@ -126,14 +127,14 @@ function ConfigCuota() {
 
       <form onSubmit={handleSubmit} class="max-w-md space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Monto actual ($)</label>
-          <input type="number" step="0.01" min="0" required value={monto}
+          <label htmlFor="config-cuota-monto" class="block text-sm font-medium text-slate-700 mb-1">Monto actual ($)</label>
+          <input id="config-cuota-monto" type="number" step="0.01" min="0" required value={monto}
             onInput={(e: Event) => setMonto((e.currentTarget as HTMLInputElement).value)}
             class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
         </div>
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
-          <input type="date" required value={fecha}
+          <label htmlFor="config-cuota-fecha" class="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
+          <input id="config-cuota-fecha" type="date" required value={fecha}
             onInput={(e: Event) => setFecha((e.currentTarget as HTMLInputElement).value)}
             class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
         </div>
@@ -259,14 +260,14 @@ function ConfigPreciosExamen() {
                 <td class="px-4 py-2 font-medium">{GRAD_LABELS[p.graduacion] || p.graduacion}</td>
                 <td class="px-4 py-2">
                   {editing?.id === p.id ? (
-                    <input type="number" value={newCostoIns}
+                    <input type="number" value={newCostoIns} aria-label="Costo de inscripción"
                       onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
                       class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
                   ) : `$${p.costo_inscripcion.toLocaleString('es-AR')}`}
                 </td>
                 <td class="px-4 py-2">
                   {editing?.id === p.id ? (
-                    <input type="number" value={newCostoReg}
+                    <input type="number" value={newCostoReg} aria-label="Costo de registro"
                       onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
                       class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
                   ) : `$${p.costo_registro.toLocaleString('es-AR')}`}
@@ -289,16 +290,16 @@ function ConfigPreciosExamen() {
             {adding && (
               <tr class="bg-slate-50">
                 <td class="px-4 py-2">
-                  <select value={newGraduacion}
+                  <select value={newGraduacion} aria-label="Graduación"
                     onChange={(e: Event) => setNewGraduacion((e.target as HTMLSelectElement).value)}
                     class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1">
                     {disponibles.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
                   </select>
                 </td>
-                <td class="px-4 py-2"><input type="number" value={newCostoIns}
+                <td class="px-4 py-2"><input type="number" value={newCostoIns} aria-label="Costo de inscripción"
                   onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
                   class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" /></td>
-                <td class="px-4 py-2"><input type="number" value={newCostoReg}
+                <td class="px-4 py-2"><input type="number" value={newCostoReg} aria-label="Costo de registro"
                   onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
                   class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" /></td>
                 <td class="px-4 py-2 text-right space-x-2">
@@ -371,8 +372,8 @@ function ConfigReimpresion() {
 
       <div class="max-w-xs space-y-4">
         <div>
-          <label class="block text-sm font-medium text-slate-700 mb-1">Precio de reimpresión ($)</label>
-          <input type="number" min="0" value={precio}
+          <label htmlFor="config-reimpresion-precio" class="block text-sm font-medium text-slate-700 mb-1">Precio de reimpresión ($)</label>
+          <input id="config-reimpresion-precio" type="number" min="0" value={precio}
             onInput={(e: Event) => setPrecio(parseFloat((e.target as HTMLInputElement).value) || 0)}
             class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
         </div>

@@ -251,4 +251,75 @@ describe('Auth (e2e)', () => {
         .expect(404);
     });
   });
+
+  describe('Cookie de sesión httpOnly', () => {
+    it('el login emite la cookie HttpOnly y esta autentica GET /auth/session', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await createTestUser(prisma, jwt, {
+        email: 'cookie@example.com',
+        dni: 'C123',
+        password: 'Password123!',
+        estado_reg: 'APROBADO',
+        asociacion_id: assoc.id,
+      });
+
+      const agent = request.agent(app.getHttpServer());
+      const loginRes = await agent
+        .post('/api/auth/login')
+        .send({ dni: 'C123', password: 'Password123!' })
+        .expect(200);
+
+      // Compatibilidad: el cuerpo mantiene el token.
+      expect(loginRes.body).toHaveProperty('access_token');
+
+      const cookies: string[] = loginRes.headers['set-cookie'] ?? [];
+      const session = cookies.find((c) => c.startsWith('access_token='));
+      expect(session).toBeDefined();
+      expect(session).toMatch(/HttpOnly/i);
+      expect(session).toMatch(/SameSite=Lax/i);
+
+      const sessionRes = await agent.get('/api/auth/session').expect(200);
+      expect(sessionRes.body.email).toBe('cookie@example.com');
+    });
+
+    it('el logout limpia la cookie y la sesión deja de ser válida', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await createTestUser(prisma, jwt, {
+        email: 'logout@example.com',
+        dni: 'L123',
+        password: 'Password123!',
+        estado_reg: 'APROBADO',
+        asociacion_id: assoc.id,
+      });
+
+      const agent = request.agent(app.getHttpServer());
+      await agent
+        .post('/api/auth/login')
+        .send({ dni: 'L123', password: 'Password123!' })
+        .expect(200);
+      await agent.get('/api/auth/session').expect(200);
+
+      const logoutRes = await agent.post('/api/auth/logout').expect(200);
+      expect(logoutRes.body).toEqual({ mensaje: expect.any(String) });
+      const cookies: string[] = logoutRes.headers['set-cookie'] ?? [];
+      expect(cookies.some((c) => c.startsWith('access_token=;'))).toBe(true);
+
+      await agent.get('/api/auth/session').expect(401);
+    });
+
+    it('el encabezado Bearer continúa siendo aceptado por compatibilidad', async () => {
+      const { token } = await createTestUser(prisma, jwt);
+
+      const res = await request(app.getHttpServer())
+        .get('/api/auth/session')
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(res.body).toHaveProperty('email');
+    });
+  });
 });

@@ -29,52 +29,58 @@ interface AuditResponse {
 }
 
 export default function AuditoriaAdmin() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const { route } = useLocation();
   const [data, setData] = useState<AuditResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [pagina, setPagina] = useState(1);
   const [selected, setSelected] = useState<AuditEntry | null>(null);
   const [filtroEntidad, setFiltroEntidad] = useState('');
   const [filtroAccion, setFiltroAccion] = useState('');
   const [filtroDesde, setFiltroDesde] = useState('');
   const [filtroHasta, setFiltroHasta] = useState('');
+  const [query, setQuery] = useState({ pagina: 1, entidad: '', accion: '', desde: '', hasta: '' });
 
-  if (user?.rol !== 'ADMIN_GENERAL') {
-    route('/dashboard');
+  const isNonAdmin = !authLoading && user?.rol !== 'ADMIN_GENERAL';
+
+  useEffect(() => {
+    if (isNonAdmin) route('/dashboard');
+  }, [isNonAdmin, route]);
+
+  useEffect(() => {
+    if (authLoading || user?.rol !== 'ADMIN_GENERAL') return;
+    const ac = new AbortController();
+    const fetchData = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const params = new URLSearchParams();
+        params.set('pagina', String(query.pagina));
+        params.set('limite', '20');
+        if (query.entidad) params.set('entidad', query.entidad);
+        if (query.accion) params.set('accion', query.accion);
+        if (query.desde) params.set('desde', query.desde);
+        if (query.hasta) params.set('hasta', query.hasta);
+        const res = await api.get(`/admin/auditoria?${params}`, { signal: ac.signal });
+        setData(res.data);
+      } catch (err) {
+        const code = (err as { code?: string })?.code;
+        if (code === 'ERR_CANCELED' || code === 'ECONNABORTED') return;
+        setError(getErrorMessage(err));
+      } finally {
+        if (!ac.signal.aborted) setLoading(false);
+      }
+    };
+    fetchData();
+    return () => ac.abort();
+  }, [authLoading, user, query]);
+
+  if (authLoading || isNonAdmin) {
     return null;
   }
 
-  const buildUrl = (page: number) => {
-    const params = new URLSearchParams();
-    params.set('pagina', String(page));
-    params.set('limite', '20');
-    if (filtroEntidad) params.set('entidad', filtroEntidad);
-    if (filtroAccion) params.set('accion', filtroAccion);
-    if (filtroDesde) params.set('desde', filtroDesde);
-    if (filtroHasta) params.set('hasta', filtroHasta);
-    return `/admin/auditoria?${params}`;
-  };
-
-  const fetchData = async (page: number) => {
-    setLoading(true);
-    setError('');
-    try {
-      const res = await api.get(buildUrl(page));
-      setData(res.data);
-    } catch (err) {
-      setError(getErrorMessage(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { fetchData(pagina); }, [pagina]);
-
   const handleFilter = () => {
-    setPagina(1);
-    fetchData(1);
+    setQuery({ pagina: 1, entidad: filtroEntidad, accion: filtroAccion, desde: filtroDesde, hasta: filtroHasta });
   };
 
   const formatDate = (d: string) =>
@@ -96,14 +102,14 @@ export default function AuditoriaAdmin() {
       <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
         <div class="flex flex-wrap gap-4 items-end">
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Entidad</label>
-            <input value={filtroEntidad}
+            <label htmlFor="auditoria-entidad" class="block text-xs font-medium text-slate-600 mb-1">Entidad</label>
+            <input id="auditoria-entidad" value={filtroEntidad}
               onInput={(e: Event) => setFiltroEntidad((e.target as HTMLInputElement).value)}
               class="px-3 py-1.5 border border-slate-300 rounded text-sm w-36" placeholder="ej: Usuario" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Acción</label>
-            <select value={filtroAccion}
+            <label htmlFor="auditoria-accion" class="block text-xs font-medium text-slate-600 mb-1">Acción</label>
+            <select id="auditoria-accion" value={filtroAccion}
               onChange={(e: Event) => setFiltroAccion((e.target as HTMLSelectElement).value)}
               class="px-3 py-1.5 border border-slate-300 rounded text-sm">
               <option value="">Todas</option>
@@ -114,14 +120,14 @@ export default function AuditoriaAdmin() {
             </select>
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
-            <input type="date" value={filtroDesde}
+            <label htmlFor="auditoria-desde" class="block text-xs font-medium text-slate-600 mb-1">Desde</label>
+            <input id="auditoria-desde" type="date" value={filtroDesde}
               onInput={(e: Event) => setFiltroDesde((e.target as HTMLInputElement).value)}
               class="px-3 py-1.5 border border-slate-300 rounded text-sm" />
           </div>
           <div>
-            <label class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
-            <input type="date" value={filtroHasta}
+            <label htmlFor="auditoria-hasta" class="block text-xs font-medium text-slate-600 mb-1">Hasta</label>
+            <input id="auditoria-hasta" type="date" value={filtroHasta}
               onInput={(e: Event) => setFiltroHasta((e.target as HTMLInputElement).value)}
               class="px-3 py-1.5 border border-slate-300 rounded text-sm" />
           </div>
@@ -196,11 +202,11 @@ export default function AuditoriaAdmin() {
         <div class="flex items-center justify-between text-sm text-slate-600">
           <span>Página {data.pagina} de {data.total_paginas} ({data.total} registros)</span>
           <div class="flex gap-2">
-            <button disabled={data.pagina <= 1} onClick={() => setPagina(p => p - 1)}
+            <button disabled={data.pagina <= 1} onClick={() => setQuery(q => ({ ...q, pagina: q.pagina - 1 }))}
               class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
               Anterior
             </button>
-            <button disabled={data.pagina >= data.total_paginas} onClick={() => setPagina(p => p + 1)}
+            <button disabled={data.pagina >= data.total_paginas} onClick={() => setQuery(q => ({ ...q, pagina: q.pagina + 1 }))}
               class="px-3 py-1 border border-slate-300 rounded hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed">
               Siguiente
             </button>

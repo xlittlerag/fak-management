@@ -69,8 +69,9 @@ export default function ResetPassword() {
 
         <form onSubmit={handleSubmit} class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
+            <label htmlFor="reset-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
             <input
+              id="reset-dni"
               type="text"
               value={dni}
               onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
@@ -80,8 +81,9 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Código de blanqueo</label>
+            <label htmlFor="reset-codigo" class="block text-sm font-medium text-slate-700 mb-1">Código de blanqueo</label>
             <input
+              id="reset-codigo"
               type="text"
               value={codigo}
               onInput={(e: Event) => setCodigo((e.target as HTMLInputElement).value)}
@@ -91,8 +93,9 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nueva contraseña</label>
+            <label htmlFor="reset-nueva-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva contraseña</label>
             <input
+              id="reset-nueva-password"
               type="password"
               value={nuevaPassword}
               onInput={(e: Event) => setNuevaPassword((e.target as HTMLInputElement).value)}
@@ -102,8 +105,9 @@ export default function ResetPassword() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Confirmar nueva contraseña</label>
+            <label htmlFor="reset-confirm-password" class="block text-sm font-medium text-slate-700 mb-1">Confirmar nueva contraseña</label>
             <input
+              id="reset-confirm-password"
               type="password"
               value={confirmPassword}
               onInput={(e: Event) => setConfirmPassword((e.target as HTMLInputElement).value)}

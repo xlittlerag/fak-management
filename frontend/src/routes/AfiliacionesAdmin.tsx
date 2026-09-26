@@ -77,18 +77,24 @@ function AltasPendientes() {
   const [rechazando, setRechazando] = useState<SolicitudAlta | null>(null);
   const [motivo, setMotivo] = useState('');
 
-  const fetchAltas = async () => {
+  const fetchAltas = async (signal?: AbortSignal) => {
     try {
-      const res = await api.get('/afiliaciones/pendientes-alta');
+      const res = await api.get('/afiliaciones/pendientes-alta', { signal });
+      if (signal?.aborted) return;
       setSolicitudes(res.data);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
-  useEffect(() => { fetchAltas(); }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchAltas(controller.signal);
+    return () => controller.abort();
+  }, []);
 
   const aprobar = async (id: number) => {
     try {
@@ -150,8 +156,9 @@ function AltasPendientes() {
             <h3 class="text-lg font-bold text-slate-800 mb-4">Rechazar solicitud de afiliación</h3>
             <p class="text-sm text-slate-600 mb-4">¿Desea rechazar la afiliación de <strong>{rechazando.usuario.nombre} {rechazando.usuario.apellido}</strong>?</p>
             <div class="mb-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+              <label htmlFor="motivo-rechazo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
               <textarea
+                id="motivo-rechazo"
                 value={motivo}
                 onInput={(e: Event) => setMotivo((e.target as HTMLTextAreaElement).value)}
                 rows={3}
@@ -170,29 +177,43 @@ function AltasPendientes() {
 }
 
 function AdmitirDesafiliado() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const asociacionId = user?.asociacion_id;
   const [desafiliados, setDesafiliados] = useState<Desafiliado[]>([]);
   const [dojos, setDojos] = useState<Dojo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [dojoPorUsuario, setDojoPorUsuario] = useState<Record<number, string>>({});
 
-  const fetchDesafiliados = async () => {
+  const fetchDesafiliados = async (signal?: AbortSignal) => {
+    if (asociacionId === undefined || asociacionId === null) return;
     try {
       const [uRes, dRes] = await Promise.all([
-        api.get('/afiliaciones/desafiliados'),
-        api.get(`/dojos/asociacion/${user?.asociacion_id}`),
+        api.get('/afiliaciones/desafiliados', { signal }),
+        api.get(`/dojos/asociacion/${asociacionId}`, { signal }),
       ]);
+      if (signal?.aborted) return;
       setDesafiliados(uRes.data);
       setDojos(dRes.data);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
-  useEffect(() => { fetchDesafiliados(); }, []);
+  useEffect(() => {
+    if (authLoading) return;
+    if (asociacionId === undefined || asociacionId === null) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    void fetchDesafiliados(controller.signal);
+    return () => controller.abort();
+  }, [authLoading, asociacionId]);
 
   const admitir = async (usuarioId: number) => {
     const dojoId = dojoPorUsuario[usuarioId];
@@ -232,6 +253,7 @@ function AdmitirDesafiliado() {
                 <td class="px-4 py-2 text-slate-600">{u.asociacion?.nombre || '-'}</td>
                 <td class="px-4 py-2">
                   <select
+                    aria-label={`Dojo destino para ${u.nombre} ${u.apellido}`}
                     value={dojoPorUsuario[u.id] || ''}
                     onChange={(e: Event) => setDojoPorUsuario({ ...dojoPorUsuario, [u.id]: (e.target as HTMLSelectElement).value })}
                     class="text-sm border border-slate-300 rounded-md shadow-sm p-1"
@@ -257,18 +279,24 @@ function SolicitudesBaja() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  const fetchBajas = async () => {
+  const fetchBajas = async (signal?: AbortSignal) => {
     try {
-      const res = await api.get('/afiliaciones/bajas');
+      const res = await api.get('/afiliaciones/bajas', { signal });
+      if (signal?.aborted) return;
       setSolicitudes(res.data);
     } catch (err) {
+      if (signal?.aborted) return;
       setError(getErrorMessage(err));
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
-  useEffect(() => { fetchBajas(); }, []);
+  useEffect(() => {
+    const controller = new AbortController();
+    void fetchBajas(controller.signal);
+    return () => controller.abort();
+  }, []);
 
   if (loading) return <div class="p-8"><Spinner text="Cargando solicitudes de baja..." /></div>;
   if (error) return <div class="p-8 text-red-600">{error}</div>;

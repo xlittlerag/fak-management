@@ -75,7 +75,7 @@ export default function Reimpresiones() {
                     </td>
                     <td class="px-4 py-2 text-slate-500">{new Date(r.created_at).toLocaleDateString('es-AR')}</td>
                     <td class="px-4 py-2">
-                      <a href={r.diploma.url_archivo} target="_blank" class="text-slate-600 hover:text-slate-900 underline">Ver {fileLabel(r.diploma.url_archivo)}</a>
+                      <a href={r.diploma.url_archivo} target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 underline">Ver {fileLabel(r.diploma.url_archivo)}</a>
                     </td>
                   </tr>
                 ))}

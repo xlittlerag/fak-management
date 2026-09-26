@@ -1,6 +1,7 @@
 import { createContext } from 'preact';
 import { useContext, useState, useEffect } from 'preact/hooks';
 import { jwtDecode } from 'jwt-decode';
+import api from '../services/api';
 
 interface User {
   id: number;
@@ -25,31 +26,49 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: preact.ComponentChildren }) => {
+  // El JWT vive solo en memoria: nunca se persiste en localStorage, de modo
+  // que un XSS no puede exfiltrar la sesión (la cookie httpOnly tampoco es
+  // legible desde JS). Al recargar, la sesión se restaura contra /auth/session.
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = () => !!localStorage.getItem('token');
+  const checkAuth = () => user !== null;
 
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
+    let cancelled = false;
+
+    const onUnauthorized = () => {
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener('auth:unauthorized', onUnauthorized);
+
+    const restore = async () => {
       try {
-        const decoded = jwtDecode<User & { sub: number }>(savedToken);
-        setToken(savedToken);
-        setUser({
-          ...decoded,
-          id: decoded.sub,
-        });
+        const res = await api.get<User>('/auth/session');
+        if (!cancelled) {
+          setUser(res.data);
+        }
       } catch {
-        localStorage.removeItem('token');
+        if (!cancelled) {
+          setUser(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-    }
-    setLoading(false);
+    };
+    restore();
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener('auth:unauthorized', onUnauthorized);
+    };
   }, []);
 
   const login = (newToken: string) => {
-    localStorage.setItem('token', newToken);
     const decoded = jwtDecode<User & { sub: number }>(newToken);
     setToken(newToken);
     setUser({
@@ -59,9 +78,12 @@ export const AuthProvider = ({ children }: { children: preact.ComponentChildren 
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-    setUser(null);
+    // Invalida la cookie httpOnly en el servidor; el estado en memoria se
+    // limpia de todos modos aunque la llamada falle.
+    api.post('/auth/logout').catch(() => undefined).finally(() => {
+      setToken(null);
+      setUser(null);
+    });
   };
 
   return (

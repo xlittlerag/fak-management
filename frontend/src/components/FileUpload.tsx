@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks';
+import { useId, useState } from 'preact/hooks';
 
 const MAX_SIZE = 10 * 1024 * 1024;
 const ACCEPTED_TYPES = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -25,6 +25,7 @@ export function FileUpload({
   required = false,
 }: FileUploadProps) {
   const [error, setError] = useState('');
+  const inputId = useId();
 
   const handleChange = (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0] || null;
@@ -63,12 +64,13 @@ export function FileUpload({
 
   return (
     <div>
-      <label class={`block ${compact ? 'text-xs' : 'text-sm'} font-medium text-slate-700 mb-1`}>
+      <label htmlFor={inputId} class={`block ${compact ? 'text-xs' : 'text-sm'} font-medium text-slate-700 mb-1`}>
         {label}
         {!required && <span class="text-slate-400 font-normal"> (opcional)</span>}
       </label>
       <div class="flex items-center gap-2">
         <input
+          id={inputId}
           type="file"
           accept={accept}
           onChange={handleChange}

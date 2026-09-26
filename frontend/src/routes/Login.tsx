@@ -69,8 +69,9 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
+            <label htmlFor="login-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
             <input
+              id="login-dni"
               type="text"
               value={dni}
               onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
@@ -79,8 +80,9 @@ export default function Login() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+            <label htmlFor="login-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
             <input
+              id="login-password"
               type="password"
               value={password}
               onInput={(e: Event) => setPassword((e.target as HTMLInputElement).value)}

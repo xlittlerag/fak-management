@@ -19,9 +19,8 @@ interface Inscripcion {
 }
 
 export default function InscripcionesAdmin() {
-  const { route } = useLocation();
-  const params = new URLSearchParams(window.location.search);
-  const eventoId = params.get('eventoId');
+  const { route, query: locationQuery } = useLocation();
+  const eventoId = locationQuery.eventoId ?? null;
 
   const [inscripciones, setInscripciones] = useState<Inscripcion[]>([]);
   const [loading, setLoading] = useState(true);
@@ -33,25 +32,31 @@ export default function InscripcionesAdmin() {
   const PAGE_SIZE = 30;
 
   useEffect(() => {
-    fetchInscripciones();
-  }, []);
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    void fetchInscripciones(controller.signal);
+    return () => controller.abort();
+  }, [eventoId]);
 
-  const fetchInscripciones = async () => {
+  const fetchInscripciones = async (signal?: AbortSignal) => {
     try {
       if (eventoId) {
-        const res = await api.get(`/eventos/${eventoId}/inscripciones`);
+        const res = await api.get(`/eventos/${eventoId}/inscripciones`, { signal });
+        if (signal?.aborted) return;
         setInscripciones(res.data);
       } else {
-        const eventosRes = await api.get('/eventos');
+        const eventosRes = await api.get('/eventos', { signal });
         const eventos = eventosRes.data as Array<{ id: number }>;
+        const results = await Promise.allSettled(
+          eventos.map((ev) => api.get(`/eventos/${ev.id}/inscripciones`, { signal })),
+        );
+        if (signal?.aborted) return;
         const allInscripciones: Inscripcion[] = [];
-
-        for (const ev of eventos) {
-          try {
-            const res = await api.get(`/eventos/${ev.id}/inscripciones`);
-            allInscripciones.push(...res.data);
-          } catch {
-            // skip eventos sin acceso
+        for (const r of results) {
+          // Las rechazadas (p. ej. eventos sin acceso) se omiten
+          if (r.status === 'fulfilled' && Array.isArray(r.value.data)) {
+            allInscripciones.push(...r.value.data);
           }
         }
 
@@ -59,9 +64,10 @@ export default function InscripcionesAdmin() {
         setInscripciones(allInscripciones);
       }
     } catch {
+      if (signal?.aborted) return;
       setError('Error al cargar inscripciones');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
@@ -97,7 +103,9 @@ export default function InscripcionesAdmin() {
   return (
     <div class="space-y-4">
       <div class="flex items-center gap-4">
+        <label htmlFor="inscripciones-busqueda" class="sr-only">Buscar por nombre o DNI</label>
         <input
+          id="inscripciones-busqueda"
           type="text"
           value={search}
           onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}

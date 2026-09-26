@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
+import cookieParser from 'cookie-parser';
 import { validationMessages } from './utils/validation-messages';
 import { GlobalExceptionFilter } from './common/http-exception.filter';
 
@@ -23,10 +24,12 @@ async function bootstrap() {
       },
     }),
   );
+  app.use(cookieParser());
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
-  app.enableCors();
+  // credentials: true para que el navegador envíe la cookie httpOnly de sesión.
+  app.enableCors({ origin: true, credentials: true });
   await app.listen(process.env.PORT ?? 3000);
 }
-bootstrap();
+void bootstrap();

@@ -35,14 +35,25 @@ export default function Dashboard() {
   const { path, route } = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const redirectLogin = !loading && !user;
+  const redirectUsuarios = !loading && !!user && user.rol === 'ADMIN_GENERAL' && path === '/dashboard';
+  const redirectPerfil = !loading && !!user && user.estado_reg === 'DESAFILIADO'
+    && path !== '/dashboard/perfil' && path !== '/dashboard/afiliacion';
+
+  useEffect(() => { if (redirectLogin) route('/login'); }, [redirectLogin, route]);
+  useEffect(() => { if (redirectUsuarios) route('/dashboard/usuarios'); }, [redirectUsuarios, route]);
+  useEffect(() => { if (redirectPerfil) route('/dashboard/perfil'); }, [redirectPerfil, route]);
+
   if (loading) return null;
   if (!user) {
-    route('/login');
     return null;
   }
 
-  if (user.rol === 'ADMIN_GENERAL' && path === '/dashboard') {
-    route('/dashboard/usuarios');
+  if (redirectUsuarios) {
+    return null;
+  }
+
+  if (redirectPerfil) {
     return null;
   }
 
@@ -140,8 +151,8 @@ export default function Dashboard() {
         <div class="p-6 border-b border-slate-800">
           <div class="flex items-center justify-between">
             <h1 class="text-xl font-bold text-white">Kendo Manager</h1>
-            <button onClick={() => setSidebarOpen(false)} class="lg:hidden text-slate-400 hover:text-white">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            <button onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" class="lg:hidden text-slate-400 hover:text-white">
+              <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
           <p class="text-xs mt-1 text-slate-500 uppercase tracking-wider font-semibold">{user.rol.replace('_', ' ')}</p>
@@ -200,8 +211,8 @@ export default function Dashboard() {
       <main class="flex-1 overflow-y-auto min-w-0 bg-slate-50">
         <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center gap-4">
           <div class="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} class="lg:hidden text-slate-600 hover:text-slate-900">
-              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <button onClick={() => setSidebarOpen(true)} aria-label="Abrir menú" class="lg:hidden text-slate-600 hover:text-slate-900">
+              <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
             </button>
             <h2 class="text-lg font-semibold text-slate-800">{pageTitle(path)}</h2>
           </div>
@@ -211,7 +222,6 @@ export default function Dashboard() {
         </header>
 
         <div class="p-4 sm:p-8">
-          {isDesafiliado && path !== '/dashboard/perfil' && path !== '/dashboard/afiliacion' && (() => { route('/dashboard/perfil'); return null; })()}
           {path === '/dashboard' && <DashboardHome />}
           {path === '/dashboard/perfil' && <Perfil />}
           {path === '/dashboard/afiliacion' && <Afiliacion />}
@@ -249,17 +259,21 @@ function DashboardHome() {
   const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string } | null>(null);
 
   useEffect(() => {
-    api.get('/eventos')
+    const ac = new AbortController();
+    api.get('/eventos', { signal: ac.signal })
       .then(res => setProximos(res.data.filter((e: EventoResumen) => new Date(e.fecha_inicio) > new Date()).slice(0, 5)))
       .catch(() => {})
-      .finally(() => setLoadingProximos(false));
+      .finally(() => { if (!ac.signal.aborted) setLoadingProximos(false); });
+    return () => ac.abort();
   }, []);
 
   useEffect(() => {
-    api.get('/usuarios/cuota')
+    const ac = new AbortController();
+    api.get('/usuarios/cuota', { signal: ac.signal })
       .then(res => setCuota(res.data))
       .catch(() => {})
-      .finally(() => setLoadingCuota(false));
+      .finally(() => { if (!ac.signal.aborted) setLoadingCuota(false); });
+    return () => ac.abort();
   }, []);
 
   const handlePay = async () => {

@@ -5,24 +5,25 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  // La sesión viaja en cookie httpOnly; el navegador la envía automáticamente.
+  withCredentials: true,
 });
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
+      // Avisa al AuthContext para que limpie el estado en memoria.
+      window.dispatchEvent(new CustomEvent('auth:unauthorized'));
+      // Redirige solo desde el área privada: en /login un 401 es simplemente
+      // "credenciales incorrectas" y en las páginas públicas no corresponde
+      // expulsar al visitante.
+      if (window.location.pathname.startsWith('/dashboard')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

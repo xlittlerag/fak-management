@@ -97,6 +97,7 @@ export default function CertificadosPendientesAdmin() {
       <input
         type="text"
         value={search}
+        aria-label="Buscar por nombre, apellido o DNI"
         onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
         placeholder="Buscar por nombre, apellido o DNI..."
         class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
@@ -137,7 +138,7 @@ export default function CertificadosPendientesAdmin() {
                     </td>
                     <td class="px-4 py-2 text-slate-500">{new Date(c.created_at).toLocaleDateString('es-AR')}</td>
                     <td class="px-4 py-2">
-                      <a href={c.url_archivo} target="_blank" class="text-slate-600 hover:text-slate-900 underline">
+                      <a href={c.url_archivo} target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 underline">
                         Ver PDF
                       </a>
                     </td>

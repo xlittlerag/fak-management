@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { Fragment } from 'preact';
 import { Spinner } from '../components/Spinner';
 import { Modal } from '../components/Modal';
 import api from '../services/api';
@@ -166,8 +167,8 @@ export default function Asociaciones() {
             </thead>
             <tbody class="divide-y divide-slate-200">
               {asociaciones.map(a => (
-                <>
-                  <tr key={a.id} class="hover:bg-slate-50 transition-colors">
+                <Fragment key={a.id}>
+                  <tr class="hover:bg-slate-50 transition-colors">
                     <td class="px-6 py-4 font-medium text-slate-900">{a.nombre}</td>
                     <td class="px-6 py-4 text-sm text-slate-500">{a.dojos?.length || 0} dojos</td>
                     <td class="px-6 py-4 text-right space-x-2">
@@ -202,6 +203,8 @@ export default function Asociaciones() {
                                   <li key={d.id} class="flex items-center justify-between text-sm text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
                                   {editingDojoId === d.id ? (
                                       <input
+                                      id={`editar-dojo-${d.id}`}
+                                      aria-label="Nombre del dojo"
                                       value={editingDojoNombre}
                                       onInput={(e: Event) => setEditingDojoNombre((e.target as HTMLInputElement).value)}
                                       class="text-sm px-2 py-1 border border-slate-300 rounded flex-1 mr-2"
@@ -223,6 +226,8 @@ export default function Asociaciones() {
 
                           <div class="flex gap-2 items-center bg-white p-3 rounded-lg border border-slate-200">
                             <input
+                              id={`nuevo-dojo-${a.id}`}
+                              aria-label="Nombre del nuevo dojo"
                               placeholder="Nombre del nuevo dojo..."
                               value={newDojoNombre}
                               onInput={(e: Event) => setNewDojoNombre((e.target as HTMLInputElement).value)}
@@ -239,7 +244,7 @@ export default function Asociaciones() {
                       </td>
                     </tr>
                   )}
-                </>
+                </Fragment>
               ))}
             </tbody>
           </table>
@@ -254,8 +259,9 @@ export default function Asociaciones() {
       >
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+            <label htmlFor="asociacion-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
             <input
+              id="asociacion-nombre"
               value={formNombre}
               onInput={(e: Event) => setFormNombre((e.target as HTMLInputElement).value)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"

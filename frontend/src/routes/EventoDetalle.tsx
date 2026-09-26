@@ -5,6 +5,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FileUpload } from '../components/FileUpload';
 import { getErrorMessage } from '../lib/error';
+import { GRAD_LABELS, DISCIPLINA_LABELS, GRAD_RANK, computeNextGrad } from '../lib/graduacion';
 import type { InscripcionResumen, CategoriaDef, DatosLugar } from '../types';
 
 interface Evento {
@@ -38,29 +39,6 @@ interface Inscripcion {
   disciplinas?: string[];
   estado_aprob: string;
   pagado: boolean;
-}
-
-const GRAD_LABELS: Record<string, string> = {
-  SIN_GRADUACION: 'Sin graduación', KYU_3: '3° Kyu', KYU_2: '2° Kyu', KYU_1: '1° Kyu',
-  DAN_1: '1° Dan', DAN_2: '2° Dan', DAN_3: '3° Dan', DAN_4: '4° Dan',
-  DAN_5: '5° Dan', DAN_6: '6° Dan', DAN_7: '7° Dan', DAN_8: '8° Dan',
-};
-
-const DISCIPLINA_LABELS: Record<string, string> = {
-  KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo',
-};
-
-const GRAD_RANK: Record<string, number> = {
-  SIN_GRADUACION: 0, KYU_3: 1, KYU_2: 2, KYU_1: 3,
-  DAN_1: 4, DAN_2: 5, DAN_3: 6, DAN_4: 7,
-  DAN_5: 8, DAN_6: 9, DAN_7: 10, DAN_8: 11,
-};
-
-function computeNextGrad(currentGrad: string): string | null {
-  const rank = GRAD_RANK[currentGrad];
-  if (rank === undefined) return null;
-  const next = Object.entries(GRAD_RANK).find(([_, r]) => r === rank + 1);
-  return next ? next[0] : null;
 }
 
 export default function EventoDetalle() {

@@ -92,9 +92,8 @@ interface MesaFormState {
 }
 
 export default function Mesas() {
-  const { route } = useLocation();
-  const params = new URLSearchParams(window.location.search);
-  const eventoId = params.get('eventoId');
+  const { route, query } = useLocation();
+  const eventoId = query.eventoId ?? null;
 
   const [evento, setEvento] = useState<EventoAdmin | null>(null);
   const [mesas, setMesas] = useState<Mesa[]>([]);
@@ -114,23 +113,34 @@ export default function Mesas() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    if (eventoId) fetchData();
-    else setLoading(false);
+    if (!eventoId) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    void fetchData(controller.signal);
+    return () => controller.abort();
   }, [eventoId]);
 
-  const fetchData = async () => {
+  const fetchData = async (signal?: AbortSignal) => {
     if (!eventoId) return;
     try {
-      const eventoRes = await api.get(`/eventos/${eventoId}`);
-      const mesasRes = await api.get(`/admin/eventos/${eventoId}/mesas`);
-      const resultadosRes = await api.get(`/admin/examenes/${eventoId}/resultados`);
+      const [eventoRes, mesasRes, resultadosRes] = await Promise.all([
+        api.get(`/eventos/${eventoId}`, { signal }),
+        api.get(`/admin/eventos/${eventoId}/mesas`, { signal }),
+        api.get(`/admin/examenes/${eventoId}/resultados`, { signal }),
+      ]);
+      if (signal?.aborted) return;
       setEvento(eventoRes.data);
       setMesas(mesasRes.data);
       setResultados(resultadosRes.data);
     } catch {
+      if (signal?.aborted) return;
       setError('Error al cargar los datos del examen');
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   };
 
@@ -501,6 +511,7 @@ export default function Mesas() {
                               `#${mesaActual}`
                             ) : compatibles.length > 1 ? (
                               <select
+                                aria-label={`Seleccionar mesa para ${DISC_LABEL[disciplina] || disciplina}`}
                                 value={mesaSeleccionada[mesaSelKey] || ''}
                                 onChange={(e: Event) => {
                                   setMesaSeleccionada({
@@ -588,8 +599,9 @@ export default function Mesas() {
         <Modal isOpen={formOpen} onClose={() => setFormOpen(false)} title={form.id ? 'Editar Mesa' : 'Nueva Mesa'}>
           <div class="space-y-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+              <label htmlFor="mesa-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
               <select
+                id="mesa-disciplina"
                 value={form.disciplina}
                 disabled={!!form.id}
                 onChange={(e: Event) => setForm({ ...form, disciplina: (e.target as HTMLSelectElement).value })}
@@ -601,8 +613,9 @@ export default function Mesas() {
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Examinadores (separados por coma)</label>
+              <label htmlFor="mesa-examinadores" class="block text-sm font-medium text-slate-700 mb-1">Examinadores (separados por coma)</label>
               <input
+                id="mesa-examinadores"
                 type="text"
                 value={form.examinadores}
                 onInput={(e: Event) => setForm({ ...form, examinadores: (e.target as HTMLInputElement).value })}
@@ -612,8 +625,9 @@ export default function Mesas() {
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Graduación mínima</label>
+                <label htmlFor="mesa-grad-min" class="block text-sm font-medium text-slate-700 mb-1">Graduación mínima</label>
                 <select
+                  id="mesa-grad-min"
                   value={form.grad_min}
                   onChange={(e: Event) => setForm({ ...form, grad_min: (e.target as HTMLSelectElement).value })}
                   class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
@@ -622,8 +636,9 @@ export default function Mesas() {
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Graduación máxima</label>
+                <label htmlFor="mesa-grad-max" class="block text-sm font-medium text-slate-700 mb-1">Graduación máxima</label>
                 <select
+                  id="mesa-grad-max"
                   value={form.grad_max}
                   onChange={(e: Event) => setForm({ ...form, grad_max: (e.target as HTMLSelectElement).value })}
                   class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"

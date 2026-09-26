@@ -164,25 +164,25 @@ export default function Perfil() {
         <form onSubmit={handleSubmit} class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-              <input name="nombre" value={formData.nombre} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('nombre') ? 'border-red-400' : 'border-slate-300'}`} />
+              <label htmlFor="perfil-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+              <input name="nombre" id="perfil-nombre" value={formData.nombre} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('nombre') ? 'border-red-400' : 'border-slate-300'}`} />
               {fieldError('nombre') && <span class="text-xs text-red-600 mt-1">{fieldError('nombre')}</span>}
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
-              <input name="apellido" value={formData.apellido} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('apellido') ? 'border-red-400' : 'border-slate-300'}`} />
+              <label htmlFor="perfil-apellido" class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
+              <input name="apellido" id="perfil-apellido" value={formData.apellido} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('apellido') ? 'border-red-400' : 'border-slate-300'}`} />
               {fieldError('apellido') && <span class="text-xs text-red-600 mt-1">{fieldError('apellido')}</span>}
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1 font-mono text-slate-400">DNI (No editable)</label>
-              <input value={formData.dni} disabled class="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded cursor-not-allowed font-mono" />
+              <label htmlFor="perfil-dni" class="block text-sm font-medium text-slate-700 mb-1 font-mono text-slate-400">DNI (No editable)</label>
+              <input id="perfil-dni" value={formData.dni} disabled class="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded cursor-not-allowed font-mono" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input name="email" value={formData.email} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('email') ? 'border-red-400' : 'border-slate-300'}`} />
+              <label htmlFor="perfil-email" class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
+              <input name="email" id="perfil-email" value={formData.email} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('email') ? 'border-red-400' : 'border-slate-300'}`} />
               {fieldError('email') && <span class="text-xs text-red-600 mt-1">{fieldError('email')}</span>}
             </div>
 
@@ -190,12 +190,12 @@ export default function Perfil() {
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Fecha de Nacimiento</label>
-              <input name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <label htmlFor="perfil-fecha-nacimiento" class="block text-sm font-medium text-slate-700 mb-1">Fecha de Nacimiento</label>
+              <input name="fecha_nacimiento" id="perfil-fecha-nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
-              <select name="sexo" value={formData.sexo} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label htmlFor="perfil-sexo" class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
+              <select name="sexo" id="perfil-sexo" value={formData.sexo} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 {SEXOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
@@ -205,38 +205,38 @@ export default function Perfil() {
             <h4 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Domicilio Real</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="md:col-span-2">
-                <label class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
-                <input name="calle_altura" value={formData.calle_altura} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('calle_altura') ? 'border-red-400' : 'border-slate-300'}`} />
+                <label htmlFor="perfil-calle-altura" class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
+                <input name="calle_altura" id="perfil-calle-altura" value={formData.calle_altura} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('calle_altura') ? 'border-red-400' : 'border-slate-300'}`} />
                 {fieldError('calle_altura') && <span class="text-xs text-red-600 mt-1">{fieldError('calle_altura')}</span>}
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto</label>
-                <input name="piso_depto" value={formData.piso_depto} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <label htmlFor="perfil-piso-depto" class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto</label>
+                <input name="piso_depto" id="perfil-piso-depto" value={formData.piso_depto} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
-                <input name="ciudad" value={formData.ciudad} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('ciudad') ? 'border-red-400' : 'border-slate-300'}`} />
+                <label htmlFor="perfil-ciudad" class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
+                <input name="ciudad" id="perfil-ciudad" value={formData.ciudad} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('ciudad') ? 'border-red-400' : 'border-slate-300'}`} />
                 {fieldError('ciudad') && <span class="text-xs text-red-600 mt-1">{fieldError('ciudad')}</span>}
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
-                <select name="provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                <label htmlFor="perfil-provincia" class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
+                <select name="provincia" id="perfil-provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                   {PROVINCIAS.map(p => (
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
-                <input name="codigo_postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono ${fieldError('codigo_postal') ? 'border-red-400' : 'border-slate-300'}`} />
+                <label htmlFor="perfil-codigo-postal" class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
+                <input name="codigo_postal" id="perfil-codigo-postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono ${fieldError('codigo_postal') ? 'border-red-400' : 'border-slate-300'}`} />
                 {fieldError('codigo_postal') && <span class="text-xs text-red-600 mt-1">{fieldError('codigo_postal')}</span>}
               </div>
             </div>
             <div class="mt-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
-              <input name="telefono" value={formData.telefono || ''} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('telefono') ? 'border-red-400' : 'border-slate-300'}`} />
+              <label htmlFor="perfil-telefono" class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
+              <input name="telefono" id="perfil-telefono" value={formData.telefono || ''} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('telefono') ? 'border-red-400' : 'border-slate-300'}`} />
               {fieldError('telefono') && <span class="text-xs text-red-600 mt-1">{fieldError('telefono')}</span>}
             </div>
           </div>
@@ -244,9 +244,10 @@ export default function Perfil() {
           <div class="border-t border-slate-100 pt-6">
             <h4 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Seguridad</h4>
             <div class="max-w-xs">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña</label>
+              <label htmlFor="perfil-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña</label>
               <input 
                 name="password" 
+                id="perfil-password"
                 type="password" 
                 placeholder="Dejar en blanco para no cambiar"
                 value={formData.password} 
@@ -325,8 +326,9 @@ export default function Perfil() {
             <h3 class="text-lg font-bold text-slate-800 mb-4">Solicitar Reimpresión</h3>
             <div class="space-y-4">
               <div>
-                <label class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+                <label htmlFor="perfil-reimp-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
                 <select
+                  id="perfil-reimp-disciplina"
                   value={reimpDisc}
                   onChange={(e: Event) => setReimpDisc((e.target as HTMLSelectElement).value)}
                   class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"

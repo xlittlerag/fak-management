@@ -8,7 +8,7 @@ export function Modal({ isOpen, onClose, title, subtitle, children }: { isOpen: 
             <h2 class="text-base font-bold text-slate-900">{title}</h2>
             {subtitle && <p class="text-sm font-semibold text-slate-600 truncate">{subtitle}</p>}
           </div>
-          <button onClick={onClose} class="text-slate-400 hover:text-slate-600 transition-colors ml-2 flex-shrink-0">✕</button>
+          <button onClick={onClose} aria-label="Cerrar" class="text-slate-400 hover:text-slate-600 transition-colors ml-2 flex-shrink-0"><span aria-hidden="true">✕</span></button>
         </div>
         {children}
       </div>

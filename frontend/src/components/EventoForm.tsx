@@ -2,9 +2,11 @@ import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
 import { GRADUACIONES, SEXOS_CATEGORIA, CATEGORIAS_TORNEO_DEFAULT, PROVINCIAS } from '../constants';
 import { getErrorMessage } from '../lib/error';
+import { DISCIPLINA_LABELS } from '../lib/graduacion';
 import { ConfirmModal } from './ConfirmModal';
 
 interface Categoria {
+  id: string;
   nombre: string;
   grad_min?: string;
   grad_max?: string;
@@ -54,17 +56,92 @@ interface RangoExamen {
   grad_max: string;
 }
 
+interface EventoFormState {
+  tipo: string;
+  ambito: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  direccion: string;
+  provincia: string;
+  costo_inscripcion: string;
+  disciplina: string;
+  grad_min: string;
+  grad_max: string;
+  info_adicional: string;
+  inscripcion_multiple: boolean;
+  pago_fuera_sistema: boolean;
+  fecha_limite_informativa: string;
+  fecha_limite_real: string;
+  archivos_info: string;
+}
+
 const TIPOS = ['TORNEO', 'EXAMEN', 'SEMINARIO'];
 const GRAD_OPTS = GRADUACIONES.map(g => ({ value: g.value, label: g.label }));
 const GRAD_EXAMEN_OPTS = GRADUACIONES.filter(g => g.value !== 'SIN_GRADUACION').map(g => ({ value: g.value, label: g.label }));
-const DISCIPLINAS = [
-  { value: 'KENDO', label: 'Kendo' },
-  { value: 'IAIDO', label: 'Iaido' },
-  { value: 'JODO', label: 'Jodo' },
-];
+const DISCIPLINAS = (Object.entries(DISCIPLINA_LABELS) as Array<[string, string]>).map(([value, label]) => ({ value, label }));
+
+const DEFAULT_RANGO: Omit<RangoExamen, 'disciplina'> = { grad_min: 'KYU_3', grad_max: 'DAN_8' };
+
+function newId(): string {
+  return crypto.randomUUID();
+}
 
 function emptyCategoria(): Categoria {
-  return { nombre: '', grad_min: '', grad_max: '', genero: '', edad_min: undefined, edad_max: undefined };
+  return { id: newId(), nombre: '', grad_min: '', grad_max: '', genero: '', edad_min: undefined, edad_max: undefined };
+}
+
+function withNewIds(categorias: Array<Omit<Categoria, 'id'> & { id?: string }>): Categoria[] {
+  return categorias.map(c => ({ ...c, id: newId() }));
+}
+
+function buildForm(editing: EventoAdmin | null): EventoFormState {
+  if (!editing) {
+    return {
+      tipo: 'TORNEO', ambito: 'REGIONAL', fecha_inicio: '', fecha_fin: '',
+      direccion: '', provincia: '', costo_inscripcion: '',
+      disciplina: '', grad_min: '', grad_max: '', info_adicional: '',
+      inscripcion_multiple: false, pago_fuera_sistema: false,
+      fecha_limite_informativa: '', fecha_limite_real: '', archivos_info: '',
+    };
+  }
+  return {
+    tipo: editing.tipo,
+    ambito: editing.ambito || 'REGIONAL',
+    fecha_inicio: editing.fecha_inicio.slice(0, 10),
+    fecha_fin: editing.fecha_fin.slice(0, 10),
+    direccion: ((editing.datos_lugar as { direccion: string; provincia: string })?.direccion ?? ''),
+    provincia: ((editing.datos_lugar as { direccion: string; provincia: string })?.provincia ?? ''),
+    costo_inscripcion: String(editing.torneo?.costo_inscripcion ?? editing.seminario?.costo_inscripcion ?? ''),
+    disciplina: editing.torneo?.disciplina ?? editing.seminario?.disciplina ?? '',
+    grad_min: editing.torneo?.grad_min || '',
+    grad_max: editing.torneo?.grad_max || '',
+    info_adicional: editing.torneo?.info_adicional ?? editing.examen?.info_adicional ?? editing.seminario?.info_adicional ?? '',
+    inscripcion_multiple: editing.torneo?.inscripcion_multiple || false,
+    pago_fuera_sistema: editing.pago_fuera_sistema || false,
+    fecha_limite_informativa: editing.torneo?.fecha_limite_informativa?.slice(0, 10) || '',
+    fecha_limite_real: editing.torneo?.fecha_limite_real?.slice(0, 10) || '',
+    archivos_info: (editing.archivos_info || []).join('\n'),
+  };
+}
+
+function buildCategorias(editing: EventoAdmin | null): Categoria[] {
+  if (editing?.torneo?.categorias?.length) {
+    return withNewIds(editing.torneo.categorias);
+  }
+  return [emptyCategoria()];
+}
+
+function buildDisciplinas(editing: EventoAdmin | null): string[] {
+  return editing?.examen?.disciplinas || ['KENDO'];
+}
+
+function buildRangos(editing: EventoAdmin | null): RangoExamen[] {
+  const examRangos = editing?.examen?.graduaciones_a_rendir as RangoExamen[] | undefined;
+  if (Array.isArray(examRangos) && examRangos.length > 0) {
+    return examRangos;
+  }
+  const discs = editing?.examen?.disciplinas || ['KENDO'];
+  return discs.map(d => ({ disciplina: d, ...DEFAULT_RANGO }));
 }
 
 interface EventoFormProps {
@@ -78,105 +155,65 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
   const [formError, setFormError] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const [form, setForm] = useState({
-    tipo: 'TORNEO',
-    ambito: 'REGIONAL',
-    fecha_inicio: '',
-    fecha_fin: '',
-    direccion: '',
-    provincia: '',
-    costo_inscripcion: '',
-    disciplina: '',
-    grad_min: '',
-    grad_max: '',
-    info_adicional: '',
-    inscripcion_multiple: false,
-    pago_fuera_sistema: false,
-    fecha_limite_informativa: '',
-    fecha_limite_real: '',
-    archivos_info: '',
-  });
-  const [categorias, setCategorias] = useState<Categoria[]>([emptyCategoria()]);
-  const [selectedDisciplinas, setSelectedDisciplinas] = useState<string[]>(['KENDO']);
-  const [rangosExamen, setRangosExamen] = useState<RangoExamen[]>([
-    { disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' },
-  ]);
+  const [form, setForm] = useState<EventoFormState>(() => buildForm(editing));
+  const [categorias, setCategorias] = useState<Categoria[]>(() => buildCategorias(editing));
+  const [selectedDisciplinas, setSelectedDisciplinas] = useState<string[]>(() => buildDisciplinas(editing));
+  const [rangosExamen, setRangosExamen] = useState<RangoExamen[]>(() => buildRangos(editing));
 
+  // Única sincronización externa: restablecer el formulario cuando se
+  // suministra otro evento a editar (o se vuelve al modo creación).
   useEffect(() => {
-    if (editing) {
-      setForm({
-        tipo: editing.tipo,
-        ambito: editing.ambito || 'REGIONAL',
-        fecha_inicio: editing.fecha_inicio.slice(0, 10),
-        fecha_fin: editing.fecha_fin.slice(0, 10),
-        direccion: ((editing.datos_lugar as { direccion: string; provincia: string })?.direccion ?? ''),
-        provincia: ((editing.datos_lugar as { direccion: string; provincia: string })?.provincia ?? ''),
-        costo_inscripcion: String(editing.torneo?.costo_inscripcion ?? editing.seminario?.costo_inscripcion ?? ''),
-        disciplina: editing.torneo?.disciplina ?? editing.seminario?.disciplina ?? '',
-        grad_min: editing.torneo?.grad_min || '',
-        grad_max: editing.torneo?.grad_max || '',
-        info_adicional: editing.torneo?.info_adicional ?? editing.examen?.info_adicional ?? editing.seminario?.info_adicional ?? '',
-        inscripcion_multiple: editing.torneo?.inscripcion_multiple || false,
-        pago_fuera_sistema: editing.pago_fuera_sistema || false,
-        fecha_limite_informativa: editing.torneo?.fecha_limite_informativa?.slice(0, 10) || '',
-        fecha_limite_real: editing.torneo?.fecha_limite_real?.slice(0, 10) || '',
-        archivos_info: (editing.archivos_info || []).join('\n'),
-      });
-      setCategorias(
-        editing.torneo?.categorias?.length
-          ? editing.torneo.categorias
-          : [emptyCategoria()],
-      );
-      setSelectedDisciplinas(editing.examen?.disciplinas || ['KENDO']);
-      const examRangos = editing.examen?.graduaciones_a_rendir as RangoExamen[] | undefined;
-      setRangosExamen(
-        Array.isArray(examRangos) && examRangos.length > 0
-          ? examRangos
-          : editing.examen?.disciplinas?.map(d => ({ disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' })) || [{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]
-      );
-    } else {
-      setForm({
-        tipo: 'TORNEO', ambito: 'REGIONAL', fecha_inicio: '', fecha_fin: '',
-        direccion: '', provincia: '', costo_inscripcion: '',
-        disciplina: '', grad_min: '', grad_max: '', info_adicional: '',
-        inscripcion_multiple: false, pago_fuera_sistema: false,
-        fecha_limite_informativa: '', fecha_limite_real: '', archivos_info: '',
-      });
-      setCategorias([emptyCategoria()]);
-      setSelectedDisciplinas(['KENDO']);
-      setRangosExamen([{ disciplina: 'KENDO', grad_min: 'KYU_3', grad_max: 'DAN_8' }]);
-    }
+    setForm(buildForm(editing));
+    setCategorias(buildCategorias(editing));
+    setSelectedDisciplinas(buildDisciplinas(editing));
+    setRangosExamen(buildRangos(editing));
     setFormError('');
   }, [editing]);
 
-  useEffect(() => {
-    if (form.tipo === 'EXAMEN') {
-      setForm(prev => ({ ...prev, ambito: 'NACIONAL', pago_fuera_sistema: false }));
-    }
-  }, [form.tipo]);
+  // Valores derivados calculados durante el render (no son estado):
+  // los exámenes son siempre nacionales y sin pago fuera del sistema,
+  // sin sobrescribir la elección del usuario en `form`.
+  const isExamen = form.tipo === 'EXAMEN';
+  const effectiveAmbito = isExamen ? 'NACIONAL' : form.ambito;
+  const effectivePagoFueraSistema = effectiveAmbito === 'NACIONAL' ? false : form.pago_fuera_sistema;
+  const visibleRangos: RangoExamen[] = selectedDisciplinas.map(
+    d => rangosExamen.find(r => r.disciplina === d) ?? { disciplina: d, ...DEFAULT_RANGO },
+  );
 
-  useEffect(() => {
-    setRangosExamen(prev => {
-      const kept = prev.filter(r => selectedDisciplinas.includes(r.disciplina));
-      const newDiscs = selectedDisciplinas.filter(d => !kept.find(r => r.disciplina === d));
-      if (newDiscs.length === 0) return kept;
-      return [...kept, ...newDiscs.map(d => ({ disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' }))];
-    });
-  }, [selectedDisciplinas]);
-
-  function updateCat(index: number, field: keyof Categoria, value: string | number | undefined) {
-    const next = [...categorias];
-    next[index] = { ...next[index], [field]: value };
-    setCategorias(next);
+  function updateCat(id: string, field: Exclude<keyof Categoria, 'id'>, value: string | number | undefined) {
+    setCategorias(prev => prev.map(c => (c.id === id ? { ...c, [field]: value } : c)));
   }
 
   function addCategoria() {
-    setCategorias([...categorias, emptyCategoria()]);
+    setCategorias(prev => [...prev, emptyCategoria()]);
   }
 
-  function removeCategoria(index: number) {
-    if (categorias.length <= 1) return;
-    setCategorias(categorias.filter((_, i) => i !== index));
+  function loadDefaultCategorias() {
+    setCategorias(withNewIds(CATEGORIAS_TORNEO_DEFAULT));
+  }
+
+  function removeCategoria(id: string) {
+    setCategorias(prev => (prev.length <= 1 ? prev : prev.filter(c => c.id !== id)));
+  }
+
+  function toggleDisciplina(d: string) {
+    if (selectedDisciplinas.includes(d)) {
+      setSelectedDisciplinas(selectedDisciplinas.filter(x => x !== d));
+    } else {
+      setSelectedDisciplinas([...selectedDisciplinas, d]);
+      if (!rangosExamen.some(r => r.disciplina === d)) {
+        setRangosExamen([...rangosExamen, { disciplina: d, ...DEFAULT_RANGO }]);
+      }
+    }
+  }
+
+  function updateRango(d: string, field: 'grad_min' | 'grad_max', value: string) {
+    setRangosExamen(prev => {
+      if (prev.some(r => r.disciplina === d)) {
+        return prev.map(r => (r.disciplina === d ? { ...r, [field]: value } : r));
+      }
+      return [...prev, { disciplina: d, ...DEFAULT_RANGO, [field]: value }];
+    });
   }
 
   async function handleSave() {
@@ -184,11 +221,11 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
     try {
       const body: Record<string, any> = {
         tipo: form.tipo,
-        ambito: form.ambito,
+        ambito: effectiveAmbito,
         fecha_inicio: new Date(form.fecha_inicio + 'T00:00:00').toISOString(),
         fecha_fin: new Date(form.fecha_fin + 'T23:59:59').toISOString(),
         datos_lugar: { direccion: form.direccion, provincia: form.provincia },
-        pago_fuera_sistema: form.pago_fuera_sistema,
+        pago_fuera_sistema: effectivePagoFueraSistema,
       };
 
       if (form.archivos_info.trim()) {
@@ -208,7 +245,7 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           setFormError('Debe agregar al menos una categoría');
           return;
         }
-        body.categorias = validas;
+        body.categorias = validas.map(({ id: _id, ...payload }) => payload);
 
         if (form.fecha_limite_informativa) {
           body.fecha_limite_informativa = new Date(form.fecha_limite_informativa + 'T23:59:59').toISOString();
@@ -220,14 +257,14 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
 
       if (form.tipo === 'EXAMEN') {
         body.disciplinas = selectedDisciplinas;
-        body.graduaciones_a_rendir = rangosExamen;
+        body.graduaciones_a_rendir = visibleRangos;
         if (form.info_adicional) body.info_adicional = form.info_adicional;
 
         if (selectedDisciplinas.length === 0) {
           setFormError('Debe seleccionar al menos una disciplina');
           return;
         }
-        if (rangosExamen.length === 0) {
+        if (visibleRangos.length === 0) {
           setFormError('Debe seleccionar al menos un rango de graduaciones');
           return;
         }
@@ -276,8 +313,9 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
+            <label htmlFor="evf-tipo" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Tipo</label>
             <select
+              id="evf-tipo"
               value={form.tipo}
               onChange={(e: Event) => setForm({...form, tipo: (e.target as HTMLSelectElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
@@ -287,43 +325,44 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ámbito</label>
+            <label htmlFor="evf-ambito" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Ámbito</label>
             <select
-              value={form.ambito}
+              id="evf-ambito"
+              value={effectiveAmbito}
               onChange={(e: Event) => setForm({...form, ambito: (e.target as HTMLSelectElement).value})}
-              disabled={form.tipo === 'EXAMEN'}
+              disabled={isExamen}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <option value="REGIONAL">Regional</option>
               <option value="NACIONAL">Nacional</option>
             </select>
-            {form.tipo === 'EXAMEN' && <p class="text-[10px] text-slate-400 mt-0.5">Los exámenes son siempre nacionales</p>}
+            {isExamen && <p class="text-[10px] text-slate-400 mt-0.5">Los exámenes son siempre nacionales</p>}
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Inicio</label>
-            <input type="date" value={form.fecha_inicio}
+            <label htmlFor="evf-inicio" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Inicio</label>
+            <input id="evf-inicio" type="date" value={form.fecha_inicio}
               onInput={(e: Event) => setForm({...form, fecha_inicio: (e.target as HTMLInputElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fin</label>
-            <input type="date" value={form.fecha_fin}
+            <label htmlFor="evf-fin" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fin</label>
+            <input id="evf-fin" type="date" value={form.fecha_fin}
               onInput={(e: Event) => setForm({...form, fecha_fin: (e.target as HTMLInputElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Dirección</label>
-            <input type="text" value={form.direccion}
+            <label htmlFor="evf-direccion" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Dirección</label>
+            <input id="evf-direccion" type="text" value={form.direccion}
               onInput={(e: Event) => setForm({...form, direccion: (e.target as HTMLInputElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
           </div>
 
           <div>
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Provincia</label>
-            <select value={form.provincia}
+            <label htmlFor="evf-provincia" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Provincia</label>
+            <select id="evf-provincia" value={form.provincia}
               onChange={(e: Event) => setForm({...form, provincia: (e.target as HTMLSelectElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
             >
@@ -335,15 +374,15 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           {form.tipo === 'TORNEO' && (
             <>
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Costo de inscripción</label>
-                <input type="number" value={form.costo_inscripcion}
+                <label htmlFor="evf-costo" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Costo de inscripción</label>
+                <input id="evf-costo" type="number" value={form.costo_inscripcion}
                   onInput={(e: Event) => setForm({...form, costo_inscripcion: (e.target as HTMLInputElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disciplina</label>
-                <select value={form.disciplina}
+                <label htmlFor="evf-disciplina" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disciplina</label>
+                <select id="evf-disciplina" value={form.disciplina}
                   onChange={(e: Event) => setForm({...form, disciplina: (e.target as HTMLSelectElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
                 >
@@ -352,8 +391,8 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grad. mínima</label>
-                <select value={form.grad_min}
+                <label htmlFor="evf-grad-min" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grad. mínima</label>
+                <select id="evf-grad-min" value={form.grad_min}
                   onChange={(e: Event) => setForm({...form, grad_min: (e.target as HTMLSelectElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
                 >
@@ -363,8 +402,8 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grad. máxima</label>
-                <select value={form.grad_max}
+                <label htmlFor="evf-grad-max" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Grad. máxima</label>
+                <select id="evf-grad-max" value={form.grad_max}
                   onChange={(e: Event) => setForm({...form, grad_max: (e.target as HTMLSelectElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
                 >
@@ -378,15 +417,15 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           {form.tipo === 'SEMINARIO' && (
             <>
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Costo de inscripción</label>
-                <input type="number" value={form.costo_inscripcion}
+                <label htmlFor="evf-costo-sem" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Costo de inscripción</label>
+                <input id="evf-costo-sem" type="number" value={form.costo_inscripcion}
                   onInput={(e: Event) => setForm({...form, costo_inscripcion: (e.target as HTMLInputElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
               </div>
 
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disciplina</label>
-                <select value={form.disciplina}
+                <label htmlFor="evf-disciplina-sem" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Disciplina</label>
+                <select id="evf-disciplina-sem" value={form.disciplina}
                   onChange={(e: Event) => setForm({...form, disciplina: (e.target as HTMLSelectElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2"
                 >
@@ -398,8 +437,8 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
 
           {form.tipo === 'TORNEO' && (
             <div class="flex items-end">
-              <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={form.inscripcion_multiple}
+              <label htmlFor="evf-inscripcion-multiple" class="flex items-center gap-2 cursor-pointer">
+                <input id="evf-inscripcion-multiple" type="checkbox" checked={form.inscripcion_multiple}
                   onChange={(e: Event) => setForm({...form, inscripcion_multiple: (e.target as HTMLInputElement).checked})}
                   class="w-4 h-4" />
                 <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Inscripción múltiple</span>
@@ -408,29 +447,29 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           )}
 
           <div class="flex items-end">
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={form.pago_fuera_sistema}
+            <label htmlFor="evf-pago-fuera" class="flex items-center gap-2 cursor-pointer">
+              <input id="evf-pago-fuera" type="checkbox" checked={effectivePagoFueraSistema}
                 onChange={(e: Event) => setForm({...form, pago_fuera_sistema: (e.target as HTMLInputElement).checked})}
-                disabled={form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN'}
+                disabled={effectiveAmbito === 'NACIONAL' || isExamen}
                 class="w-4 h-4 disabled:opacity-40" />
-              <span class={`text-xs font-bold uppercase tracking-wider ${form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <span class={`text-xs font-bold uppercase tracking-wider ${effectiveAmbito === 'NACIONAL' || isExamen ? 'text-slate-300' : 'text-slate-500'}`}>
                 Pago fuera del sistema
               </span>
-              {(form.ambito === 'NACIONAL' || form.tipo === 'EXAMEN') && <span class="text-[10px] text-slate-400 ml-1">(no disponible para eventos nacionales)</span>}
+              {(effectiveAmbito === 'NACIONAL' || isExamen) && <span class="text-[10px] text-slate-400 ml-1">(no disponible para eventos nacionales)</span>}
             </label>
           </div>
 
           {form.tipo === 'TORNEO' && (
             <>
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite informativa</label>
-                <input type="date" value={form.fecha_limite_informativa}
+                <label htmlFor="evf-limite-informativa" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite informativa</label>
+                <input id="evf-limite-informativa" type="date" value={form.fecha_limite_informativa}
                   onInput={(e: Event) => setForm({...form, fecha_limite_informativa: (e.target as HTMLInputElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
               </div>
               <div>
-                <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite real</label>
-                <input type="date" value={form.fecha_limite_real}
+                <label htmlFor="evf-limite-real" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Fecha límite real</label>
+                <input id="evf-limite-real" type="date" value={form.fecha_limite_real}
                   onInput={(e: Event) => setForm({...form, fecha_limite_real: (e.target as HTMLInputElement).value})}
                   class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
               </div>
@@ -438,37 +477,31 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
           )}
 
           <div class="lg:col-span-3">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Archivos de información (URLs, uno por línea)</label>
-            <textarea value={form.archivos_info}
+            <label htmlFor="evf-archivos" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Archivos de información (URLs, uno por línea)</label>
+            <textarea id="evf-archivos" value={form.archivos_info}
               onInput={(e: Event) => setForm({...form, archivos_info: (e.target as HTMLTextAreaElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2} />
           </div>
 
           <div class="lg:col-span-3">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Información adicional</label>
-            <textarea value={form.info_adicional}
+            <label htmlFor="evf-info" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Información adicional</label>
+            <textarea id="evf-info" value={form.info_adicional}
               onInput={(e: Event) => setForm({...form, info_adicional: (e.target as HTMLTextAreaElement).value})}
               class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={3} />
           </div>
         </div>
 
         {/* Disciplinas para EXAMEN */}
-        {form.tipo === 'EXAMEN' && (
+        {isExamen && (
           <div class="mt-6">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Disciplinas</label>
-            <div class="flex flex-wrap gap-4">
+            <span id="evf-disciplinas-label" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Disciplinas</span>
+            <div class="flex flex-wrap gap-4" role="group" aria-labelledby="evf-disciplinas-label">
               {DISCIPLINAS.map(d => {
                 const active = selectedDisciplinas.includes(d.value);
                 return (
-                  <label class="flex items-center gap-2 text-sm cursor-pointer">
-                    <input type="checkbox" checked={active}
-                      onChange={() => {
-                        if (active) {
-                          setSelectedDisciplinas(selectedDisciplinas.filter(x => x !== d.value));
-                        } else {
-                          setSelectedDisciplinas([...selectedDisciplinas, d.value]);
-                        }
-                      }}
+                  <label key={d.value} htmlFor={`evf-disc-${d.value}`} class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input id={`evf-disc-${d.value}`} type="checkbox" checked={active}
+                      onChange={() => toggleDisciplina(d.value)}
                       class="w-4 h-4" />
                     {d.label}
                   </label>
@@ -479,26 +512,22 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
         )}
 
         {/* Rangos de graduaciones por disciplina para EXAMEN */}
-        {form.tipo === 'EXAMEN' && (
+        {isExamen && (
           <div class="mt-4 space-y-4">
-            <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
+            <span id="evf-rangos-label" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
               Rangos de graduaciones por disciplina
-            </label>
-            {selectedDisciplinas.map(d => {
-              const rango = rangosExamen.find(r => r.disciplina === d) || { disciplina: d, grad_min: 'KYU_3', grad_max: 'DAN_8' };
+            </span>
+            {visibleRangos.map(rango => {
+              const d = rango.disciplina;
               return (
                 <div key={d} class="flex flex-wrap items-end gap-3 bg-slate-50 border border-slate-200 rounded-lg p-3">
                   <span class="text-sm font-semibold text-slate-700 min-w-[60px]">{DISCIPLINAS.find(dd => dd.value === d)?.label || d}</span>
                   <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Desde</label>
+                    <label htmlFor={`evf-rango-${d}-min`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Desde</label>
                     <select
+                      id={`evf-rango-${d}-min`}
                       value={rango.grad_min}
-                      onChange={(e: Event) => {
-                        const val = (e.target as HTMLSelectElement).value;
-                        setRangosExamen(rangosExamen.map(r =>
-                          r.disciplina === d ? { ...r, grad_min: val } : r
-                        ));
-                      }}
+                      onChange={(e: Event) => updateRango(d, 'grad_min', (e.target as HTMLSelectElement).value)}
                       class="text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                     >
                       {GRAD_EXAMEN_OPTS.map(g => (
@@ -507,15 +536,11 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
                     </select>
                   </div>
                   <div>
-                    <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Hasta</label>
+                    <label htmlFor={`evf-rango-${d}-max`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Hasta</label>
                     <select
+                      id={`evf-rango-${d}-max`}
                       value={rango.grad_max}
-                      onChange={(e: Event) => {
-                        const val = (e.target as HTMLSelectElement).value;
-                        setRangosExamen(rangosExamen.map(r =>
-                          r.disciplina === d ? { ...r, grad_max: val } : r
-                        ));
-                      }}
+                      onChange={(e: Event) => updateRango(d, 'grad_max', (e.target as HTMLSelectElement).value)}
                       class="text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                     >
                       {GRAD_EXAMEN_OPTS.map(g => (
@@ -536,10 +561,10 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
         {form.tipo === 'TORNEO' && (
           <div class="mt-6">
             <div class="flex items-center justify-between mb-3">
-              <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Categorías</label>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Categorías</span>
               <div class="flex gap-2">
                 <button
-                  onClick={() => setCategorias(CATEGORIAS_TORNEO_DEFAULT.map(c => ({ ...c })))}
+                  onClick={loadDefaultCategorias}
                   class="text-xs text-green-600 hover:underline font-medium"
                 >
                   Cargar por defecto
@@ -555,12 +580,12 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
 
             <div class="space-y-3">
               {categorias.map((cat, i) => (
-                <div key={i} class="bg-slate-50 border border-slate-200 rounded-lg p-4">
+                <div key={cat.id} class="bg-slate-50 border border-slate-200 rounded-lg p-4">
                   <div class="flex items-center justify-between mb-2">
                     <span class="text-xs font-semibold text-slate-500">Categoría {i + 1}</span>
                     {categorias.length > 1 && (
                       <button
-                        onClick={() => removeCategoria(i)}
+                        onClick={() => removeCategoria(cat.id)}
                         class="text-xs text-red-600 hover:underline"
                       >
                         Eliminar
@@ -569,16 +594,16 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
                   </div>
                   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Nombre</label>
-                      <input type="text" value={cat.nombre}
-                        onInput={(e: Event) => updateCat(i, 'nombre', (e.target as HTMLInputElement).value)}
+                      <label htmlFor={`cat-${cat.id}-nombre`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Nombre</label>
+                      <input id={`cat-${cat.id}-nombre`} type="text" value={cat.nombre}
+                        onInput={(e: Event) => updateCat(cat.id, 'nombre', (e.target as HTMLInputElement).value)}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                         placeholder="Ej: Torneo Kyu" />
                     </div>
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Grad. mínima</label>
-                      <select value={cat.grad_min || ''}
-                        onChange={(e: Event) => updateCat(i, 'grad_min', (e.target as HTMLSelectElement).value || undefined)}
+                      <label htmlFor={`cat-${cat.id}-grad-min`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Grad. mínima</label>
+                      <select id={`cat-${cat.id}-grad-min`} value={cat.grad_min || ''}
+                        onChange={(e: Event) => updateCat(cat.id, 'grad_min', (e.target as HTMLSelectElement).value || undefined)}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                       >
                         <option value="">Sin requisito</option>
@@ -586,9 +611,9 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
                       </select>
                     </div>
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Grad. máxima</label>
-                      <select value={cat.grad_max || ''}
-                        onChange={(e: Event) => updateCat(i, 'grad_max', (e.target as HTMLSelectElement).value || undefined)}
+                      <label htmlFor={`cat-${cat.id}-grad-max`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Grad. máxima</label>
+                      <select id={`cat-${cat.id}-grad-max`} value={cat.grad_max || ''}
+                        onChange={(e: Event) => updateCat(cat.id, 'grad_max', (e.target as HTMLSelectElement).value || undefined)}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                       >
                         <option value="">Sin requisito</option>
@@ -596,30 +621,30 @@ export default function EventoForm({ editing, user, onClose, onSaved }: EventoFo
                       </select>
                     </div>
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Género</label>
-                      <select value={cat.genero || ''}
-                        onChange={(e: Event) => updateCat(i, 'genero', (e.target as HTMLSelectElement).value || undefined)}
+                      <label htmlFor={`cat-${cat.id}-genero`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Género</label>
+                      <select id={`cat-${cat.id}-genero`} value={cat.genero || ''}
+                        onChange={(e: Event) => updateCat(cat.id, 'genero', (e.target as HTMLSelectElement).value || undefined)}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                       >
                         {SEXOS_CATEGORIA.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
                       </select>
                     </div>
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Edad mín.</label>
-                      <input type="number" value={cat.edad_min ?? ''}
+                      <label htmlFor={`cat-${cat.id}-edad-min`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Edad mín.</label>
+                      <input id={`cat-${cat.id}-edad-min`} type="number" value={cat.edad_min ?? ''}
                         onInput={(e: Event) => {
                           const val = (e.target as HTMLInputElement).value;
-                          updateCat(i, 'edad_min', val ? parseInt(val) : undefined);
+                          updateCat(cat.id, 'edad_min', val ? parseInt(val) : undefined);
                         }}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                         placeholder="Ej: 8" />
                     </div>
                     <div>
-                      <label class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Edad máx.</label>
-                      <input type="number" value={cat.edad_max ?? ''}
+                      <label htmlFor={`cat-${cat.id}-edad-max`} class="block text-[10px] font-semibold text-slate-400 uppercase mb-0.5">Edad máx.</label>
+                      <input id={`cat-${cat.id}-edad-max`} type="number" value={cat.edad_max ?? ''}
                         onInput={(e: Event) => {
                           const val = (e.target as HTMLInputElement).value;
-                          updateCat(i, 'edad_max', val ? parseInt(val) : undefined);
+                          updateCat(cat.id, 'edad_max', val ? parseInt(val) : undefined);
                         }}
                         class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1.5"
                         placeholder="Ej: 17" />

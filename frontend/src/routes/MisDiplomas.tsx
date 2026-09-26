@@ -80,6 +80,7 @@ export default function MisDiplomas() {
                     <a
                       href={d.url_archivo}
                       target="_blank"
+                      rel="noopener noreferrer"
                       class="text-slate-600 hover:text-slate-900 underline text-xs"
                     >
                       Ver {fileLabel(d.url_archivo)}

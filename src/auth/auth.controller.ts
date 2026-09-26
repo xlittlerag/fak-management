@@ -1,8 +1,19 @@
-import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Get,
+  Body,
+  HttpCode,
+  HttpStatus,
+  Res,
+  Req,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { Public } from './decorators/public.decorator';
+import { clearAuthCookie, setAuthCookie } from './auth-cookie';
+import type { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -17,15 +28,40 @@ export class AuthController {
   @Public()
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() dto: LoginDto) {
-    return this.authService.login(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.login(dto);
+    // Sesión en cookie httpOnly; el cuerpo se mantiene por compatibilidad.
+    setAuthCookie(res, result.access_token);
+    return result;
   }
 
   @Public()
   @Post('admin-login')
   @HttpCode(HttpStatus.OK)
-  adminLogin(@Body('password') password: string) {
-    return this.authService.adminLogin(password);
+  async adminLogin(
+    @Body('password') password: string,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.adminLogin(password);
+    // Sesión en cookie httpOnly; el cuerpo se mantiene por compatibilidad.
+    setAuthCookie(res, result.access_token);
+    return result;
+  }
+
+  @Public()
+  @Post('logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Res({ passthrough: true }) res: Response) {
+    clearAuthCookie(res);
+    return { mensaje: 'Sesión cerrada correctamente.' };
+  }
+
+  @Get('session')
+  getSession(@Req() req: Request) {
+    return req.user;
   }
 
   @Public()

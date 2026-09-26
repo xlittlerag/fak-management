@@ -40,8 +40,9 @@ export default function AdminLogin() {
 
         <form onSubmit={handleSubmit} class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Contraseña de administrador</label>
+            <label htmlFor="admin-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña de administrador</label>
             <input
+              id="admin-password"
               type="password"
               value={password}
               onInput={(e: Event) => setPassword((e.target as HTMLInputElement).value)}
