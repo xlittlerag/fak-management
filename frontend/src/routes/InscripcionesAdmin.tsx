@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { Spinner } from '../components/Spinner';
@@ -31,15 +31,7 @@ export default function InscripcionesAdmin() {
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 30;
 
-  useEffect(() => {
-    const controller = new AbortController();
-    setLoading(true);
-    setError('');
-    void fetchInscripciones(controller.signal);
-    return () => controller.abort();
-  }, [eventoId]);
-
-  const fetchInscripciones = async (signal?: AbortSignal) => {
+  const fetchInscripciones = useCallback(async (signal?: AbortSignal) => {
     try {
       if (eventoId) {
         const res = await api.get(`/eventos/${eventoId}/inscripciones`, { signal });
@@ -69,7 +61,15 @@ export default function InscripcionesAdmin() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [eventoId]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    void fetchInscripciones(controller.signal);
+    return () => controller.abort();
+  }, [fetchInscripciones]);
 
   const handleAction = async (id: number, accion: 'APROBAR' | 'RECHAZAR') => {
     try {

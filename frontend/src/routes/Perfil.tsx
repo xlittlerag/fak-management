@@ -4,6 +4,7 @@ import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
 import { Spinner } from '../components/Spinner';
+import { Modal } from '../components/Modal';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { getErrorMessage } from '../lib/error';
 
@@ -44,10 +45,6 @@ export default function Perfil() {
   const [bajaLoading, setBajaLoading] = useState(false);
   const [bajaMotivo, setBajaMotivo] = useState('');
 
-  useEffect(() => {
-    fetchPerfil();
-  }, []);
-
   const fetchPerfil = async () => {
     try {
       const res = await api.get('/usuarios/perfil');
@@ -65,6 +62,10 @@ export default function Perfil() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchPerfil();
+  }, []);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -320,11 +321,8 @@ export default function Perfil() {
         )}
       </div>
 
-      {reimpresionModal && (
-        <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={() => setReimpresionModal(false)}>
-          <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6" onClick={e => e.stopPropagation()}>
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Solicitar Reimpresión</h3>
-            <div class="space-y-4">
+      <Modal isOpen={reimpresionModal} onClose={() => setReimpresionModal(false)} title="Solicitar Reimpresión">
+        <div class="space-y-4">
               <div>
                 <label htmlFor="perfil-reimp-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
                 <select
@@ -400,9 +398,7 @@ export default function Perfil() {
             >
               Cancelar
             </button>
-          </div>
-        </div>
-      )}
+      </Modal>
 
       {user?.estado_reg === 'APROBADO' && (
         <div class="bg-white rounded-lg shadow-sm border border-red-200 p-6">

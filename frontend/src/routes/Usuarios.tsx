@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { GRADUACIONES, SEXOS } from '../constants';
@@ -93,11 +93,7 @@ function ListadoMiembros() {
       )
     : users;
 
-  useEffect(() => {
-    fetchUsers();
-  }, [page]);
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     try {
       const res = await api.get(`/usuarios?skip=${page * PAGE_SIZE}&take=${PAGE_SIZE}`);
       setUsers(res.data);
@@ -106,7 +102,11 @@ function ListadoMiembros() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [page]);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
 
   const handleUpdateRol = async (id: number, rol: string) => {
     try {
@@ -299,8 +299,9 @@ function ListadoMiembros() {
             <h3 class="text-lg font-bold text-slate-800 mb-4">Solicitar baja de socio</h3>
             <p class="text-sm text-slate-600 mb-4">¿Desea solicitar la baja de <strong>{bajaUser.nombre} {bajaUser.apellido}</strong>? La solicitud quedará pendiente de aprobación de la federación.</p>
             <div class="mb-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+              <label htmlFor="usuarios-baja-motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
               <textarea
+                id="usuarios-baja-motivo"
                 value={bajaMotivo}
                 onInput={(e: Event) => setBajaMotivo((e.target as HTMLTextAreaElement).value)}
                 rows={3}
@@ -323,8 +324,6 @@ function PendientesAprobacion() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => { fetchUsers(); }, []);
-
   const fetchUsers = async () => {
     try {
       const res = await api.get('/usuarios/pendientes');
@@ -335,6 +334,8 @@ function PendientesAprobacion() {
       setLoading(false);
     }
   };
+
+  useEffect(() => { fetchUsers(); }, []);
 
   const handleAction = async (id: number, accion: 'APROBAR' | 'RECHAZAR') => {
     try {

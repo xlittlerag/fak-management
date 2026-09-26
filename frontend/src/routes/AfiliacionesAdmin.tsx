@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Spinner } from '../components/Spinner';
@@ -185,7 +185,7 @@ function AdmitirDesafiliado() {
   const [error, setError] = useState('');
   const [dojoPorUsuario, setDojoPorUsuario] = useState<Record<number, string>>({});
 
-  const fetchDesafiliados = async (signal?: AbortSignal) => {
+  const fetchDesafiliados = useCallback(async (signal?: AbortSignal) => {
     if (asociacionId === undefined || asociacionId === null) return;
     try {
       const [uRes, dRes] = await Promise.all([
@@ -201,7 +201,7 @@ function AdmitirDesafiliado() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [asociacionId]);
 
   useEffect(() => {
     if (authLoading) return;
@@ -213,7 +213,7 @@ function AdmitirDesafiliado() {
     setLoading(true);
     void fetchDesafiliados(controller.signal);
     return () => controller.abort();
-  }, [authLoading, asociacionId]);
+  }, [authLoading, asociacionId, fetchDesafiliados]);
 
   const admitir = async (usuarioId: number) => {
     const dojoId = dojoPorUsuario[usuarioId];

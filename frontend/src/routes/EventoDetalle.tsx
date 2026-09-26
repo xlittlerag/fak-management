@@ -346,11 +346,11 @@ export default function EventoDetalle() {
           )}
 
           {evento.tipo === 'EXAMEN' && (
-            <div>
-              <label class="block text-sm text-slate-600 mb-2">
+            <fieldset>
+              <legend class="block text-sm text-slate-600 mb-2">
                 Disciplinas a rendir
                 <span class="text-xs text-slate-400 ml-1">(seleccione una o más)</span>
-              </label>
+              </legend>
               <div class="space-y-2">
                 {disciplinas.map((d: string) => {
                   const selected = selDisciplinas.includes(d);
@@ -424,7 +424,7 @@ export default function EventoDetalle() {
                   )}
                 </div>
               )}
-            </div>
+            </fieldset>
           )}
 
           {evento.tipo === 'EXAMEN' && (

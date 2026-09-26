@@ -178,15 +178,19 @@ describe('Auth (e2e)', () => {
         asociacion_id: assoc.id,
       });
 
-      const response = await request(app.getHttpServer())
+      const agent = request.agent(app.getHttpServer());
+      const response = await agent
         .post('/api/auth/login')
         .send({ dni: 'A123', password: 'Password123!' })
         .expect(200);
 
-      expect(response.body).toHaveProperty('access_token');
+      // El JWT viaja solo en la cookie httpOnly, nunca en el cuerpo.
+      expect(response.body).not.toHaveProperty('access_token');
+      const cookies: string[] = response.headers['set-cookie'] ?? [];
+      expect(cookies.some((c) => c.startsWith('access_token='))).toBe(true);
 
-      const decoded = jwt.decode(response.body.access_token);
-      expect(decoded.sub).toBe(user.user.id);
+      const session = await agent.get('/api/auth/session').expect(200);
+      expect(session.body.email).toBe(user.user.email);
     });
   });
 
@@ -194,14 +198,17 @@ describe('Auth (e2e)', () => {
     it('should return 200 and a JWT for valid admin password', async () => {
       await createAdminGeneral(prisma, jwt);
 
-      const response = await request(app.getHttpServer())
+      const agent = request.agent(app.getHttpServer());
+      const response = await agent
         .post('/api/auth/admin-login')
         .send({ password: 'Admin123!' })
         .expect(200);
 
-      expect(response.body).toHaveProperty('access_token');
-      const decoded = jwt.decode(response.body.access_token);
-      expect(decoded.rol).toBe('ADMIN_GENERAL');
+      // El JWT viaja solo en la cookie httpOnly, nunca en el cuerpo.
+      expect(response.body).not.toHaveProperty('access_token');
+
+      const session = await agent.get('/api/auth/session').expect(200);
+      expect(session.body.rol).toBe('ADMIN_GENERAL');
     });
 
     it('should return 401 for invalid admin password', async () => {
@@ -271,8 +278,8 @@ describe('Auth (e2e)', () => {
         .send({ dni: 'C123', password: 'Password123!' })
         .expect(200);
 
-      // Compatibilidad: el cuerpo mantiene el token.
-      expect(loginRes.body).toHaveProperty('access_token');
+      // El cuerpo ya no expone el token: solo la cookie lo transporta.
+      expect(loginRes.body).not.toHaveProperty('access_token');
 
       const cookies: string[] = loginRes.headers['set-cookie'] ?? [];
       const session = cookies.find((c) => c.startsWith('access_token='));

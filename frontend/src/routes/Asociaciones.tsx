@@ -33,10 +33,6 @@ export default function Asociaciones() {
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  useEffect(() => {
-    fetchAsociaciones();
-  }, []);
-
   const fetchAsociaciones = async () => {
     try {
       const res = await api.get('/asociaciones');
@@ -51,6 +47,10 @@ export default function Asociaciones() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchAsociaciones();
+  }, []);
 
   const handleCreateDojo = async (asociacion_id: number) => {
     if (!newDojoNombre.trim()) return;

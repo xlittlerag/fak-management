@@ -132,11 +132,11 @@ export default function DiplomasAdmin() {
         <form onSubmit={handleSubmitIndividual} class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
           <h3 class="text-base font-bold text-slate-800">Cargar Diploma Individual</h3>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Buscar usuario</label>
-            <input type="text" placeholder="Nombre, apellido o DNI..." value={searchTerm}
+            <label htmlFor="dipl-buscar" class="block text-sm font-medium text-slate-700 mb-1">Buscar usuario</label>
+            <input id="dipl-buscar" type="text" placeholder="Nombre, apellido o DNI..." value={searchTerm}
               onInput={(e: Event) => setSearchTerm((e.target as HTMLInputElement).value)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 mb-2" />
-            <select value={usuarioId ?? ''}
+            <select aria-label="Seleccionar usuario" value={usuarioId ?? ''}
               onChange={(e: Event) => setUsuarioId(parseInt((e.target as HTMLSelectElement).value) || null)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
               <option value="">Seleccionar usuario...</option>
@@ -147,23 +147,23 @@ export default function DiplomasAdmin() {
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
-              <select value={disciplina} onChange={(e: Event) => setDisciplina((e.target as HTMLSelectElement).value)}
+              <label htmlFor="dipl-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+              <select id="dipl-disciplina" value={disciplina} onChange={(e: Event) => setDisciplina((e.target as HTMLSelectElement).value)}
                 class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 {DISCIPLINAS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
               </select>
             </div>
             <div>
-              <label class="block text-sm font-medium text-slate-700 mb-1">Graduación (si no hay inscripción)</label>
-              <select value={graduacion} onChange={(e: Event) => setGraduacion((e.target as HTMLSelectElement).value)}
+              <label htmlFor="dipl-graduacion" class="block text-sm font-medium text-slate-700 mb-1">Graduación (si no hay inscripción)</label>
+              <select id="dipl-graduacion" value={graduacion} onChange={(e: Event) => setGraduacion((e.target as HTMLSelectElement).value)}
                 class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
                 {GRADUACIONES.filter(g => g.value !== 'SIN_GRADUACION').map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">ID de inscripción (opcional)</label>
-            <input type="number" placeholder="Dejar vacío si es carga manual" value={inscripcionId ?? ''}
+            <label htmlFor="dipl-inscripcion" class="block text-sm font-medium text-slate-700 mb-1">ID de inscripción (opcional)</label>
+            <input id="dipl-inscripcion" type="number" placeholder="Dejar vacío si es carga manual" value={inscripcionId ?? ''}
               onInput={(e: Event) => setInscripcionId(parseInt((e.target as HTMLInputElement).value) || undefined)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
           </div>
@@ -184,8 +184,8 @@ export default function DiplomasAdmin() {
         <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
           <h3 class="text-base font-bold text-slate-800">Carga por Lote</h3>
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Evento</label>
-            <select value={eventoId ?? ''}
+            <label htmlFor="dipl-evento" class="block text-sm font-medium text-slate-700 mb-1">Evento</label>
+            <select id="dipl-evento" value={eventoId ?? ''}
               onChange={(e: Event) => loadInscripciones(parseInt((e.target as HTMLSelectElement).value) || 0)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
               <option value="">Seleccionar evento...</option>

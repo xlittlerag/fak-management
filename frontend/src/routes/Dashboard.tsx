@@ -138,8 +138,10 @@ export default function Dashboard() {
   return (
     <div class="flex h-screen bg-slate-50">
       {sidebarOpen && (
-        <div
-          class="fixed inset-0 bg-black/50 z-20 lg:hidden"
+        <button
+          type="button"
+          aria-label="Cerrar menú"
+          class="fixed inset-0 bg-black/50 z-20 lg:hidden cursor-default"
           onClick={() => setSidebarOpen(false)}
         />
       )}

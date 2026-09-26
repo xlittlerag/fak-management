@@ -82,18 +82,20 @@ describe('Afiliaciones (e2e)', () => {
   });
 
   describe('Login de un DESAFILIADO', () => {
-    it('puede iniciar sesión y el token incluye estado_reg', async () => {
+    it('puede iniciar sesión y la sesión incluye estado_reg', async () => {
       const { user } = await createTestUser(prisma, jwt, {
         estado_reg: 'DESAFILIADO',
       });
 
-      const res = await request(app.getHttpServer())
+      const agent = request.agent(app.getHttpServer());
+      const res = await agent
         .post('/api/auth/login')
         .send({ dni: user.dni, password: 'Password123!' });
 
       expect(res.status).toBe(200);
-      const payload = jwt.verify(res.body.access_token);
-      expect(payload.estado_reg).toBe('DESAFILIADO');
+      expect(res.body).not.toHaveProperty('access_token');
+      const session = await agent.get('/api/auth/session').expect(200);
+      expect(session.body.estado_reg).toBe('DESAFILIADO');
     });
   });
 

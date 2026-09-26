@@ -285,11 +285,11 @@ const handlePagar = async (ins: Inscripcion) => {
                     )}
 
                     {evento.tipo === 'EXAMEN' && (
-                      <div>
-                        <label class="block text-sm text-slate-600 mb-2">
+                      <fieldset>
+                        <legend class="block text-sm text-slate-600 mb-2">
                           Disciplinas a rendir
                           <span class="text-xs text-slate-400 ml-1">(seleccione una o más)</span>
-                        </label>
+                        </legend>
                         <div class="space-y-2">
                           {disciplinas.map((d: string) => {
                             const selected = (selectedDisciplinas[evento.id] || []).includes(d);
@@ -348,7 +348,6 @@ const handlePagar = async (ins: Inscripcion) => {
                             }, 0).toLocaleString('es-AR')}
                           </p>
                         )}
-
                         <div class="border-t border-slate-100 pt-4 space-y-3">
                           <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" checked={necesidadesEsp[evento.id] || false}
@@ -377,7 +376,7 @@ const handlePagar = async (ins: Inscripcion) => {
                             </>
                           )}
                         </div>
-                      </div>
+                      </fieldset>
                     )}
 
                     <button

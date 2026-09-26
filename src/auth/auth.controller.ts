@@ -33,9 +33,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.login(dto);
-    // Sesión en cookie httpOnly; el cuerpo se mantiene por compatibilidad.
+    // Sesión únicamente en cookie httpOnly: el JWT nunca sale en el cuerpo.
     setAuthCookie(res, result.access_token);
-    return result;
+    return { mensaje: 'Sesión iniciada correctamente.' };
   }
 
   @Public()
@@ -46,9 +46,9 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.adminLogin(password);
-    // Sesión en cookie httpOnly; el cuerpo se mantiene por compatibilidad.
+    // Sesión únicamente en cookie httpOnly: el JWT nunca sale en el cuerpo.
     setAuthCookie(res, result.access_token);
-    return result;
+    return { mensaje: 'Sesión iniciada correctamente.' };
   }
 
   @Public()

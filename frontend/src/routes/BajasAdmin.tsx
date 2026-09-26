@@ -123,8 +123,9 @@ function BajasPendientes() {
             <h3 class="text-lg font-bold text-slate-800 mb-4">Rechazar solicitud de baja</h3>
             <p class="text-sm text-slate-600 mb-4">¿Desea rechazar la baja de <strong>{rechazando.usuario.nombre} {rechazando.usuario.apellido}</strong>? El socio permanecerá activo.</p>
             <div class="mb-4">
-              <label class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+              <label htmlFor="baja-motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
               <textarea
+                id="baja-motivo"
                 value={motivo}
                 onInput={(e: Event) => setMotivo((e.target as HTMLTextAreaElement).value)}
                 rows={3}

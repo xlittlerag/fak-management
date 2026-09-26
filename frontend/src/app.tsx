@@ -15,13 +15,13 @@ import NotFound from './routes/_404';
 
 function AppContent() {
   const { checkAuth } = useAuth();
-  const location = useLocation();
+  const { path, route } = useLocation();
 
   useEffect(() => {
-    if (location.path === '/' && checkAuth()) {
-      location.route('/dashboard');
+    if (path === '/' && checkAuth()) {
+      route('/dashboard');
     }
-  }, [location.path]);
+  }, [path, route, checkAuth]);
 
   return (
     <Router>

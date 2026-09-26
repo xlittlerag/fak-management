@@ -34,10 +34,6 @@ export default function MisInscripciones() {
   const [confirmBaja, setConfirmBaja] = useState<number | null>(null);
   const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
 
-  useEffect(() => {
-    fetchInscripciones();
-  }, []);
-
   const fetchInscripciones = async () => {
     try {
       const res = await api.get('/mis-inscripciones');
@@ -48,6 +44,10 @@ export default function MisInscripciones() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchInscripciones();
+  }, []);
 
   const handlePagar = async (inscripcionId: number) => {
     setPayingId(inscripcionId);
@@ -188,8 +188,8 @@ export default function MisInscripciones() {
               {editingId === ins.id ? (
                 <div class="mt-4 space-y-3 border-t border-slate-100 pt-4">
                   <div>
-                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
-                    <input type="text" value={editCats.join(', ')}
+                    <label htmlFor="misedit-cats" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
+                    <input id="misedit-cats" type="text" value={editCats.join(', ')}
                       onInput={(e: Event) => setEditCats((e.target as HTMLInputElement).value.split(',').map(s => s.trim()))}
                       class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
                   </div>

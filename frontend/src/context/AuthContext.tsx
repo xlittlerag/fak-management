@@ -1,6 +1,5 @@
 import { createContext } from 'preact';
 import { useContext, useState, useEffect } from 'preact/hooks';
-import { jwtDecode } from 'jwt-decode';
 import api from '../services/api';
 
 interface User {
@@ -16,8 +15,7 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
-  login: (token: string) => void;
+  refresh: () => Promise<User | null>;
   logout: () => void;
   loading: boolean;
   checkAuth: () => boolean;
@@ -26,41 +24,37 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: preact.ComponentChildren }) => {
-  // El JWT vive solo en memoria: nunca se persiste en localStorage, de modo
-  // que un XSS no puede exfiltrar la sesión (la cookie httpOnly tampoco es
-  // legible desde JS). Al recargar, la sesión se restaura contra /auth/session.
+  // Sesión únicamente en cookie httpOnly: el JWT nunca llega al JS, ni a
+  // localStorage ni a memoria. El usuario se obtiene de /auth/session.
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const checkAuth = () => user !== null;
+
+  const refresh = async (): Promise<User | null> => {
+    try {
+      const res = await api.get<User>('/auth/session');
+      setUser(res.data);
+      return res.data;
+    } catch {
+      setUser(null);
+      return null;
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
 
     const onUnauthorized = () => {
-      setToken(null);
       setUser(null);
     };
     window.addEventListener('auth:unauthorized', onUnauthorized);
 
-    const restore = async () => {
-      try {
-        const res = await api.get<User>('/auth/session');
-        if (!cancelled) {
-          setUser(res.data);
-        }
-      } catch {
-        if (!cancelled) {
-          setUser(null);
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
+    refresh().finally(() => {
+      if (!cancelled) {
+        setLoading(false);
       }
-    };
-    restore();
+    });
 
     return () => {
       cancelled = true;
@@ -68,26 +62,16 @@ export const AuthProvider = ({ children }: { children: preact.ComponentChildren 
     };
   }, []);
 
-  const login = (newToken: string) => {
-    const decoded = jwtDecode<User & { sub: number }>(newToken);
-    setToken(newToken);
-    setUser({
-      ...decoded,
-      id: decoded.sub,
-    });
-  };
-
   const logout = () => {
-    // Invalida la cookie httpOnly en el servidor; el estado en memoria se
-    // limpia de todos modos aunque la llamada falle.
+    // Invalida la cookie httpOnly en el servidor; el estado se limpia de
+    // todos modos aunque la llamada falle.
     api.post('/auth/logout').catch(() => undefined).finally(() => {
-      setToken(null);
       setUser(null);
     });
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, checkAuth }}>
+    <AuthContext.Provider value={{ user, refresh, logout, loading, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

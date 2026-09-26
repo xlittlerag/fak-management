@@ -125,8 +125,9 @@ export default function Afiliacion() {
 
         <form onSubmit={handleSubmit} class="space-y-6 max-w-xl">
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Asociación de destino</label>
+            <label htmlFor="afil-asociacion" class="block text-sm font-medium text-slate-700 mb-1">Asociación de destino</label>
             <select
+              id="afil-asociacion"
               value={asociacionId}
               onChange={(e: Event) => setAsociacionId((e.target as HTMLSelectElement).value)}
               class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
@@ -137,8 +138,9 @@ export default function Afiliacion() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Dojo de destino</label>
+            <label htmlFor="afil-dojo" class="block text-sm font-medium text-slate-700 mb-1">Dojo de destino</label>
             <select
+              id="afil-dojo"
               value={dojoId}
               onChange={(e: Event) => setDojoId((e.target as HTMLSelectElement).value)}
               disabled={!asociacionId}
@@ -150,8 +152,9 @@ export default function Afiliacion() {
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+            <label htmlFor="afil-motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
             <textarea
+              id="afil-motivo"
               value={motivo}
               onInput={(e: Event) => setMotivo((e.target as HTMLTextAreaElement).value)}
               rows={3}

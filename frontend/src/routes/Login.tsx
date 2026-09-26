@@ -6,7 +6,7 @@ import { getErrorMessage } from '../lib/error';
 
 export default function Login() {
   const { url, route } = useLocation();
-  const { login } = useAuth();
+  const { refresh } = useAuth();
   const [dni, setDni] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -21,8 +21,13 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await api.post('/auth/login', { dni, password });
-      login(res.data.access_token);
+      await api.post('/auth/login', { dni, password });
+      const session = await refresh();
+      if (!session) {
+        setError('No se pudo iniciar la sesión. Intente nuevamente.');
+        setLoading(false);
+        return;
+      }
       route('/dashboard');
     } catch (err) {
       setError(getErrorMessage(err));

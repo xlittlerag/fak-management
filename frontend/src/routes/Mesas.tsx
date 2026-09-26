@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useCallback } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { Spinner } from '../components/Spinner';
 import { Modal } from '../components/Modal';
 import { ConfirmModal } from '../components/ConfirmModal';
+import { GRAD_LABEL, DISC_LABEL, GRADUACION_RANK } from '../lib/graduacion';
 
 interface Mesa {
   id: number;
@@ -37,27 +38,6 @@ interface EventoAdmin {
   examen?: { disciplinas: string[] };
 }
 
-const GRAD_LABEL: Record<string, string> = {
-  SIN_GRADUACION: 'Sin graduación',
-  KYU_3: '3° Kyu',
-  KYU_2: '2° Kyu',
-  KYU_1: '1° Kyu',
-  DAN_1: '1° Dan',
-  DAN_2: '2° Dan',
-  DAN_3: '3° Dan',
-  DAN_4: '4° Dan',
-  DAN_5: '5° Dan',
-  DAN_6: '6° Dan',
-  DAN_7: '7° Dan',
-  DAN_8: '8° Dan',
-};
-
-const DISC_LABEL: Record<string, string> = {
-  KENDO: 'Kendo',
-  IAIDO: 'Iaido',
-  JODO: 'Jodo',
-};
-
 const INSTANCIA_LABEL: Record<string, string> = {
   PRACTICO: 'Práctico',
   KATA: 'Kata',
@@ -65,21 +45,6 @@ const INSTANCIA_LABEL: Record<string, string> = {
 };
 
 const GRADOS = Object.keys(GRAD_LABEL).filter((g) => g !== 'SIN_GRADUACION');
-
-const GRADUACION_RANK: Record<string, number> = {
-  SIN_GRADUACION: 0,
-  KYU_3: 1,
-  KYU_2: 2,
-  KYU_1: 3,
-  DAN_1: 4,
-  DAN_2: 5,
-  DAN_3: 6,
-  DAN_4: 7,
-  DAN_5: 8,
-  DAN_6: 9,
-  DAN_7: 10,
-  DAN_8: 11,
-};
 
 const rankGrad = (g: string): number => GRADUACION_RANK[g] ?? -1;
 
@@ -112,19 +77,7 @@ export default function Mesas() {
   const [confirmDelete, setConfirmDelete] = useState<Mesa | null>(null);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    if (!eventoId) {
-      setLoading(false);
-      return;
-    }
-    const controller = new AbortController();
-    setLoading(true);
-    setError('');
-    void fetchData(controller.signal);
-    return () => controller.abort();
-  }, [eventoId]);
-
-  const fetchData = async (signal?: AbortSignal) => {
+  const fetchData = useCallback(async (signal?: AbortSignal) => {
     if (!eventoId) return;
     try {
       const [eventoRes, mesasRes, resultadosRes] = await Promise.all([
@@ -142,7 +95,19 @@ export default function Mesas() {
     } finally {
       if (!signal?.aborted) setLoading(false);
     }
-  };
+  }, [eventoId]);
+
+  useEffect(() => {
+    if (!eventoId) {
+      setLoading(false);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    void fetchData(controller.signal);
+    return () => controller.abort();
+  }, [fetchData, eventoId]);
 
   const openCreate = () => {
     setForm({
