@@ -15,6 +15,7 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions, MAX_FILE_SIZE } from '../files/multer-options';
 import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
@@ -23,8 +24,6 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { Rol } from '@prisma/client';
 import type { Request } from 'express';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 @Controller()
 export class EventosController {
@@ -127,7 +126,10 @@ export class EventosController {
 
   @Patch('inscripciones/:id/archivo-medico')
   @UseInterceptors(
-    FileInterceptor('archivo_medico', { limits: { fileSize: MAX_FILE_SIZE } }),
+    FileInterceptor('archivo_medico', {
+      ...multerOptions(),
+      limits: { fileSize: MAX_FILE_SIZE },
+    }),
   )
   @HttpCode(HttpStatus.OK)
   subirArchivoMedico(

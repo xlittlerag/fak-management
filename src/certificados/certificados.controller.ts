@@ -11,13 +11,12 @@ import {
   UploadedFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { multerOptions, MAX_FILE_SIZE } from '../files/multer-options';
 import { CertificadosService } from './certificados.service';
 import { CreateCertificadoDto } from './dto/create-certificado.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 import type { Request } from 'express';
-
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
 @Controller()
 export class CertificadosController {
@@ -25,7 +24,10 @@ export class CertificadosController {
 
   @Post('certificados')
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }),
+    FileInterceptor('file', {
+      ...multerOptions(),
+      limits: { fileSize: MAX_FILE_SIZE },
+    }),
   )
   create(
     @UploadedFile() file: Express.Multer.File,

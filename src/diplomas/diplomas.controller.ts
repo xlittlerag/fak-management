@@ -11,6 +11,7 @@ import {
   UploadedFiles,
 } from '@nestjs/common';
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+import { multerOptions, MAX_FILE_SIZE } from '../files/multer-options';
 import { DiplomasService } from './diplomas.service';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
 import { ReimprimirDto } from './dto/reimprimir.dto';
@@ -19,7 +20,9 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Rol } from '@prisma/client';
 import type { Request } from 'express';
 
-const MAX_FILE_SIZE = 10 * 1024 * 1024;
+// Tope del lote: con diskStorage el costo es disco, pero 20 archivos por
+// request ya cubren el caso de uso sin castigar el proceso.
+const LOTE_MAX_COUNT = 20;
 
 @Controller()
 export class DiplomasController {
@@ -28,7 +31,10 @@ export class DiplomasController {
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas')
   @UseInterceptors(
-    FileInterceptor('file', { limits: { fileSize: MAX_FILE_SIZE } }),
+    FileInterceptor('file', {
+      ...multerOptions(),
+      limits: { fileSize: MAX_FILE_SIZE },
+    }),
   )
   create(
     @UploadedFile() file: Express.Multer.File,
@@ -40,7 +46,10 @@ export class DiplomasController {
   @Roles(Rol.ADMIN_GENERAL)
   @Post('admin/diplomas/lote')
   @UseInterceptors(
-    FilesInterceptor('files', 50, { limits: { fileSize: MAX_FILE_SIZE } }),
+    FilesInterceptor('files', LOTE_MAX_COUNT, {
+      ...multerOptions(),
+      limits: { fileSize: MAX_FILE_SIZE },
+    }),
   )
   createLote(
     @UploadedFiles() files: Express.Multer.File[],

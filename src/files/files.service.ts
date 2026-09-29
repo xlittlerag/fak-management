@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
 import { existsSync, mkdirSync } from 'fs';
-import { writeFile, readFile } from 'fs/promises';
+import { writeFile, readFile, unlink } from 'fs/promises';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
 
@@ -40,26 +40,34 @@ export class FilesService {
     if (!file) {
       throw new BadRequestException('Debe adjuntar un archivo');
     }
-    // Con diskStorage no hay buffer: se lee del archivo temporal.
-    const contenido: Buffer = file.buffer ?? (await readFile(file.path));
-    if (contenido.length > MAX_SIZE) {
-      throw new BadRequestException(
-        'El archivo supera el tamaño máximo de 10MB',
-      );
+    // Con diskStorage no hay buffer: se lee del archivo temporal, que se
+    // elimina siempre (éxito o rechazo) para no acumular basura.
+    const tempPath: string | undefined = file.buffer ? undefined : file.path;
+    try {
+      const contenido: Buffer = file.buffer ?? (await readFile(file.path));
+      if (contenido.length > MAX_SIZE) {
+        throw new BadRequestException(
+          'El archivo supera el tamaño máximo de 10MB',
+        );
+      }
+      // El tipo real manda: ignora mimetype y nombre declarados por el cliente.
+      const ext = detectarExtension(contenido);
+      if (!ext) {
+        throw new BadRequestException(
+          'Formato no permitido. Solo JPG, PNG y PDF',
+        );
+      }
+
+      const filename = `${randomUUID()}.${ext}`;
+      const filepath = join(this.uploadDir, filename);
+
+      await writeFile(filepath, contenido);
+
+      return `/api/uploads/${filename}`;
+    } finally {
+      if (tempPath) {
+        await unlink(tempPath).catch(() => undefined);
+      }
     }
-    // El tipo real manda: ignora mimetype y nombre declarados por el cliente.
-    const ext = detectarExtension(contenido);
-    if (!ext) {
-      throw new BadRequestException(
-        'Formato no permitido. Solo JPG, PNG y PDF',
-      );
-    }
-
-    const filename = `${randomUUID()}.${ext}`;
-    const filepath = join(this.uploadDir, filename);
-
-    await writeFile(filepath, contenido);
-
-    return `/api/uploads/${filename}`;
   }
 }
