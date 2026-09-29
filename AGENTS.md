@@ -58,6 +58,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 14** — E2E de navegador con Playwright (reemplaza QA manual): 16 tests Chromium en `frontend/e2e/` con BD aislada `e2e-test.db`, job `browser-e2e` en CI; fixes encontrados por la suite (búsqueda DNI case-insensitive, carrera en registro, throttle configurable) — see `docs/iteraciones/14-e2e-navegador.md`
 - **Iteración 15** — Hashing de contraseñas con argon2id: `PasswordService` único punto de hashing (`@node-rs/argon2`, params OWASP), reemplazo total de bcrypt (prod, seeds, tests, entrypoint), corte limpio sin compatibilidad legacy — see `docs/iteraciones/15-hashing-argon2.md`
 - **Iteración 16** — 2FA TOTP opt-in para el admin general: `TwoFactorService` (RFC 6238 sobre node:crypto, secreto cifrado AES-256-GCM con `TOTP_ENCRYPTION_KEY`), login en dos pasos con token pendiente, 10 códigos de respaldo de un uso, gestión en `/dashboard/seguridad`, reset por SQL documentado — see `docs/iteraciones/16-2fa-admin.md`
+- **Iteración 17** — Endurecimiento de seguridad P0→P3 (un commit por ítem): reset con crypto + throttle + bloqueo por intentos, política 12–128 (admin 15), redacción en logs/auditoría, uploads por magic-bytes + attachment + disco, helmet/CSP, firma de webhook, idempotencia persistente, JWT/ADMIN_PASSWORD fail-closed, seed gateado, CI pineada, CORS fail-closed, backups cifrados — see `docs/iteraciones/17-endurecimiento.md`
 
 ## Pending / Next
 - Schema changes use `npx prisma db push` (no migration files)
