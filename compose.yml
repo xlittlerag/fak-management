@@ -1,0 +1,50 @@
+# Kendo Manager — despliegue con compose (podman-compose o docker compose).
+#
+# Build local:
+#   cp deploy.env.example deploy.env   # completar secretos
+#   podman-compose up -d --build       # o: docker compose up -d --build
+#
+# Imagen publicada (GHCR), sin build:
+#   APP_IMAGE=ghcr.io/<owner>/kendo-manager IMAGE_TAG=v1.0.0 \
+#     podman-compose pull app && IMAGE_TAG=v1.0.0 podman-compose up -d
+name: kendo-manager
+
+services:
+  app:
+    build:
+      context: .
+      file: Containerfile
+      args:
+        VITE_MERCADO_PAGO_PUBLIC_KEY: ${VITE_MERCADO_PAGO_PUBLIC_KEY:-test}
+    # Nombre local por defecto; en deploy apuntar a GHCR vía APP_IMAGE.
+    image: ${APP_IMAGE:-kendo-manager}:${IMAGE_TAG:-latest}
+    container_name: kendo-app
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - path: ./deploy.env
+        required: true
+    environment:
+      NODE_ENV: production
+      DB_DIR: /app/data
+    volumes:
+      - kendo-db:/app/data
+      - kendo-uploads:/app/uploads
+    healthcheck:
+      # /api/eventos es público: 200/401/403 = vivo (solo 5xx = caído).
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "require('http').get('http://localhost:3000/api/eventos',r=>process.exit(r.statusCode<500?0:1)).on('error',()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 45s
+
+volumes:
+  kendo-db:
+  kendo-uploads:
