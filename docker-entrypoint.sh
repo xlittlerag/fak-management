@@ -31,7 +31,11 @@ async function main() {
 
   const count = await prisma.adminGeneral.count();
   if (count === 0) {
-    const password = process.env.ADMIN_PASSWORD || 'Admin123';
+    const password = process.env.ADMIN_PASSWORD;
+    if (!password || password.length < 15) {
+      console.error('ERROR: defina ADMIN_PASSWORD con al menos 15 caracteres para crear el admin general.');
+      process.exit(1);
+    }
     const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1 });
     await prisma.adminGeneral.create({
       data: { dni: '00000000', password: passwordHash },

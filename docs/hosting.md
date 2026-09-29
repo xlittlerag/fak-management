@@ -219,7 +219,7 @@ cualquier momento.
       -e DATABASE_URL="file:devdb" \
      -e MERCADO_PAGO_ACCESS_TOKEN="..." \
      -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
-     -e ADMIN_PASSWORD="contraseña-segura" \
+      -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
      -e NODE_ENV=production \
      -v /data/kendo/uploads:/app/uploads:Z \
      -v /data/kendo/rclone:/app/.config/rclone:Z \

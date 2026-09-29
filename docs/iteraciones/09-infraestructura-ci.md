@@ -73,7 +73,7 @@ podman run -d -p 3000:3000 \
   -e DATABASE_URL="file:devdb" \
   -e MERCADO_PAGO_ACCESS_TOKEN="..." \
   -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
-  -e ADMIN_PASSWORD="segura123" \
+  -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
   -v kendo-uploads:/app/uploads \
   kendo-manager
 ```
@@ -83,7 +83,7 @@ podman run -d -p 3000:3000 \
 El entrypoint ejecuta un script Node.js que:
 
 1. Cuenta registros en `adminGeneral`
-2. Si hay 0, crea uno con DNI `00000000` y la contraseña de `ADMIN_PASSWORD` (default `Admin123!`)
+2. Si hay 0, crea uno con DNI `00000000` y la contraseña de `ADMIN_PASSWORD` (obligatoria, mínimo 15 caracteres: sin ella el arranque falla)
 3. Si ya existe, no hace nada
 
 Esto permite:

@@ -40,7 +40,7 @@ podman run -d -p 3000:3000 \
   -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   -e MERCADO_PAGO_ACCESS_TOKEN="test" \
   -e MERCADO_PAGO_SIMULATED="true" \
-  -e ADMIN_PASSWORD="Admin123" \
+  -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
   -v kendo-db:/app/data \
   -v kendo-uploads:/app/uploads \
   kendo-manager
@@ -53,7 +53,8 @@ podman run -d -p 3000:3000 \
 ```
 
 > **Nota:** en producción el arranque crea únicamente el admin general bootstrap
-> (password = `ADMIN_PASSWORD`, default `Admin123`) y **no** carga datos de
+> (password = `ADMIN_PASSWORD`, mínimo 15 caracteres, sin valor por defecto:
+> sin ella el contenedor no arranca) y **no** carga datos de
 > prueba. Para entornos de prueba iniciales, agregar `-e SEED_DATABASE="true"`
 > en el primer `run` (default `false`).
 
