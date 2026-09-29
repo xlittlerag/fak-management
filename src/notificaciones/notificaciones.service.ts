@@ -12,10 +12,26 @@ function loadTemplate(name: string): string {
   return readFileSync(path, 'utf-8');
 }
 
-function render(template: string, vars: Record<string, string>): string {
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function render(
+  template: string,
+  vars: Record<string, string>,
+  rawKeys: string[] = [],
+): string {
   let result = template;
   for (const [key, value] of Object.entries(vars)) {
-    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+    // Los valores son datos de usuarios/operadores: siempre escapados,
+    // salvo claves de HTML estático generado por el propio servicio.
+    const seguro = rawKeys.includes(key) ? value : escapeHtml(value);
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), seguro);
   }
   return result;
 }
@@ -101,12 +117,17 @@ export class NotificacionesService {
       estado === 'APROBADO'
         ? '<p>Puede proceder al pago desde el panel de eventos para confirmar su participación.</p>'
         : '<p>Si considera que esto es un error, contacte al administrador de su asociación.</p>';
-    const html = render(this.getTemplate('inscripcion-status'), {
-      nombre,
-      evento,
-      estado: estadoLabel,
-      mensaje_adicional: mensajeAdicional,
-    });
+    const html = render(
+      this.getTemplate('inscripcion-status'),
+      {
+        nombre,
+        evento,
+        estado: estadoLabel,
+        mensaje_adicional: mensajeAdicional,
+      },
+      // HTML estático del servicio (sin datos de usuario): no se escapa.
+      ['mensaje_adicional'],
+    );
     await this.send({ to, subject: `Inscripción ${estadoLabel} - FAK`, html });
   }
 
