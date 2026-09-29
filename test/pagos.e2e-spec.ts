@@ -485,5 +485,19 @@ describe('Pagos (e2e)', () => {
         .send({})
         .expect(400);
     });
+
+    it('bloquea simulate en producción aunque el flag esté activo', async () => {
+      const previo = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        await request(app.getHttpServer())
+          .post('/api/pagos/simulate')
+          .send({ externalReference: 'fee_user_1_ts_123' })
+          .expect(403);
+      } finally {
+        if (previo === undefined) delete process.env.NODE_ENV;
+        else process.env.NODE_ENV = previo;
+      }
+    });
   });
 });

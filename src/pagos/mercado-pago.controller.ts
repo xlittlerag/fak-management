@@ -128,7 +128,11 @@ export class MercadoPagoController {
   @Public()
   @HttpCode(HttpStatus.OK)
   async simulatePayment(@Body() dto: SimulateDto) {
-    if (!this.isSimulated) {
+    // Doble gate: ni con el flag en true funciona en producción.
+    if (
+      !this.isSimulated ||
+      this.configService.get<string>('NODE_ENV') === 'production'
+    ) {
       throw new ForbiddenException('Modo simulado no habilitado');
     }
 
