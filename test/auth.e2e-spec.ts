@@ -258,6 +258,31 @@ describe('Auth (e2e)', () => {
         .expect(404);
     });
 
+    it('no persiste el hash del código en la auditoría', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const { user } = await createTestUser(prisma, jwt, {
+        dni: 'RESET04',
+        asociacion_id: assoc.id,
+      });
+
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password/request')
+        .send({ dni: 'RESET04' })
+        .expect(201);
+
+      const log = await prisma.auditLog.findFirst({
+        where: { entidad: 'Usuario', entidad_id: user.id },
+        orderBy: { id: 'desc' },
+      });
+      expect(log).not.toBeNull();
+      const datos = log!.datos_nuevos as Record<string, unknown>;
+      expect(datos.codigo_blanqueo).toBe('[REDACTED]');
+      // password ni siquiera llega (omit de Prisma), pero no debe filtrarse.
+      expect(datos.password).toBeUndefined();
+    });
+
     it('rechaza contraseña nueva de menos de 12 caracteres', async () => {
       const assoc = await prisma.asociacion.create({
         data: { nombre: 'Test' },

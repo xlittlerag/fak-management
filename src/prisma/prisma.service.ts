@@ -33,6 +33,29 @@ const MODEL_NAMES = [
   'registroExamen',
 ] as const;
 
+// Claves que nunca se persisten en AuditLog (hashes incluidos: un hash
+// filtrado es material para ataques offline de diccionario).
+const AUDIT_SENSITIVE_KEYS = new Set([
+  'password',
+  'codigo_blanqueo',
+  'totp_secreto',
+  'totp_codigos_respaldo',
+]);
+
+function sanitizarAuditoria(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(sanitizarAuditoria);
+  if (value !== null && typeof value === 'object') {
+    const obj: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      obj[k] = AUDIT_SENSITIVE_KEYS.has(k)
+        ? '[REDACTED]'
+        : sanitizarAuditoria(v);
+    }
+    return obj;
+  }
+  return value;
+}
+
 @Injectable()
 export class PrismaService
   extends PrismaClient
@@ -122,8 +145,12 @@ export class PrismaService
                 usuario_id: context?.usuario_id ?? null,
                 ip: context?.ip ?? null,
                 user_agent: context?.user_agent ?? null,
-                datos_previos: operation === 'create' ? null : previousState,
-                datos_nuevos: operation === 'delete' ? null : result,
+                datos_previos:
+                  operation === 'create'
+                    ? null
+                    : sanitizarAuditoria(previousState),
+                datos_nuevos:
+                  operation === 'delete' ? null : sanitizarAuditoria(result),
               };
               await (
                 this.auditLog.create as unknown as (args: {

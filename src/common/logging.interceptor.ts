@@ -19,6 +19,25 @@ const SENSITIVE_HEADERS = new Set([
   'x-api-key',
 ]);
 
+// Claves que nunca se loguean (comparación insensible a mayúsculas sobre el
+// nombre exacto de la clave). Incluye secretos de 2FA: el QR y el secreto
+// manual equivalen a la contraseña del segundo factor.
+const SENSITIVE_KEYS = new Set([
+  'password',
+  'password_actual',
+  'passwordactual',
+  'nueva_password',
+  'codigo',
+  'codigo_blanqueo',
+  'token_pendiente',
+  'access_token',
+  'secreto_manual',
+  'secreto',
+  'otpauth_url',
+  'qr',
+  'codigos_respaldo',
+]);
+
 function truncate(value: unknown): unknown {
   if (Array.isArray(value)) {
     if (value.length > TRUNCATE_LIMIT) {
@@ -29,7 +48,7 @@ function truncate(value: unknown): unknown {
   if (value !== null && typeof value === 'object') {
     const obj: Record<string, unknown> = {};
     for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
-      obj[k] = truncate(v);
+      obj[k] = SENSITIVE_KEYS.has(k.toLowerCase()) ? '[REDACTED]' : truncate(v);
     }
     return obj;
   }
