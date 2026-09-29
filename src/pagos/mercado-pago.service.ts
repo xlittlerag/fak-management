@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../prisma/prisma.service';
 import MercadoPago, { Preference, Payment } from 'mercadopago';
+import { createHmac, timingSafeEqual } from 'crypto';
 
 interface WebhookData {
   action?: string;
@@ -32,6 +33,53 @@ export class MercadoPagoService {
 
   private get isSimulated(): boolean {
     return this.configService.get<string>('MERCADO_PAGO_SIMULATED') === 'true';
+  }
+
+  /**
+   * Verifica la firma HMAC-SHA256 de Mercado Pago.
+   * Cabecera `x-signature: ts=...,v1=...` sobre el manifiesto
+   * `id:{data.id};request-id:{x-request-id};ts:{ts};` con el secreto
+   * de `MERCADO_PAGO_WEBHOOK_SECRET` (sección Webhooks del dashboard de MP).
+   * Sin secreto configurado se acepta con advertencia (compatibilidad):
+   * configurarlo es obligatorio en producción (ver hosting.md).
+   */
+  verificarFirmaWebhook(
+    dataId: string,
+    xSignature: string | undefined,
+    xRequestId: string | undefined,
+  ): boolean {
+    const secreto = this.configService.get<string>(
+      'MERCADO_PAGO_WEBHOOK_SECRET',
+    );
+    if (!secreto) {
+      this.logger.warn(
+        'MERCADO_PAGO_WEBHOOK_SECRET no configurado: webhook sin verificar firma.',
+      );
+      return true;
+    }
+    if (!xSignature || !xRequestId) return false;
+    const partes = Object.fromEntries(
+      xSignature.split(',').map((p) => {
+        const idx = p.indexOf('=');
+        return idx === -1
+          ? [p.trim(), '']
+          : [p.slice(0, idx).trim(), p.slice(idx + 1).trim()];
+      }),
+    );
+    const ts = partes['ts'];
+    const v1 = partes['v1'];
+    if (!ts || !v1) return false;
+    const manifiesto = `id:${dataId};request-id:${xRequestId};ts:${ts};`;
+    const esperado = createHmac('sha256', secreto).update(manifiesto).digest();
+    let recibido: Buffer;
+    try {
+      recibido = Buffer.from(v1, 'hex');
+    } catch {
+      return false;
+    }
+    return (
+      recibido.length === esperado.length && timingSafeEqual(recibido, esperado)
+    );
   }
 
   async createFederativeFeePreference(

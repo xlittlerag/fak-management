@@ -3,13 +3,16 @@ import {
   Post,
   Body,
   Req,
+  Headers,
   HttpCode,
   HttpStatus,
   Logger,
   ForbiddenException,
+  UnauthorizedException,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { MercadoPagoService } from './mercado-pago.service';
 import { FeeConfigService } from './fee-config.service';
 import { ConfigService } from '@nestjs/config';
@@ -74,6 +77,8 @@ export class MercadoPagoController {
   @Post('webhook')
   @Public()
   @HttpCode(HttpStatus.OK)
+  // Límite propio (MP reintenta en ráfagas): 60/min en vez del global 30.
+  @Throttle({ default: { limit: 60, ttl: 60000 } })
   // Mercado Pago envía campos propios (type, date_created, ...): se validan
   // los conocidos y se ignoran los demás en vez de rechazar con 400.
   @UsePipes(
@@ -83,7 +88,21 @@ export class MercadoPagoController {
       forbidNonWhitelisted: false,
     }),
   )
-  async handleWebhook(@Body() dto: WebhookDto) {
+  async handleWebhook(
+    @Body() dto: WebhookDto,
+    @Headers('x-signature') xSignature?: string,
+    @Headers('x-request-id') xRequestId?: string,
+  ) {
+    const dataId =
+      typeof dto.data?.id === 'string' || typeof dto.data?.id === 'number'
+        ? String(dto.data.id)
+        : '';
+    if (
+      dataId &&
+      !this.mpService.verificarFirmaWebhook(dataId, xSignature, xRequestId)
+    ) {
+      throw new UnauthorizedException('Firma del webhook inválida.');
+    }
     this.logger.log(`Webhook recibido: ${JSON.stringify(dto)}`);
 
     try {

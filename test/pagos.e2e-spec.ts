@@ -10,6 +10,7 @@ import {
   createAdminGeneral,
 } from './test-utils';
 import { Payment } from 'mercadopago';
+import { createHmac } from 'crypto';
 
 process.env.MERCADO_PAGO_SIMULATED = 'true';
 
@@ -148,6 +149,70 @@ describe('Pagos (e2e)', () => {
         .expect(200);
 
       expect(response.body).toHaveProperty('processed', false);
+    });
+
+    describe('firma x-signature', () => {
+      const SECRETO = 'webhook-secret-de-prueba';
+      const DATA_ID = 'firma_test_1';
+      const REQUEST_ID = 'req-123';
+
+      function firmar(
+        dataId: string,
+        secreto: string,
+      ): {
+        xSignature: string;
+        xRequestId: string;
+      } {
+        const ts = String(Math.floor(Date.now() / 1000));
+        const manifiesto = `id:${dataId};request-id:${REQUEST_ID};ts:${ts};`;
+        const v1 = createHmac('sha256', secreto)
+          .update(manifiesto)
+          .digest('hex');
+        return { xSignature: `ts=${ts},v1=${v1}`, xRequestId: REQUEST_ID };
+      }
+
+      afterEach(() => {
+        delete process.env.MERCADO_PAGO_WEBHOOK_SECRET;
+      });
+
+      it('rechaza firma inválida con 401 cuando hay secreto configurado', async () => {
+        process.env.MERCADO_PAGO_WEBHOOK_SECRET = SECRETO;
+
+        await request(app.getHttpServer())
+          .post('/api/pagos/webhook')
+          .set('x-signature', 'ts=123,v1=00')
+          .set('x-request-id', REQUEST_ID)
+          .send({ action: 'payment.updated', data: { id: DATA_ID } })
+          .expect(401);
+      });
+
+      it('rechaza sin cabeceras cuando hay secreto configurado', async () => {
+        process.env.MERCADO_PAGO_WEBHOOK_SECRET = SECRETO;
+
+        await request(app.getHttpServer())
+          .post('/api/pagos/webhook')
+          .send({ action: 'payment.updated', data: { id: DATA_ID } })
+          .expect(401);
+      });
+
+      it('acepta firma válida', async () => {
+        process.env.MERCADO_PAGO_WEBHOOK_SECRET = SECRETO;
+        jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+          id: DATA_ID,
+          status: 'pending',
+          external_reference: 'fee_user_1_ts_123',
+        } as any);
+        const { xSignature, xRequestId } = firmar(DATA_ID, SECRETO);
+
+        const response = await request(app.getHttpServer())
+          .post('/api/pagos/webhook')
+          .set('x-signature', xSignature)
+          .set('x-request-id', xRequestId)
+          .send({ action: 'payment.updated', data: { id: DATA_ID } })
+          .expect(200);
+
+        expect(response.body).toHaveProperty('received', true);
+      });
     });
   });
 
