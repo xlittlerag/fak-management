@@ -3,8 +3,14 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ['v*']
   pull_request:
     branches: [main]
+
+# Un push nuevo cancela el run anterior de la misma rama (no de tags).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
 
 # Principio de mínimo privilegio para el GITHUB_TOKEN.
 permissions:
