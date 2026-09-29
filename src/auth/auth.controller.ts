@@ -15,6 +15,7 @@ import { VerificarAdmin2faDto } from './dto/verificar-admin-2fa.dto';
 import { ConfirmarSetup2faDto } from './dto/confirmar-setup-2fa.dto';
 import { Deshabilitar2faDto } from './dto/deshabilitar-2fa.dto';
 import { CompleteResetDto } from './dto/complete-reset.dto';
+import { AdminLoginDto } from './dto/admin-login.dto';
 import { Public } from './decorators/public.decorator';
 import { Roles } from './decorators/roles.decorator';
 import { Rol } from '@prisma/client';
@@ -51,10 +52,10 @@ export class AuthController {
   @Post('admin-login')
   @HttpCode(HttpStatus.OK)
   async adminLogin(
-    @Body('password') password: string,
+    @Body() dto: AdminLoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const result = await this.authService.adminLogin(password);
+    const result = await this.authService.adminLogin(dto.password);
     // Con 2FA habilitado no se crea sesión: se devuelve el token pendiente
     // para el segundo paso. Sin 2FA, comportamiento original con cookie.
     if ('requiere_2fa' in result) {
