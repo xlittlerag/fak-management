@@ -59,6 +59,8 @@ model Usuario {
   estado_blanqueo  EstadoSolicitud       @default(APROBADO)
   codigo_blanqueo  String?
   codigo_blanqueo_expira DateTime?
+  // Intentos fallidos del código de blanqueo: a los 5 se invalida.
+  codigo_blanqueo_intentos Int @default(0)
   grad_kendo       Graduacion            @default(SIN_GRADUACION)
   f_grad_kendo     DateTime?
   grad_iaido       Graduacion            @default(SIN_GRADUACION)

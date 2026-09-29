@@ -20,6 +20,8 @@ import { randomInt } from 'crypto';
 // Alfabeto sin caracteres ambiguos (0/O, 1/I) para códigos de blanqueo.
 const ALFABETO_BLANQUEO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const LONGITUD_BLANQUEO = 8;
+// Intentos fallidos antes de invalidar el código de blanqueo.
+const MAX_BLANQUEO_INTENTOS = 5;
 
 @Injectable()
 export class AuthService {
@@ -51,6 +53,7 @@ export class AuthService {
         estado_blanqueo: 'PENDIENTE',
         codigo_blanqueo: hash,
         codigo_blanqueo_expira: expira,
+        codigo_blanqueo_intentos: 0,
       },
     });
 
@@ -80,7 +83,27 @@ export class AuthService {
       );
     }
 
+    // A los 5 intentos fallidos el código se invalida y hay que pedir otro.
+    if (user.codigo_blanqueo_intentos >= MAX_BLANQUEO_INTENTOS) {
+      await this.prisma.usuario.update({
+        where: { id: user.id },
+        data: {
+          estado_blanqueo: 'APROBADO',
+          codigo_blanqueo: null,
+          codigo_blanqueo_expira: null,
+          codigo_blanqueo_intentos: 0,
+        },
+      });
+      throw new UnauthorizedException(
+        'Se superó la cantidad de intentos. Solicite un nuevo blanqueo.',
+      );
+    }
+
     if (!(await this.passwords.verify(user.codigo_blanqueo, codigo))) {
+      await this.prisma.usuario.update({
+        where: { id: user.id },
+        data: { codigo_blanqueo_intentos: user.codigo_blanqueo_intentos + 1 },
+      });
       throw new UnauthorizedException('El código ingresado es incorrecto.');
     }
 
@@ -93,6 +116,7 @@ export class AuthService {
         estado_blanqueo: 'APROBADO',
         codigo_blanqueo: null,
         codigo_blanqueo_expira: null,
+        codigo_blanqueo_intentos: 0,
       },
     });
 

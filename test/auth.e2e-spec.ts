@@ -257,6 +257,47 @@ describe('Auth (e2e)', () => {
         .send({ dni: 'NONEXISTENT' })
         .expect(404);
     });
+
+    it('invalida el código tras 5 intentos fallidos', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const { user } = await createTestUser(prisma, jwt, {
+        dni: 'RESET02',
+        asociacion_id: assoc.id,
+      });
+
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password/request')
+        .send({ dni: 'RESET02' })
+        .expect(201);
+
+      const server = request(app.getHttpServer());
+      for (let i = 0; i < 5; i++) {
+        await server
+          .post('/api/auth/reset-password/complete')
+          .send({
+            dni: 'RESET02',
+            codigo: 'ERRONEO',
+            nueva_password: 'Password123!',
+          })
+          .expect(401);
+      }
+      const bloqueado = await server
+        .post('/api/auth/reset-password/complete')
+        .send({
+          dni: 'RESET02',
+          codigo: 'ERRONEO',
+          nueva_password: 'Password123!',
+        })
+        .expect(401);
+      expect(bloqueado.body.message).toMatch(/cantidad de intentos/);
+
+      const updated = await prisma.usuario.findUnique({
+        where: { id: user.id },
+      });
+      expect(updated?.codigo_blanqueo).toBeNull();
+    });
   });
 
   describe('Cookie de sesión httpOnly', () => {
