@@ -29,6 +29,12 @@ RUN pnpm run build
 
 # Etapa Final: Runtime ----------------------------------------
 FROM base
+ARG VERSION=dev
+ARG GIT_SHA=unknown
+LABEL org.opencontainers.image.title="kendo-manager" \
+      org.opencontainers.image.version="$VERSION" \
+      org.opencontainers.image.revision="$GIT_SHA" \
+      org.opencontainers.image.source="https://github.com/xlittlerag/fak-management"
 ENV NODE_ENV=production
 ENV DB_DIR=/app/data
 RUN groupadd -r kendo && useradd -r -g kendo -d /app -s /sbin/nologin kendo
