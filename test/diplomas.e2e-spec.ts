@@ -8,6 +8,7 @@ import {
   cleanupDb,
   createTestUser,
   createAdminGeneral,
+  testPdfBuffer,
 } from './test-utils';
 
 describe('Diplomas (e2e)', () => {
@@ -72,7 +73,7 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test-content'), 'diploma.pdf')
+        .attach('file', testPdfBuffer('test-content'), 'diploma.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
@@ -87,11 +88,32 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${user.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
       expect(res.status).toBe(403);
+    });
+
+    it('rechaza SVG con mimetype falsificado aunque declare image/png', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const user = await createTestUser(prisma, jwt);
+      const svg = Buffer.from(
+        '<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>',
+      );
+
+      const res = await request(app.getHttpServer())
+        .post('/api/admin/diplomas')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .attach('file', svg, {
+          filename: 'diploma.png',
+          contentType: 'image/png',
+        })
+        .field('usuario_id', String(user.user.id))
+        .field('disciplina', 'KENDO')
+        .field('graduacion', 'DAN_1');
+
+      expect(res.status).toBe(400);
     });
 
     it('debería vincular a inscripción aprobada y detectar duplicado', async () => {
@@ -136,7 +158,7 @@ describe('Diplomas (e2e)', () => {
       const res1 = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd1.pdf')
+        .attach('file', testPdfBuffer(), 'd1.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('inscripcion_id', String(inscRes.body.id));
@@ -147,7 +169,7 @@ describe('Diplomas (e2e)', () => {
       const res2 = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd2.pdf')
+        .attach('file', testPdfBuffer(), 'd2.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('inscripcion_id', String(inscRes.body.id));
@@ -203,8 +225,8 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas/lote')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('files', Buffer.from('test'), 'u1.pdf')
-        .attach('files', Buffer.from('test'), 'u2.pdf')
+        .attach('files', testPdfBuffer(), 'u1.pdf')
+        .attach('files', testPdfBuffer(), 'u2.pdf')
         .field('evento_id', String(eventoRes.body.id))
         .field(
           'archivos_meta',
@@ -240,7 +262,7 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas/lote')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('files', Buffer.from('test'), 'u.pdf')
+        .attach('files', testPdfBuffer(), 'u.pdf')
         .field('evento_id', String(eventoRes.body.id))
         .field(
           'archivos_meta',
@@ -304,7 +326,7 @@ describe('Diplomas (e2e)', () => {
       request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${adminToken}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(usuarioId))
         .field('disciplina', disciplina)
         .field('inscripcion_id', String(inscripcionId));
@@ -413,7 +435,7 @@ describe('Diplomas (e2e)', () => {
       const res = await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
@@ -439,7 +461,7 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
@@ -447,7 +469,7 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd2.pdf')
+        .attach('file', testPdfBuffer(), 'd2.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'IAIDO')
         .field('graduacion', 'DAN_2');
@@ -469,7 +491,7 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
@@ -513,7 +535,7 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');
@@ -546,7 +568,7 @@ describe('Diplomas (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/admin/diplomas')
         .set('Authorization', `Bearer ${admin.token}`)
-        .attach('file', Buffer.from('test'), 'd.pdf')
+        .attach('file', testPdfBuffer(), 'd.pdf')
         .field('usuario_id', String(user.user.id))
         .field('disciplina', 'KENDO')
         .field('graduacion', 'DAN_1');

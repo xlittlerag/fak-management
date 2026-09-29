@@ -60,6 +60,12 @@ export async function createTestApp(): Promise<{
   return { app, prisma, jwt };
 }
 
+// Buffer con magic-bytes de PDF real: FilesService valida contenido,
+// no el nombre ni el mimetype declarado.
+export function testPdfBuffer(contenido = 'test'): Buffer {
+  return Buffer.from(`%PDF-1.4 ${contenido}`);
+}
+
 export async function cleanupDb(prisma: PrismaService) {
   await prisma.auditLog.deleteMany();
   await prisma.solicitudAfiliacion.deleteMany();
