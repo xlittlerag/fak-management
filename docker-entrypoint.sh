@@ -51,6 +51,10 @@ main().catch(e => { console.error('Error al crear admin:', e); process.exit(1); 
 " 2>&1
 
 if [ "${SEED_DATABASE}" = "true" ]; then
+  if [ "${NODE_ENV}" = "production" ]; then
+    echo "ERROR: SEED_DATABASE=true está prohibido en producción (borra datos reales)." >&2
+    exit 1
+  fi
   echo "→ Cargando datos de prueba (SEED_DATABASE=true)..."
   cd /app
   DATABASE_URL="file:${DB_DIR}/${DB_FILE}" pnpm exec tsx prisma/seed.ts 2>&1

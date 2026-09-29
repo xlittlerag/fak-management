@@ -17,6 +17,11 @@ function days(n: number, from?: Date): Date {
 }
 
 async function main() {
+  // Destructivo por diseño (deleteMany): prohibido en producción aunque se
+  // invoque a mano con exec.
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('El seed está prohibido en producción.');
+  }
   const adapter = new PrismaBetterSqlite3({
     url: process.env.DATABASE_URL || 'file:./dev.db',
   });
