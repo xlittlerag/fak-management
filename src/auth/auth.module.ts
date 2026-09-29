@@ -15,10 +15,16 @@ import { NotificacionesModule } from '../notificaciones/notificaciones.module';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1d' },
-      }),
+      useFactory: (configService: ConfigService) => {
+        const secret = configService.getOrThrow<string>('JWT_SECRET');
+        // Fail-closed: sin secreto o con secreto débil la app no arranca.
+        if (secret.length < 32) {
+          throw new Error(
+            'JWT_SECRET debe tener al menos 32 caracteres (generar con: openssl rand -hex 32).',
+          );
+        }
+        return { secret, signOptions: { expiresIn: '1d' } };
+      },
     }),
     NotificacionesModule,
   ],

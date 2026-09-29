@@ -67,7 +67,8 @@ export default defineConfig({
       env: {
         DATABASE_URL: 'file:./e2e-test.db',
         E2E_DATABASE_URL: 'file:./e2e-test.db',
-        JWT_SECRET: 'e2e-test-secret',
+        JWT_SECRET:
+          'e2e-test-secret-0123456789abcdef0123456789abcdef',
         MERCADO_PAGO_SIMULATED: 'true',
         MERCADO_PAGO_ACCESS_TOKEN: 'test',
         CORS_ORIGIN: 'http://localhost:5173',
