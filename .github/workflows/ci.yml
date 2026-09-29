@@ -82,3 +82,42 @@ jobs:
       - run: pnpm --dir frontend e2e
         env:
           CI: true
+
+  imagen:
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,prefix=sha-
+            type=ref,event=tag
+
+      - uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          file: Containerfile
+          # En PRs se construye sin publicar (el token de forks no escribe).
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            VITE_MERCADO_PAGO_PUBLIC_KEY=test
+            VERSION=${{ github.ref_name }}
+            GIT_SHA=${{ github.sha }}
