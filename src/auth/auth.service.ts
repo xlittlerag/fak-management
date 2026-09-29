@@ -15,6 +15,11 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EstadoRegistro } from '@prisma/client';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { randomInt } from 'crypto';
+
+// Alfabeto sin caracteres ambiguos (0/O, 1/I) para códigos de blanqueo.
+const ALFABETO_BLANQUEO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const LONGITUD_BLANQUEO = 8;
 
 @Injectable()
 export class AuthService {
@@ -32,7 +37,11 @@ export class AuthService {
     const user = await this.prisma.usuario.findUnique({ where: { dni } });
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
-    const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
+    // Entropía criptográfica (~41 bits): nunca Math.random().
+    let codigo = '';
+    for (let i = 0; i < LONGITUD_BLANQUEO; i++) {
+      codigo += ALFABETO_BLANQUEO[randomInt(ALFABETO_BLANQUEO.length)];
+    }
     const hash = await this.passwords.hash(codigo);
     const expira = new Date(Date.now() + 60 * 60 * 1000);
 
