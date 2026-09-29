@@ -8,6 +8,7 @@ import {
   createTestUser,
   createAdminGeneral,
 } from './test-utils';
+import { corsOrigins } from '../src/utils/cors-origins';
 
 describe('Auth (e2e)', () => {
   let app: INestApplication;
@@ -388,8 +389,7 @@ describe('Auth (e2e)', () => {
       expect(res.headers['access-control-allow-origin']).toBeUndefined();
     });
 
-    it('rechaza CORS_ORIGIN con comodín o URL inválida (fail-closed)', async () => {
-      const { corsOrigins } = await import('../src/utils/cors-origins');
+    it('rechaza CORS_ORIGIN con comodín o URL inválida (fail-closed)', () => {
       const previo = process.env.CORS_ORIGIN;
       try {
         process.env.CORS_ORIGIN = '*';
