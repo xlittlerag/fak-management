@@ -47,6 +47,7 @@ La base de datos SQLite vive dentro del contenedor en `/app/` con nombre definid
 | Variable | Ejemplo | Descripción |
 |---|---|---|
 | `JWT_SECRET` | `openssl rand -hex 64` | Firma de tokens JWT |
+| `TOTP_ENCRYPTION_KEY` | `openssl rand -hex 32` | Cifrado del secreto 2FA del admin (sin ella el 2FA queda deshabilitado) |
 | `DATABASE_URL` | `file:devdb` | URL de conexión SQLite (sin puntos/slashes, ver nota abajo) |
 | `MERCADO_PAGO_ACCESS_TOKEN` | `test-...` | Token de API de Mercado Pago |
 | `VITE_MERCADO_PAGO_PUBLIC_KEY` | `test-...` | Public key de Mercado Pago para el frontend |
@@ -68,6 +69,7 @@ Esto afecta solo a `prisma db push`. El runtime (`PrismaBetterSqlite3` adapter) 
 podman build -t kendo-manager .
 podman run -d -p 3000:3000 \
   -e JWT_SECRET="$(openssl rand -hex 64)" \
+  -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   -e DATABASE_URL="file:devdb" \
   -e MERCADO_PAGO_ACCESS_TOKEN="..." \
   -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \

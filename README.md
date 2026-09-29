@@ -25,7 +25,8 @@ El proyecto es una aplicación Monorepo dividida en:
    cp .env.example .env
    ```
    Al menos reemplazar `JWT_SECRET` por un valor aleatorio, p.ej.
-   `openssl rand -hex 64`.
+   `openssl rand -hex 64`. Para activar el 2FA del admin general, definir
+   también `TOTP_ENCRYPTION_KEY` (p.ej. `openssl rand -hex 32`).
 
 ### Ejecución con Podman
 
@@ -36,6 +37,7 @@ podman build --build-arg VITE_MERCADO_PAGO_PUBLIC_KEY="test-xxxx" -t kendo-manag
 # Ejecutar contenedor (primera vez)
 podman run -d -p 3000:3000 \
   -e JWT_SECRET="$(openssl rand -hex 64)" \
+  -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
   -e MERCADO_PAGO_ACCESS_TOKEN="test" \
   -e MERCADO_PAGO_SIMULATED="true" \
   -e ADMIN_PASSWORD="Admin123" \

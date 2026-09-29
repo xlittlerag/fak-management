@@ -22,6 +22,7 @@
 - Node.js 22.x LTS o superior
 - Ejecución de proceso Node.js persistente (PM2, systemd, o similar)
 - Variable de entorno `JWT_SECRET` para firma de tokens
+- Variable de entorno `TOTP_ENCRYPTION_KEY` para el cifrado del secreto 2FA del admin (`openssl rand -hex 32`; sin ella el 2FA queda deshabilitado)
 - Variable de entorno `DATABASE_URL` para conexión a la base de datos
 - Variable de entorno `VITE_MERCADO_PAGO_PUBLIC_KEY` para frontend
 - Variable de entorno `MERCADO_PAGO_ACCESS_TOKEN` para backend
@@ -211,10 +212,11 @@ cualquier momento.
    ```
 6. Iniciar el contenedor:
    ```bash
-   podman run -d --name kendo-app --restart always \
-     -p 127.0.0.1:3000:3000 \
-     -e JWT_SECRET="$(openssl rand -hex 64)" \
-     -e DATABASE_URL="file:devdb" \
+    podman run -d --name kendo-app --restart always \
+      -p 127.0.0.1:3000:3000 \
+      -e JWT_SECRET="$(openssl rand -hex 64)" \
+      -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
+      -e DATABASE_URL="file:devdb" \
      -e MERCADO_PAGO_ACCESS_TOKEN="..." \
      -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
      -e ADMIN_PASSWORD="contraseña-segura" \
@@ -338,6 +340,7 @@ podman restart kendo-app
 
 - [ ] Podman instalado
 - [ ] `JWT_SECRET` generado (`openssl rand -hex 64`)
+- [ ] `TOTP_ENCRYPTION_KEY` generado (`openssl rand -hex 32`) y guardado junto al resto de secretos — si se pierde o cambia, los secretos 2FA guardados quedan ilegibles y hay que resetear el 2FA por SQL (ver `docs/iteraciones/16-2fa-admin.md`)
 - [ ] `DATABASE_URL` configurada (usar `file:devdb`, ver § Nota sobre Prisma 7.8)
 - [ ] `MERCADO_PAGO_ACCESS_TOKEN` configurado
 - [ ] `VITE_MERCADO_PAGO_PUBLIC_KEY` configurado como build-arg
