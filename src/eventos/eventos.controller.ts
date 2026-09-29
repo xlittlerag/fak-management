@@ -20,6 +20,7 @@ import { EventosService } from './eventos.service';
 import { CreateEventoDto } from './dto/create-evento.dto';
 import { UpdateEventoDto } from './dto/update-evento.dto';
 import { InscribirEventoDto } from './dto/inscribir-evento.dto';
+import { AprobarInscripcionDto } from './dto/aprobar-inscripcion.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Public } from '../auth/decorators/public.decorator';
 import { Rol } from '@prisma/client';
@@ -104,9 +105,9 @@ export class EventosController {
   aprobarInscripcion(
     @Param('id', ParseIntPipe) id: number,
     @Req() req: Request,
-    @Body('accion') accion: 'APROBAR' | 'RECHAZAR',
+    @Body() dto: AprobarInscripcionDto,
   ) {
-    return this.eventosService.aprobarInscripcion(id, req.user!, accion);
+    return this.eventosService.aprobarInscripcion(id, req.user!, dto.accion);
   }
 
   @Post('inscripciones/:id/pagar')

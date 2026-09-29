@@ -418,7 +418,7 @@ describe('Pagos (e2e)', () => {
       await request(app.getHttpServer())
         .post('/api/pagos/simulate')
         .send({})
-        .expect(403);
+        .expect(400);
     });
   });
 });

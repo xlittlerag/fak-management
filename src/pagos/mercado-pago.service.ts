@@ -9,7 +9,7 @@ import MercadoPago, { Preference, Payment } from 'mercadopago';
 
 interface WebhookData {
   action?: string;
-  data?: { id?: string | number };
+  data?: { id?: unknown };
 }
 
 @Injectable()
@@ -187,11 +187,12 @@ export class MercadoPagoService {
   }
 
   async processWebhook(webhookData: WebhookData) {
-    if (!webhookData?.data?.id) {
+    const rawId = webhookData?.data?.id;
+    if (typeof rawId !== 'string' && typeof rawId !== 'number') {
       return { processed: false };
     }
 
-    const paymentId = String(webhookData.data.id);
+    const paymentId = String(rawId);
     const action = webhookData.action;
 
     if (action !== 'payment.created' && action !== 'payment.updated') {

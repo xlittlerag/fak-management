@@ -104,6 +104,31 @@ export class DiplomasService {
     });
   }
 
+  private parsearMetas(archivosMeta: string): {
+    usuario_id: number;
+    disciplina: string;
+  }[] {
+    let metas: unknown;
+    try {
+      metas = JSON.parse(archivosMeta);
+    } catch {
+      throw new BadRequestException('Los metadatos no son un JSON válido');
+    }
+    if (
+      !Array.isArray(metas) ||
+      metas.some(
+        (m) =>
+          typeof m !== 'object' ||
+          m === null ||
+          typeof (m as { usuario_id?: unknown }).usuario_id !== 'number' ||
+          typeof (m as { disciplina?: unknown }).disciplina !== 'string',
+      )
+    ) {
+      throw new BadRequestException('Los metadatos tienen un formato inválido');
+    }
+    return metas as { usuario_id: number; disciplina: string }[];
+  }
+
   async createLote(
     evento_id: number,
     files: Express.Multer.File[],
@@ -119,10 +144,7 @@ export class DiplomasService {
     });
     if (!evento) throw new NotFoundException('Evento no encontrado');
 
-    const metas = JSON.parse(archivosMeta) as {
-      usuario_id: number;
-      disciplina: string;
-    }[];
+    const metas = this.parsearMetas(archivosMeta);
     if (files.length !== metas.length) {
       throw new BadRequestException(
         'La cantidad de archivos no coincide con los metadatos',

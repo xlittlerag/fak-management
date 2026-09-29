@@ -14,6 +14,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { multerOptions, MAX_FILE_SIZE } from '../files/multer-options';
 import { DiplomasService } from './diplomas.service';
 import { CreateDiplomaDto } from './dto/create-diploma.dto';
+import { CreateLoteDto } from './dto/create-lote.dto';
 import { ReimprimirDto } from './dto/reimprimir.dto';
 import { UpdateConfigDto } from './dto/update-config.dto';
 import { Roles } from '../auth/decorators/roles.decorator';
@@ -53,13 +54,12 @@ export class DiplomasController {
   )
   createLote(
     @UploadedFiles() files: Express.Multer.File[],
-    @Body('evento_id') evento_id: string,
-    @Body('archivos_meta') archivosMeta: string,
+    @Body() dto: CreateLoteDto,
   ) {
     return this.diplomasService.createLote(
-      parseInt(evento_id),
+      dto.evento_id,
       files,
-      archivosMeta,
+      dto.archivos_meta,
     );
   }
 

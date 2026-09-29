@@ -7,12 +7,15 @@ import {
   HttpStatus,
   Logger,
   ForbiddenException,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { MercadoPagoService } from './mercado-pago.service';
 import { FeeConfigService } from './fee-config.service';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../auth/decorators/public.decorator';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
+import { WebhookDto, SimulateDto } from './dto/webhook.dto';
 import type { Request } from 'express';
 
 @Controller('pagos')
@@ -71,11 +74,20 @@ export class MercadoPagoController {
   @Post('webhook')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async handleWebhook(@Body() webhookData: Record<string, unknown>) {
-    this.logger.log(`Webhook recibido: ${JSON.stringify(webhookData)}`);
+  // Mercado Pago envía campos propios (type, date_created, ...): se validan
+  // los conocidos y se ignoran los demás en vez de rechazar con 400.
+  @UsePipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      forbidNonWhitelisted: false,
+    }),
+  )
+  async handleWebhook(@Body() dto: WebhookDto) {
+    this.logger.log(`Webhook recibido: ${JSON.stringify(dto)}`);
 
     try {
-      const result = await this.mpService.processWebhook(webhookData);
+      const result = await this.mpService.processWebhook(dto);
 
       if (result.processed && 'userId' in result) {
         this.logger.log(
@@ -96,28 +108,18 @@ export class MercadoPagoController {
   @Post('simulate')
   @Public()
   @HttpCode(HttpStatus.OK)
-  async simulatePayment(
-    @Body()
-    body: {
-      externalReference: string;
-      status?: 'approved' | 'rejected';
-    },
-  ) {
+  async simulatePayment(@Body() dto: SimulateDto) {
     if (!this.isSimulated) {
       throw new ForbiddenException('Modo simulado no habilitado');
     }
 
-    if (!body.externalReference) {
-      throw new ForbiddenException('externalReference es requerido');
-    }
-
-    const status = body.status ?? 'approved';
+    const status = dto.status ?? 'approved';
     const result = await this.mpService.simulatePayment(
-      body.externalReference,
+      dto.externalReference,
       status,
     );
 
-    this.logger.log(`Pago simulado para ${body.externalReference}: ${status}`);
+    this.logger.log(`Pago simulado para ${dto.externalReference}: ${status}`);
 
     // The service returns different shapes; normalize the response
     const success = 'success' in result ? result.success : result.processed;
