@@ -10,3 +10,9 @@ frontend/dist
 test
 coverage
 .DS_Store
+# Datos locales: nunca en capas de imagen (PII, hashes, subidos).
+*.db
+*.db-journal
+uploads/
+data/
+/tmp/
