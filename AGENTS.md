@@ -40,6 +40,11 @@ pnpm run seed                 # seed database with test data
 3. Run `npx prisma db push` to create the database schema
 4. Start backend (`pnpm start:dev`) and frontend (`cd frontend && pnpm dev`)
 
+## Workflow
+- **Commits:** `tipo(área): descripción` in Spanish, lowercase (`feat`, `fix`, `docs`, `chore`, `ci`); one commit per task; never commit secrets (`.env`, `deploy.env` are gitignored)
+- **Docs:** each iteration gets `docs/iteraciones/NN-nombre.md` + one line in Completed Iterations below
+- **Releases:** bump `package.json` + `frontend/package.json` in sync, add `CHANGELOG.md` entry (`chore(release)` commit), then `git tag vX.Y.Z && git push origin vX.Y.Z` — CI publishes `ghcr.io` image tags (`latest`, `sha-*`, `vX.Y.Z`) and runs the Trivy scan; see `docs/iteraciones/18-cicd-empaquetado.md`
+
 ## Completed Iterations
 - **Iteración 1** — API base, auth (JWT/DNI), CRUD asociaciones/dojos/usuarios
 - **Iteración 2** — Frontend Preact + Tailwind, dashboard, perfil, registro
@@ -59,6 +64,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 15** — Hashing de contraseñas con argon2id: `PasswordService` único punto de hashing (`@node-rs/argon2`, params OWASP), reemplazo total de bcrypt (prod, seeds, tests, entrypoint), corte limpio sin compatibilidad legacy — see `docs/iteraciones/15-hashing-argon2.md`
 - **Iteración 16** — 2FA TOTP opt-in para el admin general: `TwoFactorService` (RFC 6238 sobre node:crypto, secreto cifrado AES-256-GCM con `TOTP_ENCRYPTION_KEY`), login en dos pasos con token pendiente, 10 códigos de respaldo de un uso, gestión en `/dashboard/seguridad`, reset por SQL documentado — see `docs/iteraciones/16-2fa-admin.md`
 - **Iteración 17** — Endurecimiento de seguridad P0→P3 (un commit por ítem): reset con crypto + throttle + bloqueo por intentos, política 12–128 (admin 15), redacción en logs/auditoría, uploads por magic-bytes + attachment + disco, helmet/CSP, firma de webhook, idempotencia persistente, JWT/ADMIN_PASSWORD fail-closed, seed gateado, CI pineada, CORS fail-closed, backups cifrados — see `docs/iteraciones/17-endurecimiento.md`
+- **Iteración 18** — CI/CD y empaquetado: job lint, imagen GHCR (`latest`, `sha-*`, `v*`), scan Trivy, artefactos Playwright, `compose.yml` con healthcheck, labels OCI, `deploy.env.example`, versión 1.0.0 + CHANGELOG — see `docs/iteraciones/18-cicd-empaquetado.md`
 
 ## Pending / Next
 - Schema changes use `npx prisma db push` (no migration files)
