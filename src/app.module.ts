@@ -45,8 +45,11 @@ import { LoggingInterceptor } from './common/logging.interceptor';
     }),
     ThrottlerModule.forRoot([
       {
-        ttl: 60000,
-        limit: 30,
+        // Límites configurables por entorno para no interferir con la
+        // suite E2E de navegador (THROTTLE_LIMIT alto). En producción
+        // rigen los valores por defecto (30 req/min).
+        ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
+        limit: parseInt(process.env.THROTTLE_LIMIT ?? '30', 10),
       },
     ]),
     ServeStaticModule.forRoot({

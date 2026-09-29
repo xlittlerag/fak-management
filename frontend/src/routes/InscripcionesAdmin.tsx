@@ -95,7 +95,7 @@ export default function InscripcionesAdmin() {
 
   const query = search.toLowerCase();
   const pendientes = inscripciones.filter(i => i.estado_aprob === 'PENDIENTE' && (
-    !query || i.usuario?.nombre?.toLowerCase().includes(query) || i.usuario?.dni?.includes(query)
+    !query || i.usuario?.nombre?.toLowerCase().includes(query) || i.usuario?.dni?.toLowerCase().includes(query)
   ));
   const totalPages = Math.ceil(pendientes.length / PAGE_SIZE);
   const pagedPendientes = pendientes.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);

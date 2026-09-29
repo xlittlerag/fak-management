@@ -5,3 +5,8 @@ dist/
 uploads/
 
 .env
+
+# Playwright E2E (navegador)
+frontend/playwright-report/
+frontend/test-results/
+frontend/playwright/

@@ -55,6 +55,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 11** — Desafiliación y afiliación (transferencia de asociación): alta/baja de socios con aprobaciones y notificaciones a federación/asociaciones — see `docs/iteraciones/11-desafiliacion.md`
 - **Iteración 12** — Mesas examinadoras: CRUD de mesas por examen, carga de resultados por instancia (práctico/kata/escrito) con asignación automática/manual de mesa, registro de pago por disciplina — see `docs/iteraciones/12-mesas-examinadoras.md`
 - **Iteración 13** — Secuencialidad de resultados y graduación efectiva por diploma: instancias en orden (PRÁCTICO→KATA→ESCRITO), endpoint atómico `POST /admin/resultados/avance` con prefijo invariante editable, guard secuencial en `cargarResultado`; el registro de pago solo se habilita con todas las instancias aprobadas; la graduación se aplica al cargar el Diploma Nacional (gate: todas las instancias + pago), mesas ya no la efectivizan, ediciones bloqueadas post-diploma — see `docs/iteraciones/13-secuencialidad-resultados-graduacion-diploma.md`
+- **Iteración 14** — E2E de navegador con Playwright (reemplaza QA manual): 16 tests Chromium en `frontend/e2e/` con BD aislada `e2e-test.db`, job `browser-e2e` en CI; fixes encontrados por la suite (búsqueda DNI case-insensitive, carrera en registro, throttle configurable) — see `docs/iteraciones/14-e2e-navegador.md`
 
 ## Pending / Next
 - Schema changes use `npx prisma db push` (no migration files)

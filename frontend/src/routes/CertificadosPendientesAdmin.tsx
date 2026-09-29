@@ -74,7 +74,7 @@ export default function CertificadosPendientesAdmin() {
 
   const query = search.toLowerCase();
   const filtered = certificados.filter(c =>
-    !query || c.usuario.nombre.toLowerCase().includes(query) || c.usuario.apellido.toLowerCase().includes(query) || c.usuario.dni.includes(query)
+    !query || c.usuario.nombre.toLowerCase().includes(query) || c.usuario.apellido.toLowerCase().includes(query) || c.usuario.dni.toLowerCase().includes(query)
   );
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);

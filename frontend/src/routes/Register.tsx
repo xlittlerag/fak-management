@@ -80,7 +80,11 @@ export default function Register() {
 
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement | HTMLSelectElement;
-    setFormData({ ...formData, [target.name]: target.value });
+    const { name, value } = target;
+    // Actualización funcional: evita perder campos ante eventos seguidos
+    // (p. ej. autocompletado o relleno rápido), donde `formData` estaría
+    // desactualizado por el cierre.
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
   const strength = (() => {
