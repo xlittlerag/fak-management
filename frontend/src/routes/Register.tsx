@@ -91,8 +91,8 @@ export default function Register() {
     const p = formData.password;
     if (!p) return { level: 0, label: '', color: '', width: '0%' };
     let score = 0;
-    if (p.length >= 6) score++;
-    if (p.length >= 10) score++;
+    if (p.length >= 12) score++;
+    if (p.length >= 16) score++;
     if (/[a-z]/.test(p) && /[A-Z]/.test(p)) score++;
     if (/\d/.test(p)) score++;
     if (/[^a-zA-Z0-9]/.test(p)) score++;
@@ -135,7 +135,7 @@ export default function Register() {
               <input name="email" id="reg-email" type="email" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
             </div>
             <div>
-              <label htmlFor="reg-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
+              <label htmlFor="reg-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña (mínimo 12 caracteres)</label>
               <input name="password" id="reg-password" type="password" required onChange={handleChange} onBlur={() => setPassTouched(true)} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
               {passTouched && formData.password && (
                 <div class="mt-2">

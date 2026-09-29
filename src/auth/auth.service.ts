@@ -70,6 +70,7 @@ export class AuthService {
   }
 
   async completeReset(dni: string, codigo: string, nuevaPassword: string) {
+    const codigoNormalizado = (codigo || '').trim().toUpperCase();
     const user = await this.prisma.usuario.findUnique({ where: { dni } });
     if (!user || !user.codigo_blanqueo || !user.codigo_blanqueo_expira) {
       throw new UnauthorizedException(
@@ -99,7 +100,9 @@ export class AuthService {
       );
     }
 
-    if (!(await this.passwords.verify(user.codigo_blanqueo, codigo))) {
+    if (
+      !(await this.passwords.verify(user.codigo_blanqueo, codigoNormalizado))
+    ) {
       await this.prisma.usuario.update({
         where: { id: user.id },
         data: { codigo_blanqueo_intentos: user.codigo_blanqueo_intentos + 1 },

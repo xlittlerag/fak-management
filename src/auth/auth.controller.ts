@@ -14,6 +14,7 @@ import { LoginDto } from './dto/login.dto';
 import { VerificarAdmin2faDto } from './dto/verificar-admin-2fa.dto';
 import { ConfirmarSetup2faDto } from './dto/confirmar-setup-2fa.dto';
 import { Deshabilitar2faDto } from './dto/deshabilitar-2fa.dto';
+import { CompleteResetDto } from './dto/complete-reset.dto';
 import { Public } from './decorators/public.decorator';
 import { Roles } from './decorators/roles.decorator';
 import { Rol } from '@prisma/client';
@@ -142,13 +143,11 @@ export class AuthController {
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('reset-password/complete')
   @HttpCode(HttpStatus.OK)
-  async completeReset(
-    @Body() body: { dni: string; codigo: string; nueva_password: string },
-  ) {
+  async completeReset(@Body() dto: CompleteResetDto) {
     return this.authService.completeReset(
-      body.dni,
-      body.codigo,
-      body.nueva_password,
+      dto.dni,
+      dto.codigo,
+      dto.nueva_password,
     );
   }
 }

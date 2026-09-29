@@ -3,6 +3,8 @@ export const validationMessages: Record<string, string> = {
   'password should not be empty': 'La contraseña es obligatoria',
   'password must be longer than or equal to 6 characters':
     'La contraseña debe tener al menos 6 caracteres',
+  'password must be longer than or equal to 12 characters':
+    'La contraseña debe tener al menos 12 caracteres',
   'email must be an email': 'El correo electrónico no es válido',
   'nombre should not be empty': 'El nombre es obligatorio',
   'apellido should not be empty': 'El apellido es obligatorio',

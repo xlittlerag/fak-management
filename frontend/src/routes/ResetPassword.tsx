@@ -23,8 +23,8 @@ export default function ResetPassword() {
       return;
     }
 
-    if (nuevaPassword.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+    if (nuevaPassword.length < 12) {
+      setError('La contraseña debe tener al menos 12 caracteres.');
       return;
     }
 

@@ -6,8 +6,11 @@ import {
   IsDateString,
   IsEnum,
   IsOptional,
+  MaxLength,
+  MinLength,
 } from 'class-validator';
 import { Sexo, Provincia } from '@prisma/client';
+import { PASSWORD_MAX_LENGTH, PASSWORD_MIN_LENGTH } from './complete-reset.dto';
 
 export class RegisterUserDto {
   @IsString()
@@ -23,6 +26,12 @@ export class RegisterUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @MinLength(PASSWORD_MIN_LENGTH, {
+    message: `La contraseña debe tener al menos ${PASSWORD_MIN_LENGTH} caracteres.`,
+  })
+  @MaxLength(PASSWORD_MAX_LENGTH, {
+    message: `La contraseña no puede superar los ${PASSWORD_MAX_LENGTH} caracteres.`,
+  })
   password: string;
 
   @IsString()

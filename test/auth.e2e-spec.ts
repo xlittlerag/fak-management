@@ -258,6 +258,27 @@ describe('Auth (e2e)', () => {
         .expect(404);
     });
 
+    it('rechaza contraseña nueva de menos de 12 caracteres', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      await createTestUser(prisma, jwt, {
+        dni: 'RESET03',
+        asociacion_id: assoc.id,
+      });
+
+      await request(app.getHttpServer())
+        .post('/api/auth/reset-password/request')
+        .send({ dni: 'RESET03' })
+        .expect(201);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/reset-password/complete')
+        .send({ dni: 'RESET03', codigo: 'ABCDEFGH', nueva_password: 'corta' })
+        .expect(400);
+      expect(JSON.stringify(res.body)).toMatch(/12 caracteres/);
+    });
+
     it('invalida el código tras 5 intentos fallidos', async () => {
       const assoc = await prisma.asociacion.create({
         data: { nombre: 'Test' },
@@ -278,7 +299,7 @@ describe('Auth (e2e)', () => {
           .post('/api/auth/reset-password/complete')
           .send({
             dni: 'RESET02',
-            codigo: 'ERRONEO',
+            codigo: 'ERRONEO1',
             nueva_password: 'Password123!',
           })
           .expect(401);
@@ -287,7 +308,7 @@ describe('Auth (e2e)', () => {
         .post('/api/auth/reset-password/complete')
         .send({
           dni: 'RESET02',
-          codigo: 'ERRONEO',
+          codigo: 'ERRONEO1',
           nueva_password: 'Password123!',
         })
         .expect(401);
