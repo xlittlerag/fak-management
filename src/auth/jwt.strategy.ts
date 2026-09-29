@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +12,9 @@ interface JwtPayload {
   rol: string;
   asociacion_id: number;
   estado_reg?: string;
+  // Token pendiente del segundo paso de admin-login: solo sirve para
+  // POST /auth/admin-2fa/verificar, nunca como sesión.
+  pendiente_2fa?: boolean;
 }
 
 function cookieExtractor(req: Request | undefined): string | null {
@@ -35,6 +38,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   validate(payload: JwtPayload): AuthUser {
+    if (payload.pendiente_2fa) {
+      throw new UnauthorizedException(
+        'Sesión incompleta: falta el segundo factor de autenticación.',
+      );
+    }
     return {
       id: payload.sub,
       email: payload.email,

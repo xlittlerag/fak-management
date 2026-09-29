@@ -22,6 +22,7 @@ import Afiliacion from './Afiliacion';
 import AfiliacionesAdmin from './AfiliacionesAdmin';
 import BajasAdmin from './BajasAdmin';
 import Mesas from './Mesas';
+import Admin2FA from './Admin2FA';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -103,6 +104,7 @@ export default function Dashboard() {
       title: 'Auditoría',
       items: [
         { label: 'Auditoría', path: '/dashboard/auditoria', roles: ['ADMIN_GENERAL'] },
+        { label: 'Seguridad (2FA)', path: '/dashboard/seguridad', roles: ['ADMIN_GENERAL'] },
       ],
     },
   ];
@@ -130,6 +132,7 @@ export default function Dashboard() {
       '/dashboard/mis-diplomas': 'Mis Diplomas',
       '/dashboard/asociaciones': 'Gestionar Asociaciones',
       '/dashboard/auditoria': 'Auditoría',
+      '/dashboard/seguridad': 'Seguridad (2FA)',
       '/dashboard/mesas': 'Mesas examinadoras',
     };
     return labels[path] || 'Dashboard';
@@ -242,6 +245,7 @@ export default function Dashboard() {
           {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
           {path === '/dashboard/asociaciones' && <Asociaciones />}
           {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
+          {path === '/dashboard/seguridad' && <Admin2FA />}
           {path === '/dashboard/mesas' && <Mesas />}
         </div>
       </main>

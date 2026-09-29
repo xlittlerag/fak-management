@@ -4,11 +4,13 @@ import {
   UnauthorizedException,
   ForbiddenException,
   NotFoundException,
+  ServiceUnavailableException,
   Logger,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { PasswordService } from './password.service';
+import { TwoFactorService } from './two-factor.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EstadoRegistro } from '@prisma/client';
@@ -23,6 +25,7 @@ export class AuthService {
     private jwtService: JwtService,
     private notificaciones: NotificacionesService,
     private passwords: PasswordService,
+    private twoFactor: TwoFactorService,
   ) {}
 
   async requestReset(dni: string) {
@@ -210,6 +213,16 @@ export class AuthService {
 
     for (const admin of admins) {
       if (await this.passwords.verify(admin.password, password)) {
+        // 2FA opt-in: si está habilitado, el primer paso devuelve un token
+        // pendiente (5 min) y la sesión recién se crea al verificar el código.
+        if (admin.totp_habilitado) {
+          const token_pendiente = this.jwtService.sign(
+            { sub: admin.id, pendiente_2fa: true },
+            { expiresIn: '5m' },
+          );
+          return { requiere_2fa: true as const, token_pendiente };
+        }
+
         const payload = {
           sub: admin.id,
           email: 'admin@kendo-manager',
@@ -225,5 +238,215 @@ export class AuthService {
     throw new UnauthorizedException(
       'Credenciales de administrador incorrectas.',
     );
+  }
+
+  // --- 2FA TOTP del admin general ---
+
+  private exigirAdmin2faDisponible() {
+    if (!this.twoFactor.disponible) {
+      throw new ServiceUnavailableException(
+        'El segundo factor no está configurado en el servidor. Contacte al responsable técnico.',
+      );
+    }
+  }
+
+  /** Segundo paso de admin-login: valida el token pendiente + código TOTP o de respaldo. */
+  async verificarAdmin2fa(tokenPendiente: string, codigo: string) {
+    let payload: { sub: number; pendiente_2fa?: boolean };
+    try {
+      payload = this.jwtService.verify(tokenPendiente);
+    } catch {
+      throw new UnauthorizedException(
+        'La verificación ha expirado. Inicie sesión nuevamente.',
+      );
+    }
+    if (!payload?.pendiente_2fa || typeof payload.sub !== 'number') {
+      throw new UnauthorizedException(
+        'Verificación inválida. Inicie sesión nuevamente.',
+      );
+    }
+
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: payload.sub },
+    });
+    if (!admin?.totp_habilitado || !admin.totp_secreto) {
+      throw new UnauthorizedException(
+        'El segundo factor no se encuentra habilitado.',
+      );
+    }
+
+    const codigoLimpio = (codigo || '').trim();
+    let secreto: string;
+    try {
+      secreto = this.twoFactor.descifrar(admin.totp_secreto);
+    } catch {
+      throw new ServiceUnavailableException(
+        'El segundo factor no está configurado en el servidor. Contacte al responsable técnico.',
+      );
+    }
+    const verificado = this.twoFactor.verificar(secreto, codigoLimpio);
+
+    // Si el TOTP falla, se acepta un código de respaldo (un solo uso).
+    if (!verificado) {
+      const hashes: string[] = admin.totp_codigos_respaldo
+        ? (JSON.parse(admin.totp_codigos_respaldo) as string[])
+        : [];
+      let usado = false;
+      const restantes: string[] = [];
+      for (const h of hashes) {
+        if (!usado && (await this.passwords.verify(h, codigoLimpio))) {
+          usado = true;
+          continue;
+        }
+        restantes.push(h);
+      }
+      if (!usado) {
+        throw new UnauthorizedException('El código ingresado es incorrecto.');
+      }
+      await this.prisma.adminGeneral.update({
+        where: { id: admin.id },
+        data: { totp_codigos_respaldo: JSON.stringify(restantes) },
+      });
+    }
+
+    const sessionPayload = {
+      sub: admin.id,
+      email: 'admin@kendo-manager',
+      rol: 'ADMIN_GENERAL' as const,
+      asociacion_id: 0,
+      estado_reg: 'APROBADO' as const,
+    };
+    return { access_token: this.jwtService.sign(sessionPayload) };
+  }
+
+  /** Primer paso de activación: genera el secreto y devuelve QR + otpauth (no habilita aún). */
+  async iniciarSetup2fa(adminId: number) {
+    this.exigirAdmin2faDisponible();
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: adminId },
+    });
+    if (!admin) throw new NotFoundException('Administrador no encontrado.');
+    if (admin.totp_habilitado) {
+      throw new ConflictException(
+        'El segundo factor ya se encuentra habilitado. Deshabilítelo antes de generar uno nuevo.',
+      );
+    }
+
+    const { secreto, otpauthUrl } = this.twoFactor.generarSecreto();
+    await this.prisma.adminGeneral.update({
+      where: { id: admin.id },
+      data: { totp_secreto: this.twoFactor.cifrar(secreto) },
+    });
+    const qr = await this.twoFactor.generarQR(otpauthUrl);
+    return { otpauth_url: otpauthUrl, qr, secreto_manual: secreto };
+  }
+
+  /** Segundo paso de activación: verifica el código y habilita el 2FA + emite respaldos. */
+  async confirmarSetup2fa(adminId: number, codigo: string) {
+    this.exigirAdmin2faDisponible();
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: adminId },
+    });
+    if (!admin?.totp_secreto) {
+      throw new NotFoundException(
+        'No hay una activación en curso. Genere el código QR primero.',
+      );
+    }
+    if (admin.totp_habilitado) {
+      throw new ConflictException(
+        'El segundo factor ya se encuentra habilitado.',
+      );
+    }
+
+    const secreto = this.twoFactor.descifrar(admin.totp_secreto);
+    if (!this.twoFactor.verificar(secreto, (codigo || '').trim())) {
+      throw new UnauthorizedException(
+        'El código ingresado es incorrecto. Verifique su aplicación autenticadora.',
+      );
+    }
+
+    const planos = this.twoFactor.generarCodigosRespaldoPlano();
+    const hashes: string[] = [];
+    for (const c of planos) {
+      hashes.push(await this.passwords.hash(c));
+    }
+    await this.prisma.adminGeneral.update({
+      where: { id: admin.id },
+      data: {
+        totp_habilitado: true,
+        totp_codigos_respaldo: JSON.stringify(hashes),
+      },
+    });
+    return { codigos_respaldo: planos };
+  }
+
+  async deshabilitar2fa(adminId: number, password: string) {
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: adminId },
+    });
+    if (!admin) throw new NotFoundException('Administrador no encontrado.');
+    if (!(await this.passwords.verify(admin.password, password))) {
+      throw new UnauthorizedException('La contraseña ingresada es incorrecta.');
+    }
+    await this.prisma.adminGeneral.update({
+      where: { id: admin.id },
+      data: {
+        totp_habilitado: false,
+        totp_secreto: null,
+        totp_codigos_respaldo: null,
+      },
+    });
+    return {
+      mensaje: 'El segundo factor ha sido deshabilitado correctamente.',
+    };
+  }
+
+  async regenerarRespaldo2fa(adminId: number) {
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: adminId },
+    });
+    if (!admin?.totp_habilitado) {
+      throw new NotFoundException(
+        'El segundo factor no se encuentra habilitado.',
+      );
+    }
+    const planos = this.twoFactor.generarCodigosRespaldoPlano();
+    const hashes: string[] = [];
+    for (const c of planos) {
+      hashes.push(await this.passwords.hash(c));
+    }
+    await this.prisma.adminGeneral.update({
+      where: { id: admin.id },
+      data: { totp_codigos_respaldo: JSON.stringify(hashes) },
+    });
+    return { codigos_respaldo: planos };
+  }
+
+  async estado2fa(adminId: number) {
+    const admin = await this.prisma.adminGeneral.findUnique({
+      where: { id: adminId },
+      select: {
+        totp_habilitado: true,
+        totp_secreto: true,
+        totp_codigos_respaldo: true,
+      },
+    });
+    if (!admin) throw new NotFoundException('Administrador no encontrado.');
+    let respaldos_restantes = 0;
+    if (admin.totp_codigos_respaldo) {
+      try {
+        respaldos_restantes = (
+          JSON.parse(admin.totp_codigos_respaldo) as string[]
+        ).length;
+      } catch {
+        respaldos_restantes = 0;
+      }
+    }
+    return {
+      habilitado: admin.totp_habilitado,
+      activacion_en_curso:
+        !admin.totp_habilitado && admin.totp_secreto !== null,
+      respaldos_restantes,
+    };
   }
 }

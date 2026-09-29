@@ -11,7 +11,13 @@ import {
 import { AuthService } from './auth.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
+import { VerificarAdmin2faDto } from './dto/verificar-admin-2fa.dto';
+import { ConfirmarSetup2faDto } from './dto/confirmar-setup-2fa.dto';
+import { Deshabilitar2faDto } from './dto/deshabilitar-2fa.dto';
 import { Public } from './decorators/public.decorator';
+import { Roles } from './decorators/roles.decorator';
+import { Rol } from '@prisma/client';
+import { Throttle } from '@nestjs/throttler';
 import { clearAuthCookie, setAuthCookie } from './auth-cookie';
 import type { Request, Response } from 'express';
 
@@ -39,6 +45,7 @@ export class AuthController {
   }
 
   @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('admin-login')
   @HttpCode(HttpStatus.OK)
   async adminLogin(
@@ -46,9 +53,68 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const result = await this.authService.adminLogin(password);
+    // Con 2FA habilitado no se crea sesión: se devuelve el token pendiente
+    // para el segundo paso. Sin 2FA, comportamiento original con cookie.
+    if ('requiere_2fa' in result) {
+      return result;
+    }
+    setAuthCookie(res, result.access_token);
+    return { mensaje: 'Sesión iniciada correctamente.' };
+  }
+
+  @Public()
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Post('admin-2fa/verificar')
+  @HttpCode(HttpStatus.OK)
+  async verificarAdmin2fa(
+    @Body() dto: VerificarAdmin2faDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.verificarAdmin2fa(
+      dto.token_pendiente,
+      dto.codigo,
+    );
     // Sesión únicamente en cookie httpOnly: el JWT nunca sale en el cuerpo.
     setAuthCookie(res, result.access_token);
     return { mensaje: 'Sesión iniciada correctamente.' };
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Get('admin-2fa/estado')
+  estado2fa(@Req() req: Request) {
+    const user = req.user as { id: number };
+    return this.authService.estado2fa(user.id);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Post('admin-2fa/setup')
+  setup2fa(@Req() req: Request) {
+    const user = req.user as { id: number };
+    return this.authService.iniciarSetup2fa(user.id);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Post('admin-2fa/confirmar')
+  @HttpCode(HttpStatus.OK)
+  confirmar2fa(@Req() req: Request, @Body() dto: ConfirmarSetup2faDto) {
+    const user = req.user as { id: number };
+    return this.authService.confirmarSetup2fa(user.id, dto.codigo);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Post('admin-2fa/deshabilitar')
+  @HttpCode(HttpStatus.OK)
+  deshabilitar2fa(@Req() req: Request, @Body() dto: Deshabilitar2faDto) {
+    const user = req.user as { id: number };
+    return this.authService.deshabilitar2fa(user.id, dto.password);
+  }
+
+  @Roles(Rol.ADMIN_GENERAL)
+  @Post('admin-2fa/respaldo/regenerar')
+  @HttpCode(HttpStatus.OK)
+  regenerarRespaldo2fa(@Req() req: Request) {
+    const user = req.user as { id: number };
+    return this.authService.regenerarRespaldo2fa(user.id);
   }
 
   @Public()

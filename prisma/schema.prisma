@@ -11,6 +11,11 @@ model AdminGeneral {
   id       Int    @id @default(autoincrement())
   dni      String @unique
   password String
+  // 2FA TOTP opt-in: secreto cifrado AES-256-GCM (null = nunca configurado).
+  totp_secreto           String?
+  totp_habilitado        Boolean @default(false)
+  // JSON array de hashes argon2 de códigos de respaldo de un solo uso.
+  totp_codigos_respaldo  String?
 }
 
 model Asociacion {
