@@ -11,7 +11,7 @@ WORKDIR /app
 
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt/lists \
-    apt-get update && apt-get install -y openssl rclone
+    apt-get update && apt-get install -y --no-install-recommends openssl rclone sqlite3
 
 # Etapa Build -------------------------------------------------
 FROM base AS build

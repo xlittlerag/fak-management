@@ -273,7 +273,10 @@ podman stop kendo-app && podman rm kendo-app
 ## Configuración de Backups (rclone)
 
 Los backups se envían a almacenamiento externo (Google Drive, SFTP, S3, etc.)
-usando `rclone`, que viene instalado dentro del contenedor.
+usando `rclone`, que viene instalado dentro del contenedor. El archivo viaja
+cifrado (AES-256-CBC con PBKDF2 vía `openssl`): se requiere
+`BACKUP_PASSPHRASE` tanto para generar como para restaurar. Guárdela en el
+gestor de secretos, fuera del servidor — sin ella el backup es irrecuperable.
 
 ### 1. Configurar rclone (una sola vez)
 
@@ -294,15 +297,15 @@ sobrevive a reinicios del contenedor.
 ```bash
 # Google Drive
 podman exec kendo-app sh -c \
-  'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/backup.sh'
+  'BACKUP_DEST="gdrive:backups/kendo-prod" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" /app/scripts/backup.sh'
 
 # Home server por SFTP
 podman exec kendo-app sh -c \
-  'BACKUP_DEST="sftp:user@home-server:/backups/kendo" /app/scripts/backup.sh'
+  'BACKUP_DEST="sftp:user@home-server:/backups/kendo" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" /app/scripts/backup.sh'
 
 # S3-compatible (DigitalOcean Spaces, Backblaze B2, etc.)
 podman exec kendo-app sh -c \
-  'BACKUP_DEST="s3:kendo-backups:/prod" /app/scripts/backup.sh'
+  'BACKUP_DEST="s3:kendo-backups:/prod" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" /app/scripts/backup.sh'
 ```
 
 ### 3. Programar backup diario (cron)
@@ -314,7 +317,7 @@ sudo crontab -e
 Agregar:
 
 ```cron
-0 3 * * * podman exec kendo-app sh -c 'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/backup.sh' >> /var/log/kendo-backup.log 2>&1
+0 3 * * * podman exec kendo-app sh -c 'BACKUP_DEST="gdrive:backups/kendo-prod" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" /app/scripts/backup.sh' >> /var/log/kendo-backup.log 2>&1
 ```
 
 ### 4. Restaurar un backup
@@ -326,11 +329,11 @@ podman exec -it kendo-app sh -c \
 
 # Restaurar (interactivo, pide confirmación)
 podman exec -it kendo-app sh -c \
-  'BACKUP_DEST="gdrive:backups/kendo-prod" /app/scripts/restore.sh'
+  'BACKUP_DEST="gdrive:backups/kendo-prod" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" /app/scripts/restore.sh'
 
 # Restaurar automático (sin confirmación, útil para scripts)
 podman exec kendo-app sh -c \
-  'BACKUP_DEST="gdrive:backups/kendo-prod" FORCE=yes /app/scripts/restore.sh kendo-backup-2026-07-14_133000.tar.gz'
+  'BACKUP_DEST="gdrive:backups/kendo-prod" BACKUP_PASSPHRASE="$BACKUP_PASSPHRASE" FORCE=yes /app/scripts/restore.sh kendo-backup-2026-07-14_133000.tar.gz.enc'
 
 # IMPORTANTE: Reiniciar la app después de restaurar
 podman restart kendo-app
@@ -351,6 +354,7 @@ podman restart kendo-app
 - [ ] Volumen para rclone montado (`/app/.config/rclone`)
 - [ ] rclone configurado con destino externo
 - [ ] Backup diario programado en cron
+- [ ] `BACKUP_PASSPHRASE` generada y guardada en el gestor de secretos
 - [ ] Prueba de restauración de backup exitosa
 - [ ] Firewall configurado (solo puertos 22, 80, 443)
 

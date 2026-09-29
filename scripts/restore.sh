@@ -1,5 +1,6 @@
 #!/bin/sh
 set -e
+umask 077
 
 BACKUP_DEST="${BACKUP_DEST:-}"
 APP_DIR="${APP_DIR:-/app}"
@@ -18,10 +19,24 @@ echo ""
 RESTORE_FILE="$1"
 
 if [ -z "$RESTORE_FILE" ]; then
-  echo "Uso: $0 <nombre-del-archivo-backup.tar.gz>"
-  echo "Ej:  $0 kendo-backup-2026-07-14_133000.tar.gz"
+  echo "Uso: $0 <nombre-del-archivo-backup.tar.gz.enc>"
+  echo "Ej:  $0 kendo-backup-2026-07-14_133000.tar.gz.enc"
   exit 1
 fi
+
+case "$RESTORE_FILE" in
+  *.enc)
+    if [ -z "$BACKUP_PASSPHRASE" ]; then
+      echo "Error: BACKUP_PASSPHRASE no está configurada. Sin ella no se puede descifrar."
+      exit 1
+    fi
+    CIFRADO="si"
+    ;;
+  *)
+    echo "ADVERTENCIA: backup sin cifrar (formato legacy). Se restaura igual, pero genere uno nuevo cifrado."
+    CIFRADO="no"
+    ;;
+esac
 
 echo "→ Descargando $RESTORE_FILE desde $BACKUP_DEST..."
 mkdir -p "$RESTORE_DIR"
@@ -32,6 +47,21 @@ if [ ! -f "$LOCAL_ARCHIVE" ]; then
   echo "Error: No se pudo descargar $RESTORE_FILE"
   rm -rf "$RESTORE_DIR"
   exit 1
+fi
+chmod 600 "$LOCAL_ARCHIVE"
+
+if [ "$CIFRADO" = "si" ]; then
+  echo "→ Descifrando..."
+  PLANO="${LOCAL_ARCHIVE%.enc}"
+  openssl enc -d -aes-256-cbc -pbkdf2 -pass env:BACKUP_PASSPHRASE \
+    -in "$LOCAL_ARCHIVE" -out "$PLANO" || {
+    echo "Error: No se pudo descifrar (¿passphrase incorrecta?)"
+    rm -rf "$RESTORE_DIR"
+    exit 1
+  }
+  rm -f "$LOCAL_ARCHIVE"
+  LOCAL_ARCHIVE="$PLANO"
+  RESTORE_FILE="$(basename "$PLANO")"
 fi
 
 echo "→ Extrayendo..."
@@ -73,7 +103,16 @@ else
   DB_FILE="$APP_DIR/$DB_PATH"
 fi
 
+# Resguardo del estado actual antes de sobreescribir (por si el backup es erróneo).
+if [ -f "$DB_FILE" ]; then
+  RESGUARDO="/tmp/kendo-pre-restore-$(date +%Y-%m-%d_%H%M%S).db"
+  cp "$DB_FILE" "$RESGUARDO"
+  chmod 600 "$RESGUARDO"
+  echo "  ✓ Estado actual resguardado en $RESGUARDO"
+fi
+
 cp "$EXTRACTED_DIR/database.db" "$DB_FILE"
+chmod 600 "$DB_FILE"
 echo "  ✓ Base de datos restaurada en $DB_FILE"
 
 if [ -d "$EXTRACTED_DIR/uploads" ]; then
