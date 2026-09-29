@@ -279,6 +279,19 @@ model ConfigSistema {
   @@map("configsistema")
 }
 
+// Idempotencia de webhooks/simulate de Mercado Pago: un payment_id se
+// acredita una sola vez aunque se reintente tras reinicios. Sin relaciones
+// para no interferir con cleanup ni borrados.
+model PagoProcesado {
+  id            Int      @id @default(autoincrement())
+  mp_payment_id String   @unique
+  tipo          String
+  referencia    String
+  created_at    DateTime @default(now())
+
+  @@map("pagoprocesado")
+}
+
 model SolicitudAfiliacion {
   id            Int      @id @default(autoincrement())
   tipo          String

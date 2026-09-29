@@ -110,7 +110,7 @@ export class MercadoPagoController {
 
       if (result.processed && 'userId' in result) {
         this.logger.log(
-          `Pago procesado exitosamente para usuario ${result.userId}`,
+          `Pago procesado exitosamente para usuario ${String(result.userId)}`,
         );
       }
 
@@ -137,10 +137,10 @@ export class MercadoPagoController {
     }
 
     const status = dto.status ?? 'approved';
-    const result = await this.mpService.simulatePayment(
+    const result = (await this.mpService.simulatePayment(
       dto.externalReference,
       status,
-    );
+    )) as { success?: boolean; processed: boolean; message?: string };
 
     this.logger.log(`Pago simulado para ${dto.externalReference}: ${status}`);
 

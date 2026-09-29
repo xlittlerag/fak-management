@@ -67,6 +67,7 @@ export function testPdfBuffer(contenido = 'test'): Buffer {
 }
 
 export async function cleanupDb(prisma: PrismaService) {
+  await prisma.pagoProcesado.deleteMany();
   await prisma.auditLog.deleteMany();
   await prisma.solicitudAfiliacion.deleteMany();
   await prisma.reimpresionDiploma.deleteMany();

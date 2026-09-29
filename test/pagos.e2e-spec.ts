@@ -133,6 +133,40 @@ describe('Pagos (e2e)', () => {
       expect(updatedUser!.estado_reg).toBe('APROBADO');
     });
 
+    it('repite webhook sin reacreditar (idempotencia persistente)', async () => {
+      await seedFeeConfig();
+      const { user } = await createTestUser(prisma, jwt);
+
+      jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
+        id: 'test_payment_idem',
+        status: 'approved',
+        external_reference: `fee_user_${user.id}_ts_${Date.now()}`,
+        date_approved: new Date().toISOString(),
+      } as any);
+
+      const cuerpo = {
+        action: 'payment.updated',
+        data: { id: 'test_payment_idem' },
+      };
+      const server = request(app.getHttpServer());
+      const r1 = await server
+        .post('/api/pagos/webhook')
+        .send(cuerpo)
+        .expect(200);
+      expect(r1.body.processed).toBe(true);
+
+      const r2 = await server
+        .post('/api/pagos/webhook')
+        .send(cuerpo)
+        .expect(200);
+      expect(r2.body.processed).toBe(true);
+
+      const registros = await prisma.pagoProcesado.findMany({
+        where: { mp_payment_id: 'test_payment_idem' },
+      });
+      expect(registros).toHaveLength(1);
+    });
+
     it('debería ignorar webhook si el pago no está aprobado', async () => {
       jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
         id: 'test_payment_pending',

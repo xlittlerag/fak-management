@@ -16,7 +16,6 @@ interface WebhookData {
 @Injectable()
 export class MercadoPagoService {
   private client: MercadoPago;
-  private readonly processedPayments = new Set<string>();
   private readonly logger = new Logger(MercadoPagoService.name);
 
   constructor(
@@ -247,7 +246,8 @@ export class MercadoPagoService {
       return { processed: false };
     }
 
-    if (this.processedPayments.has(paymentId)) {
+    // Idempotencia persistente: sobrevive reinicios (el Set en memoria no).
+    if (await this.yaProcesado(paymentId)) {
       this.logger.log(`Pago ${paymentId} ya fue procesado (idempotencia)`);
       return { processed: true, idempotent: true };
     }
@@ -265,24 +265,63 @@ export class MercadoPagoService {
         return { processed: false };
       }
 
+      let resultado: { processed: boolean };
       if (reference.startsWith('fee_user_')) {
-        return this.processFeePayment(paymentId, reference);
+        resultado = await this.processFeePayment(paymentId, reference);
+      } else if (reference.startsWith('inscripcion_user_')) {
+        resultado = await this.processInscriptionPayment(paymentId, reference);
+      } else if (reference.startsWith('reimpresion_user_')) {
+        resultado = await this.processReimpresionPayment(paymentId, reference);
+      } else {
+        return { processed: false };
       }
 
-      if (reference.startsWith('inscripcion_user_')) {
-        return this.processInscriptionPayment(paymentId, reference);
+      if (resultado.processed) {
+        // Carrera entre dos webhooks simultáneos: el unique lo resuelve.
+        const registro = await this.registrarPago(paymentId, reference);
+        if (registro === 'duplicado') {
+          return { processed: true, idempotent: true };
+        }
       }
-
-      if (reference.startsWith('reimpresion_user_')) {
-        return this.processReimpresionPayment(paymentId, reference);
-      }
-
-      return { processed: false };
+      return resultado;
     } catch (error: unknown) {
       this.logger.error(
         `Error al consultar pago ${paymentId}: ${error instanceof Error ? error.message : String(error)}`,
       );
       return { processed: false };
+    }
+  }
+
+  private async yaProcesado(paymentId: string): Promise<boolean> {
+    const existente = await this.prisma.pagoProcesado.findUnique({
+      where: { mp_payment_id: paymentId },
+    });
+    return existente !== null;
+  }
+
+  private async registrarPago(
+    paymentId: string,
+    reference: string,
+  ): Promise<'ok' | 'duplicado'> {
+    const tipo = reference.startsWith('fee_user_')
+      ? 'fee'
+      : reference.startsWith('inscripcion_user_')
+        ? 'inscripcion'
+        : 'reimpresion';
+    try {
+      await this.prisma.pagoProcesado.create({
+        data: { mp_payment_id: paymentId, tipo, referencia: reference },
+      });
+      return 'ok';
+    } catch (err: unknown) {
+      if (
+        err instanceof Error &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2002'
+      ) {
+        return 'duplicado';
+      }
+      throw err;
     }
   }
 
@@ -298,7 +337,6 @@ export class MercadoPagoService {
     if (!user) return { processed: false };
 
     if (user.estado_pago) {
-      this.processedPayments.add(paymentId);
       return { processed: true, alreadyPaid: true };
     }
 
@@ -309,8 +347,6 @@ export class MercadoPagoService {
         estado_reg: 'APROBADO',
       },
     });
-
-    this.processedPayments.add(paymentId);
 
     return {
       processed: true,
@@ -340,7 +376,6 @@ export class MercadoPagoService {
     if (inscripcion.usuario_id !== userId) return { processed: false };
     if (inscripcion.evento_id !== eventoId) return { processed: false };
     if (inscripcion.pagado) {
-      this.processedPayments.add(paymentId);
       return { processed: true, alreadyPaid: true };
     }
 
@@ -348,8 +383,6 @@ export class MercadoPagoService {
       where: { id: inscripcionId },
       data: { pagado: true, estado_aprob: 'APROBADO' },
     });
-
-    this.processedPayments.add(paymentId);
 
     return {
       processed: true,
@@ -376,7 +409,6 @@ export class MercadoPagoService {
     if (!reimpresion) return { processed: false };
     if (reimpresion.usuario_id !== userId) return { processed: false };
     if (reimpresion.pagado) {
-      this.processedPayments.add(paymentId);
       return { processed: true, alreadyPaid: true };
     }
 
@@ -387,8 +419,6 @@ export class MercadoPagoService {
         mp_payment_id: paymentId,
       },
     });
-
-    this.processedPayments.add(paymentId);
 
     return {
       processed: true,
@@ -494,16 +524,34 @@ export class MercadoPagoService {
 
     const fakePaymentId = `sim_${Date.now()}`;
 
+    let resultado: { processed: boolean };
     if (externalReference.startsWith('fee_user_')) {
-      return this.processFeePayment(fakePaymentId, externalReference);
-    }
-    if (externalReference.startsWith('inscripcion_user_')) {
-      return this.processInscriptionPayment(fakePaymentId, externalReference);
-    }
-    if (externalReference.startsWith('reimpresion_user_')) {
-      return this.processReimpresionPayment(fakePaymentId, externalReference);
+      resultado = await this.processFeePayment(
+        fakePaymentId,
+        externalReference,
+      );
+    } else if (externalReference.startsWith('inscripcion_user_')) {
+      resultado = await this.processInscriptionPayment(
+        fakePaymentId,
+        externalReference,
+      );
+    } else if (externalReference.startsWith('reimpresion_user_')) {
+      resultado = await this.processReimpresionPayment(
+        fakePaymentId,
+        externalReference,
+      );
+    } else {
+      return {
+        success: false,
+        processed: false,
+        message: 'Referencia externa inválida',
+      };
     }
 
+    if (resultado.processed) {
+      await this.registrarPago(fakePaymentId, externalReference);
+      return { ...resultado, success: true };
+    }
     return {
       success: false,
       processed: false,
