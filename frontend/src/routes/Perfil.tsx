@@ -285,7 +285,6 @@ export default function Perfil() {
               )}
             </div>
           </div>
-          </div>
 
           <div class="pt-4">
             <button 
