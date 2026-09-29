@@ -251,11 +251,12 @@ describe('Auth (e2e)', () => {
       expect(updated?.estado_blanqueo).toBe('PENDIENTE');
     });
 
-    it('should return 404 for non-existent DNI', async () => {
-      await request(app.getHttpServer())
+    it('responde genérico aunque el DNI no exista (anti-enumeración)', async () => {
+      const res = await request(app.getHttpServer())
         .post('/api/auth/reset-password/request')
         .send({ dni: 'NONEXISTENT' })
-        .expect(404);
+        .expect(201);
+      expect(res.body).toEqual({ mensaje: expect.any(String) });
     });
 
     it('no persiste el hash del código en la auditoría', async () => {

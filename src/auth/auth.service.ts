@@ -36,8 +36,13 @@ export class AuthService {
   ) {}
 
   async requestReset(dni: string) {
+    const generico = {
+      mensaje:
+        'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.',
+    };
+    // Respuesta idéntica exista o no el DNI: no revelar usuarios registrados.
     const user = await this.prisma.usuario.findUnique({ where: { dni } });
-    if (!user) throw new NotFoundException('Usuario no encontrado');
+    if (!user) return generico;
 
     // Entropía criptográfica (~41 bits): nunca Math.random().
     let codigo = '';
@@ -63,10 +68,7 @@ export class AuthService {
         this.logger.warn(err, 'Error al enviar email de reseteo de contraseña'),
       );
 
-    return {
-      mensaje:
-        'Si el DNI existe en el sistema, recibirá un correo con las instrucciones.',
-    };
+    return generico;
   }
 
   async completeReset(dni: string, codigo: string, nuevaPassword: string) {
