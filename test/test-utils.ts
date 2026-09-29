@@ -9,7 +9,8 @@ import { PrismaService } from '../src/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { validationMessages } from '../src/utils/validation-messages';
-import * as bcrypt from 'bcrypt';
+import { hash } from '@node-rs/argon2';
+import { ARGON2_OPTIONS } from '../src/auth/password.service';
 import cookieParser from 'cookie-parser';
 import { corsOrigins } from '../src/utils/cors-origins';
 
@@ -88,7 +89,7 @@ export async function createAdminGeneral(
   prisma: PrismaService,
   jwt: JwtService,
 ) {
-  const password = await bcrypt.hash('Admin123!', 10);
+  const password = await hash('Admin123!', { ...ARGON2_OPTIONS });
 
   const admin = await prisma.adminGeneral.create({
     data: {
@@ -135,7 +136,9 @@ export async function createTestUser(
   jwt: JwtService,
   overrides: CreateTestUserOverrides = {},
 ) {
-  const password = await bcrypt.hash(overrides.password || 'Password123!', 10);
+  const password = await hash(overrides.password || 'Password123!', {
+    ...ARGON2_OPTIONS,
+  });
 
   let asociacionId = overrides.asociacion_id;
   let dojoId = overrides.dojo_id;

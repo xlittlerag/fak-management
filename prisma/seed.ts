@@ -1,6 +1,7 @@
 import { PrismaClient, Rol, Graduacion, Disciplina, EstadoSolicitud } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
-import * as bcrypt from 'bcrypt';
+import { hash } from '@node-rs/argon2';
+import { ARGON2_OPTIONS } from '../src/auth/password.service';
 import 'dotenv/config';
 
 function months(n: number): Date {
@@ -21,8 +22,8 @@ async function main() {
   });
   const prisma = new PrismaClient({ adapter });
 
-  const pwd = await bcrypt.hash('Test1234!', 10);
-  const adminPwd = await bcrypt.hash('Admin123', 10);
+  const pwd = await hash('Test1234!', { ...ARGON2_OPTIONS });
+  const adminPwd = await hash('Admin123', { ...ARGON2_OPTIONS });
 
   // 0. Admin General (login via POST /auth/admin-login with password)
   await prisma.adminGeneral.upsert({

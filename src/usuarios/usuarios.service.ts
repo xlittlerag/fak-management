@@ -8,13 +8,13 @@ import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
 import { EstadoRegistro, Rol, Graduacion, Prisma } from '@prisma/client';
 import { AuthUser } from '../common/interfaces/auth-user.interface';
+import { PasswordService } from '../auth/password.service';
 import {
   AprobacionAccion,
   UpdateAprobacionDto,
 } from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
 import { UpdateGraduacionDto } from './dto/update-graduacion.dto';
-import * as bcrypt from 'bcrypt';
 
 const GraduacionInputMap: Record<string, Graduacion> = {
   SIN_GRADUACION: 'SIN_GRADUACION',
@@ -40,6 +40,7 @@ export class UsuariosService {
   constructor(
     private prisma: PrismaService,
     private readonly feeConfigService: FeeConfigService,
+    private readonly passwords: PasswordService,
   ) {}
 
   async findPendientes(user: AuthUser) {
@@ -87,7 +88,7 @@ export class UsuariosService {
       ...dto,
     };
     if (typeof data.password === 'string') {
-      data.password = await bcrypt.hash(data.password, 10);
+      data.password = await this.passwords.hash(data.password);
     }
     if (dto.fecha_nacimiento) {
       data.fecha_nacimiento = new Date(dto.fecha_nacimiento);

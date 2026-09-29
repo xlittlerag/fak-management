@@ -4,7 +4,6 @@ packages:
 allowBuilds:
   '@prisma/engines': true
   prisma: true
-  bcrypt: true
   unrs-resolver: true
   esbuild: true
   better-sqlite3: true

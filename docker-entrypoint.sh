@@ -20,7 +20,7 @@ echo "→ Verificando admin general..."
 DATABASE_URL="file:${DB_FILE}" node -e "
 const { PrismaClient } = require('@prisma/client');
 const { PrismaBetterSqlite3 } = require('@prisma/adapter-better-sqlite3');
-const bcrypt = require('bcrypt');
+const { hash } = require('@node-rs/argon2');
 
 async function main() {
   const adapter = new PrismaBetterSqlite3({
@@ -32,9 +32,9 @@ async function main() {
   const count = await prisma.adminGeneral.count();
   if (count === 0) {
     const password = process.env.ADMIN_PASSWORD || 'Admin123';
-    const hash = await bcrypt.hash(password, 10);
+    const passwordHash = await hash(password, { memoryCost: 19456, timeCost: 2, parallelism: 1 });
     await prisma.adminGeneral.create({
-      data: { dni: '00000000', password: hash },
+      data: { dni: '00000000', password: passwordHash },
     });
     console.log('✓ Admin general creado (DNI: 00000000)');
   } else {

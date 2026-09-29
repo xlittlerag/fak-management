@@ -15,7 +15,7 @@ pnpm run seed                 # seed database with test data
 ## Architecture
 - **Backend:** NestJS (v11+) + Prisma 7.8 + SQLite
 - **Frontend:** Preact + Vite + Tailwind v4 (fully implemented — see frontend/ directory)
-- **Auth:** JWT with DNI-based login; bcrypt passwords
+- **Auth:** JWT with DNI-based login; argon2id passwords (`PasswordService`)
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
 
 ## Key Conventions
@@ -56,6 +56,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 12** — Mesas examinadoras: CRUD de mesas por examen, carga de resultados por instancia (práctico/kata/escrito) con asignación automática/manual de mesa, registro de pago por disciplina — see `docs/iteraciones/12-mesas-examinadoras.md`
 - **Iteración 13** — Secuencialidad de resultados y graduación efectiva por diploma: instancias en orden (PRÁCTICO→KATA→ESCRITO), endpoint atómico `POST /admin/resultados/avance` con prefijo invariante editable, guard secuencial en `cargarResultado`; el registro de pago solo se habilita con todas las instancias aprobadas; la graduación se aplica al cargar el Diploma Nacional (gate: todas las instancias + pago), mesas ya no la efectivizan, ediciones bloqueadas post-diploma — see `docs/iteraciones/13-secuencialidad-resultados-graduacion-diploma.md`
 - **Iteración 14** — E2E de navegador con Playwright (reemplaza QA manual): 16 tests Chromium en `frontend/e2e/` con BD aislada `e2e-test.db`, job `browser-e2e` en CI; fixes encontrados por la suite (búsqueda DNI case-insensitive, carrera en registro, throttle configurable) — see `docs/iteraciones/14-e2e-navegador.md`
+- **Iteración 15** — Hashing de contraseñas con argon2id: `PasswordService` único punto de hashing (`@node-rs/argon2`, params OWASP), reemplazo total de bcrypt (prod, seeds, tests, entrypoint), corte limpio sin compatibilidad legacy — see `docs/iteraciones/15-hashing-argon2.md`
 
 ## Pending / Next
 - Schema changes use `npx prisma db push` (no migration files)

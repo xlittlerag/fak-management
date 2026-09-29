@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { PasswordService } from './password.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
@@ -20,8 +21,8 @@ import { NotificacionesModule } from '../notificaciones/notificaciones.module';
     }),
     NotificacionesModule,
   ],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, PasswordService, JwtStrategy],
   controllers: [AuthController],
-  exports: [AuthService, JwtModule],
+  exports: [AuthService, PasswordService, JwtModule],
 })
 export class AuthModule {}

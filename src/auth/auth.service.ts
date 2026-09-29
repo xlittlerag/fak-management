@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
+import { PasswordService } from './password.service';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EstadoRegistro } from '@prisma/client';
@@ -22,6 +22,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private notificaciones: NotificacionesService,
+    private passwords: PasswordService,
   ) {}
 
   async requestReset(dni: string) {
@@ -29,7 +30,7 @@ export class AuthService {
     if (!user) throw new NotFoundException('Usuario no encontrado');
 
     const codigo = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const hash = await bcrypt.hash(codigo, 10);
+    const hash = await this.passwords.hash(codigo);
     const expira = new Date(Date.now() + 60 * 60 * 1000);
 
     await this.prisma.usuario.update({
@@ -67,11 +68,11 @@ export class AuthService {
       );
     }
 
-    if (!(await bcrypt.compare(codigo, user.codigo_blanqueo))) {
+    if (!(await this.passwords.verify(user.codigo_blanqueo, codigo))) {
       throw new UnauthorizedException('El código ingresado es incorrecto.');
     }
 
-    const hashedPassword = await bcrypt.hash(nuevaPassword, 10);
+    const hashedPassword = await this.passwords.hash(nuevaPassword);
 
     await this.prisma.usuario.update({
       where: { id: user.id },
@@ -111,7 +112,7 @@ export class AuthService {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await this.passwords.hash(dto.password);
 
     const user = await this.prisma.usuario.create({
       data: {
@@ -170,7 +171,7 @@ export class AuthService {
       );
     }
 
-    if (!(await bcrypt.compare(dto.password, user.password))) {
+    if (!(await this.passwords.verify(user.password, dto.password))) {
       throw new UnauthorizedException(
         'Las credenciales ingresadas son incorrectas.',
       );
@@ -208,7 +209,7 @@ export class AuthService {
     const admins = await this.prisma.adminGeneral.findMany();
 
     for (const admin of admins) {
-      if (await bcrypt.compare(password, admin.password)) {
+      if (await this.passwords.verify(admin.password, password)) {
         const payload = {
           sub: admin.id,
           email: 'admin@kendo-manager',

@@ -21,7 +21,7 @@ _dropdown_ del formulario de registro en el frontend.
 ## 2. Endpoints de Autenticación y Registro
 
 Manejo de credenciales y creación inicial de la cuenta. Las contraseñas se
-hashean usando `bcrypt` antes de persistirse.
+hashean usando `argon2id` (`PasswordService`) antes de persistirse.
 
 | Método | Endpoint                       | Descripción                                        | Acceso (Guards) |
 | ------ | ------------------------------ | -------------------------------------------------- | --------------- |

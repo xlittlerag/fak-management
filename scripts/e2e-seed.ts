@@ -11,7 +11,8 @@
  *                      relativa al cwd, que debe ser la raíz del repo).
  */
 import { execSync } from 'node:child_process';
-import bcrypt from 'bcrypt';
+import { hash } from '@node-rs/argon2';
+import { ARGON2_OPTIONS } from '../src/auth/password.service';
 import { PrismaClient } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 
@@ -55,7 +56,7 @@ async function main() {
     await prisma.configSistema.deleteMany();
     await prisma.dniBlacklist.deleteMany();
 
-    const adminHash = await bcrypt.hash(E2E_ADMIN_PASSWORD, 10);
+    const adminHash = await hash(E2E_ADMIN_PASSWORD, { ...ARGON2_OPTIONS });
     await prisma.adminGeneral.upsert({
       where: { dni: '00000000' },
       update: { password: adminHash },
@@ -69,7 +70,7 @@ async function main() {
       data: { nombre: 'E2E Dojo', asociacion_id: asociacion.id },
     });
 
-    const userHash = await bcrypt.hash(E2E_USER_PASSWORD, 10);
+    const userHash = await hash(E2E_USER_PASSWORD, { ...ARGON2_OPTIONS });
     const baseUser = {
       password: userHash,
       nombre: 'E2E',
