@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
 import { corsOrigins } from './utils/cors-origins';
 import { validationMessages } from './utils/validation-messages';
 import { GlobalExceptionFilter } from './common/http-exception.filter';
@@ -26,6 +27,24 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
+  // Cabeceras de seguridad. Sin CORP (el frontend dev corre en otro origen)
+  // y con CSP que permite el SDK de Mercado Pago; los uploads se sirven
+  // como adjunto así que no necesitan ejecutarse en el origen.
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: false,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          scriptSrc: ["'self'", 'https://sdk.mercadopago.com'],
+          connectSrc: ["'self'", 'https://api.mercadopago.com'],
+          frameSrc: ["'self'", 'https://www.mercadopago.com'],
+          imgSrc: ["'self'", 'data:', 'https://*.mlstatic.com'],
+          styleSrc: ["'self'"],
+        },
+      },
+    }),
+  );
   app.useGlobalFilters(new GlobalExceptionFilter());
   app.setGlobalPrefix('api');
   app.enableShutdownHooks();
