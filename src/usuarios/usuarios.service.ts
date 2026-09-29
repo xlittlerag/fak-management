@@ -3,6 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
@@ -84,10 +85,25 @@ export class UsuariosService {
   }
 
   async updatePerfil(id: number, dto: UpdatePerfilDto) {
+    const { password_actual, ...resto } = dto;
     const data: Prisma.UsuarioUpdateInput = {
-      ...dto,
+      ...resto,
     };
+    // password_actual no es columna: nunca llega a Prisma.
     if (typeof data.password === 'string') {
+      const actual = await this.prisma.usuario.findUnique({
+        where: { id },
+        select: { password: true },
+      });
+      if (
+        !actual ||
+        typeof password_actual !== 'string' ||
+        !(await this.passwords.verify(actual.password, password_actual))
+      ) {
+        throw new UnauthorizedException(
+          'La contraseña actual ingresada es incorrecta.',
+        );
+      }
       data.password = await this.passwords.hash(data.password);
     }
     if (dto.fecha_nacimiento) {

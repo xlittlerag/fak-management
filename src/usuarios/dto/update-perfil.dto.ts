@@ -8,6 +8,7 @@ import {
   MaxLength,
   IsEmail,
   IsInt,
+  ValidateIf,
 } from 'class-validator';
 import { Sexo, Provincia } from '@prisma/client';
 import {
@@ -73,4 +74,10 @@ export class UpdatePerfilDto {
     message: `La contraseña no puede superar los ${PASSWORD_MAX_LENGTH} caracteres.`,
   })
   password?: string;
+
+  // Obligatoria solo cuando se cambia la contraseña.
+  @ValidateIf((o: UpdatePerfilDto) => typeof o.password === 'string')
+  @IsString()
+  @IsNotEmpty({ message: 'Debe ingresar su contraseña actual.' })
+  password_actual?: string;
 }

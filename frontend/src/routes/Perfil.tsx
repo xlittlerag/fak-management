@@ -25,6 +25,7 @@ export default function Perfil() {
     codigo_postal: '',
     telefono: '',
     password: '',
+    password_actual: '',
     grad_kendo: '',
     f_grad_kendo: '',
     grad_iaido: '',
@@ -53,7 +54,8 @@ export default function Perfil() {
         ...data,
         fecha_nacimiento: data.fecha_nacimiento ? data.fecha_nacimiento.split('T')[0] : '',
         piso_depto: data.piso_depto || '',
-        password: '', 
+        password: '',
+        password_actual: '',
       });
     } catch (err) {
       console.error(err);
@@ -86,7 +88,18 @@ export default function Perfil() {
     };
 
     if (formData.password) {
+      if (formData.password.length < 12) {
+        setMessage({ text: 'La contraseña debe tener al menos 12 caracteres.', type: 'error' });
+        setSaving(false);
+        return;
+      }
+      if (!formData.password_actual) {
+        setMessage({ text: 'Debe ingresar su contraseña actual para cambiarla.', type: 'error' });
+        setSaving(false);
+        return;
+      }
       updateData.password = formData.password;
+      updateData.password_actual = formData.password_actual;
     }
 
     try {
@@ -244,18 +257,34 @@ export default function Perfil() {
 
           <div class="border-t border-slate-100 pt-6">
             <h4 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Seguridad</h4>
-            <div class="max-w-xs">
-              <label htmlFor="perfil-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña</label>
-              <input 
-                name="password" 
-                id="perfil-password"
-                type="password" 
-                placeholder="Dejar en blanco para no cambiar"
-                value={formData.password} 
-                onInput={handleChange} 
-                class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" 
-              />
+            <div class="max-w-xs space-y-4">
+              <div>
+                <label htmlFor="perfil-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña (mínimo 12 caracteres)</label>
+                <input
+                  name="password"
+                  id="perfil-password"
+                  type="password"
+                  placeholder="Dejar en blanco para no cambiar"
+                  value={formData.password}
+                  onInput={handleChange}
+                  class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                />
+              </div>
+              {formData.password && (
+                <div>
+                  <label htmlFor="perfil-password-actual" class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual</label>
+                  <input
+                    name="password_actual"
+                    id="perfil-password-actual"
+                    type="password"
+                    value={formData.password_actual}
+                    onInput={handleChange}
+                    class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  />
+                </div>
+              )}
             </div>
+          </div>
           </div>
 
           <div class="pt-4">

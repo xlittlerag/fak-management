@@ -76,7 +76,11 @@ describe('Perfil (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${token}`)
-        .send({ password: 'NewPassword123!', telefono: '1188888888' })
+        .send({
+          password: 'NewPassword123!',
+          password_actual: 'OldPassword123!',
+          telefono: '1188888888',
+        })
         .expect(200);
 
       // Verify login works with new password
@@ -84,6 +88,29 @@ describe('Perfil (e2e)', () => {
         .post('/api/auth/login')
         .send({ dni: user.dni, password: 'NewPassword123!' })
         .expect(200);
+    });
+
+    it('rechaza el cambio sin la contraseña actual o con una incorrecta', async () => {
+      const { token } = await createTestUser(prisma, jwt, {
+        password: 'OldPassword123!',
+      });
+      const server = request(app.getHttpServer());
+
+      await server
+        .patch('/api/usuarios/perfil')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ password: 'NewPassword123!', telefono: '1188888888' })
+        .expect(400);
+
+      await server
+        .patch('/api/usuarios/perfil')
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+          password: 'NewPassword123!',
+          password_actual: 'Equivocada123!',
+          telefono: '1188888888',
+        })
+        .expect(401);
     });
 
     it('should update dojo_id if provided', async () => {

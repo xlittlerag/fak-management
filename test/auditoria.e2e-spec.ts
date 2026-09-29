@@ -301,7 +301,11 @@ describe('Auditoría (e2e)', () => {
       await request(app.getHttpServer())
         .patch('/api/usuarios/perfil')
         .set('Authorization', `Bearer ${user.token}`)
-        .send({ password: 'NuevaPass123!', telefono: '123456789' });
+        .send({
+          password: 'NuevaPass123!',
+          password_actual: 'Password123!',
+          telefono: '123456789',
+        });
 
       const log = await prisma.auditLog.findFirst({
         where: {
