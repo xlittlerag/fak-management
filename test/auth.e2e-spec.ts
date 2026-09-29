@@ -388,6 +388,22 @@ describe('Auth (e2e)', () => {
       expect(res.headers['access-control-allow-origin']).toBeUndefined();
     });
 
+    it('rechaza CORS_ORIGIN con comodín o URL inválida (fail-closed)', async () => {
+      const { corsOrigins } = await import('../src/utils/cors-origins');
+      const previo = process.env.CORS_ORIGIN;
+      try {
+        process.env.CORS_ORIGIN = '*';
+        expect(() => corsOrigins()).toThrow();
+        process.env.CORS_ORIGIN = 'no-es-url';
+        expect(() => corsOrigins()).toThrow();
+        process.env.CORS_ORIGIN = 'http://localhost:5173';
+        expect(corsOrigins()).toEqual(['http://localhost:5173']);
+      } finally {
+        if (previo === undefined) delete process.env.CORS_ORIGIN;
+        else process.env.CORS_ORIGIN = previo;
+      }
+    });
+
     it('el logout limpia la cookie y la sesión deja de ser válida', async () => {
       const assoc = await prisma.asociacion.create({
         data: { nombre: 'Test' },
