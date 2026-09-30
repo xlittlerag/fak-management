@@ -31,32 +31,28 @@ El proyecto es una aplicación Monorepo dividida en:
 ### Ejecución con Podman
 
 ```bash
-# Construir imagen
-podman build --build-arg VITE_MERCADO_PAGO_PUBLIC_KEY="test-xxxx" -t kendo-manager .
+# 1. Completar secretos (ver deploy.env.example para la lista completa)
+cp deploy.env.example deploy.env
 
-# Ejecutar contenedor (primera vez)
-podman run -d -p 3000:3000 \
-  -e JWT_SECRET="$(openssl rand -hex 64)" \
-  -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
-  -e MERCADO_PAGO_ACCESS_TOKEN="test" \
-  -e MERCADO_PAGO_SIMULATED="true" \
-  -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
-  -v kendo-db:/app/data \
-  -v kendo-uploads:/app/uploads \
-  kendo-manager
+# 2. Levantar (construye la imagen local; ver compose.yml)
+podman-compose up -d --build   # o: docker compose up -d --build
 
-# Healthcheck (podman no soporta HEALTHCHECK en OCI)
-# Agregar al ejecutar:
-#   --health-cmd="node -e \"require('http').get('http://localhost:3000/',()=>process.exit(0)).on('error',()=>process.exit(1))\"" \
-#   --health-interval=30s \
-#   --health-start-period=15s
+# 3. Ver estado y salud
+podman ps
+```
+
+Equivalente con imagen publicada (sin build local):
+
+```bash
+APP_IMAGE=ghcr.io/<owner>/kendo-manager IMAGE_TAG=v1.0.0 \
+  podman-compose pull app && IMAGE_TAG=v1.0.0 podman-compose up -d
 ```
 
 > **Nota:** en producción el arranque crea únicamente el admin general bootstrap
 > (password = `ADMIN_PASSWORD`, mínimo 15 caracteres, sin valor por defecto:
 > sin ella el contenedor no arranca) y **no** carga datos de
-> prueba. Para entornos de prueba iniciales, agregar `-e SEED_DATABASE="true"`
-> en el primer `run` (default `false`).
+> prueba. Para entornos de prueba iniciales, definir `SEED_DATABASE="true"`
+> en `deploy.env` solo en el primer arranque (default `false`).
 
 ### Ejecución en Desarrollo
 

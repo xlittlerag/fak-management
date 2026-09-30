@@ -63,19 +63,11 @@ DATABASE_URL="file:./dev.db"    # ❌ Error: parsing connection string
 
 Esto afecta solo a `prisma db push`. El runtime (`PrismaBetterSqlite3` adapter) acepta ambos formatos.
 
-### Comando de ejemplo
+### Comando de ejemplo (actualizado en iteración 18: ver `compose.yml`)
 
 ```bash
-podman build -t kendo-manager .
-podman run -d -p 3000:3000 \
-  -e JWT_SECRET="$(openssl rand -hex 64)" \
-  -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
-  -e DATABASE_URL="file:devdb" \
-  -e MERCADO_PAGO_ACCESS_TOKEN="..." \
-  -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
-  -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
-  -v kendo-uploads:/app/uploads \
-  kendo-manager
+cp deploy.env.example deploy.env   # completar secretos
+podman-compose up -d --build
 ```
 
 ## Admin automático en primer arranque

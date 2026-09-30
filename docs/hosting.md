@@ -210,19 +210,20 @@ cualquier momento.
    ```bash
    mkdir -p /data/kendo/uploads
    ```
-6. Iniciar el contenedor:
+6. Iniciar el contenedor con compose (recomendado):
    ```bash
-    podman run -d --name kendo-app --restart always \
-      -p 127.0.0.1:3000:3000 \
-      -e JWT_SECRET="$(openssl rand -hex 64)" \
-      -e TOTP_ENCRYPTION_KEY="$(openssl rand -hex 32)" \
-      -e DATABASE_URL="file:devdb" \
-     -e MERCADO_PAGO_ACCESS_TOKEN="..." \
-     -e VITE_MERCADO_PAGO_PUBLIC_KEY="..." \
-      -e ADMIN_PASSWORD="cambie-esta-clave-larga-123" \
+   cp deploy.env.example deploy.env   # completar secretos
+   podman-compose up -d --build
+   ```
+   Equivalente manual (sin compose):
+   ```bash
+   podman run -d --name kendo-app --restart unless-stopped \
+     -p 127.0.0.1:3000:3000 \
+     --env-file ./deploy.env \
      -e NODE_ENV=production \
      -v /data/kendo/uploads:/app/uploads:Z \
      -v /data/kendo/rclone:/app/.config/rclone:Z \
+     -v kendo-db:/app/data \
      localhost/kendo-manager
    ```
 7. Configurar nginx como proxy reverso:
