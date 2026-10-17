@@ -1,4 +1,4 @@
-# Requerimientos de Hosting — Kendo Manager
+# Requerimientos de Hosting — Kendo Argentina
 
 ## Perfil de la aplicación
 
@@ -123,7 +123,7 @@ paso natural sin comprometerse con AWS.
 
 ## Propuestas de servicios cloud
 
-### Tier 1 — Económico (recomendado para FAK)
+### Tier 1 — Económico (recomendado para Kendo Argentina)
 
 Adecuado para el volumen actual de la Federación Argentina de Kendo.
 

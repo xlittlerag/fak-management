@@ -153,23 +153,23 @@ export default function Perfil() {
   return (
     <div class="max-w-4xl space-y-6">
       {user?.estado_reg === 'DESAFILIADO' && (
-        <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4 flex items-center justify-between gap-4">
+        <div class="bg-warning-soft border border-warning/20 text-warning rounded-lg p-4 flex items-center justify-between gap-4">
           <div>
             <p class="font-semibold">Usted se encuentra desafiliado.</p>
             <p class="text-sm">Puede solicitar una nueva afiliación desde el panel.</p>
           </div>
-          <a href="/dashboard/afiliacion" class="shrink-0 px-4 py-2 bg-amber-600 text-white rounded-md text-sm font-medium hover:bg-amber-700 transition-colors">
+          <a href="/dashboard/afiliacion" class="shrink-0 px-4 py-2 bg-warning text-white rounded-md text-sm font-medium hover:bg-warning/90 transition-colors">
             Solicitar Afiliación
           </a>
         </div>
       )}
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h3 class="text-xl font-bold mb-6 text-slate-800">Sus Datos Personales</h3>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-8">
+        <h3 class="text-xl font-bold mb-6 text-ink">Sus Datos Personales</h3>
 
         {message.text && (
           <div class={`mb-6 p-4 rounded text-sm font-medium ${
-            message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+            message.type === 'success' ? 'bg-success-soft text-success border border-success/20' : 'bg-hinomaru-soft text-hinomaru border border-hinomaru/20'
           }`}>
             {message.text}
           </div>
@@ -178,88 +178,88 @@ export default function Perfil() {
         <form onSubmit={handleSubmit} class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="perfil-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-              <input name="nombre" id="perfil-nombre" value={formData.nombre} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('nombre') ? 'border-red-400' : 'border-slate-300'}`} />
-              {fieldError('nombre') && <span class="text-xs text-red-600 mt-1">{fieldError('nombre')}</span>}
+              <label htmlFor="perfil-nombre" class="block text-sm font-medium text-ink mb-1">Nombre</label>
+              <input name="nombre" id="perfil-nombre" value={formData.nombre} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('nombre') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+              {fieldError('nombre') && <span class="text-xs text-hinomaru mt-1">{fieldError('nombre')}</span>}
             </div>
             <div>
-              <label htmlFor="perfil-apellido" class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
-              <input name="apellido" id="perfil-apellido" value={formData.apellido} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('apellido') ? 'border-red-400' : 'border-slate-300'}`} />
-              {fieldError('apellido') && <span class="text-xs text-red-600 mt-1">{fieldError('apellido')}</span>}
+              <label htmlFor="perfil-apellido" class="block text-sm font-medium text-ink mb-1">Apellido</label>
+              <input name="apellido" id="perfil-apellido" value={formData.apellido} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('apellido') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+              {fieldError('apellido') && <span class="text-xs text-hinomaru mt-1">{fieldError('apellido')}</span>}
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="perfil-dni" class="block text-sm font-medium text-slate-700 mb-1 font-mono text-slate-400">DNI (No editable)</label>
-              <input id="perfil-dni" value={formData.dni} disabled class="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded cursor-not-allowed font-mono" />
+              <label htmlFor="perfil-dni" class="block text-sm font-medium text-ink mb-1 font-mono text-steel">DNI (No editable)</label>
+              <input id="perfil-dni" value={formData.dni} disabled class="w-full px-3 py-2 border border-steel-soft bg-paper text-steel rounded cursor-not-allowed font-mono" />
             </div>
             <div>
-              <label htmlFor="perfil-email" class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input name="email" id="perfil-email" value={formData.email} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('email') ? 'border-red-400' : 'border-slate-300'}`} />
-              {fieldError('email') && <span class="text-xs text-red-600 mt-1">{fieldError('email')}</span>}
+              <label htmlFor="perfil-email" class="block text-sm font-medium text-ink mb-1">Correo Electrónico</label>
+              <input name="email" id="perfil-email" value={formData.email} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('email') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+              {fieldError('email') && <span class="text-xs text-hinomaru mt-1">{fieldError('email')}</span>}
             </div>
 
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label htmlFor="perfil-fecha-nacimiento" class="block text-sm font-medium text-slate-700 mb-1">Fecha de Nacimiento</label>
-              <input name="fecha_nacimiento" id="perfil-fecha-nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
+              <label htmlFor="perfil-fecha-nacimiento" class="block text-sm font-medium text-ink mb-1">Fecha de Nacimiento</label>
+              <input name="fecha_nacimiento" id="perfil-fecha-nacimiento" type="date" value={formData.fecha_nacimiento} onInput={handleChange} class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20 font-mono" />
             </div>
             <div>
-              <label htmlFor="perfil-sexo" class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
-              <select name="sexo" id="perfil-sexo" value={formData.sexo} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              <label htmlFor="perfil-sexo" class="block text-sm font-medium text-ink mb-1">Sexo Registral</label>
+              <select name="sexo" id="perfil-sexo" value={formData.sexo} onChange={handleChange} class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
                 {SEXOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
               </select>
             </div>
           </div>
 
-          <div class="border-t border-slate-100 pt-6">
-            <h4 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Domicilio Real</h4>
+          <div class="border-t border-steel-soft pt-6">
+            <h4 class="text-sm font-semibold text-ink mb-4 uppercase tracking-wider">Domicilio Real</h4>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div class="md:col-span-2">
-                <label htmlFor="perfil-calle-altura" class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
-                <input name="calle_altura" id="perfil-calle-altura" value={formData.calle_altura} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('calle_altura') ? 'border-red-400' : 'border-slate-300'}`} />
-                {fieldError('calle_altura') && <span class="text-xs text-red-600 mt-1">{fieldError('calle_altura')}</span>}
+                <label htmlFor="perfil-calle-altura" class="block text-sm font-medium text-ink mb-1">Calle y Altura</label>
+                <input name="calle_altura" id="perfil-calle-altura" value={formData.calle_altura} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('calle_altura') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+                {fieldError('calle_altura') && <span class="text-xs text-hinomaru mt-1">{fieldError('calle_altura')}</span>}
               </div>
               <div>
-                <label htmlFor="perfil-piso-depto" class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto</label>
-                <input name="piso_depto" id="perfil-piso-depto" value={formData.piso_depto} onInput={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+                <label htmlFor="perfil-piso-depto" class="block text-sm font-medium text-ink mb-1">Piso/Depto</label>
+                <input name="piso_depto" id="perfil-piso-depto" value={formData.piso_depto} onInput={handleChange} class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20" />
               </div>
             </div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
               <div>
-                <label htmlFor="perfil-ciudad" class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
-                <input name="ciudad" id="perfil-ciudad" value={formData.ciudad} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('ciudad') ? 'border-red-400' : 'border-slate-300'}`} />
-                {fieldError('ciudad') && <span class="text-xs text-red-600 mt-1">{fieldError('ciudad')}</span>}
+                <label htmlFor="perfil-ciudad" class="block text-sm font-medium text-ink mb-1">Ciudad</label>
+                <input name="ciudad" id="perfil-ciudad" value={formData.ciudad} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('ciudad') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+                {fieldError('ciudad') && <span class="text-xs text-hinomaru mt-1">{fieldError('ciudad')}</span>}
               </div>
               <div>
-                <label htmlFor="perfil-provincia" class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
-                <select name="provincia" id="perfil-provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                <label htmlFor="perfil-provincia" class="block text-sm font-medium text-ink mb-1">Provincia</label>
+                <select name="provincia" id="perfil-provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
                   {PROVINCIAS.map(p => (
                     <option key={p.value} value={p.value}>{p.label}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="perfil-codigo-postal" class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
-                <input name="codigo_postal" id="perfil-codigo-postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono ${fieldError('codigo_postal') ? 'border-red-400' : 'border-slate-300'}`} />
-                {fieldError('codigo_postal') && <span class="text-xs text-red-600 mt-1">{fieldError('codigo_postal')}</span>}
+                <label htmlFor="perfil-codigo-postal" class="block text-sm font-medium text-ink mb-1">Código Postal</label>
+                <input name="codigo_postal" id="perfil-codigo-postal" value={formData.codigo_postal} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 font-mono ${fieldError('codigo_postal') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+                {fieldError('codigo_postal') && <span class="text-xs text-hinomaru mt-1">{fieldError('codigo_postal')}</span>}
               </div>
             </div>
             <div class="mt-4">
-              <label htmlFor="perfil-telefono" class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
-              <input name="telefono" id="perfil-telefono" value={formData.telefono || ''} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-slate-500 ${fieldError('telefono') ? 'border-red-400' : 'border-slate-300'}`} />
-              {fieldError('telefono') && <span class="text-xs text-red-600 mt-1">{fieldError('telefono')}</span>}
+              <label htmlFor="perfil-telefono" class="block text-sm font-medium text-ink mb-1">Teléfono</label>
+              <input name="telefono" id="perfil-telefono" value={formData.telefono || ''} onInput={handleChange} onBlur={handleBlur} class={`w-full px-3 py-2 border rounded focus:outline-none focus:ring-1 focus:ring-ai/20 ${fieldError('telefono') ? 'border-hinomaru' : 'border-steel-soft'}`} />
+              {fieldError('telefono') && <span class="text-xs text-hinomaru mt-1">{fieldError('telefono')}</span>}
             </div>
           </div>
 
-          <div class="border-t border-slate-100 pt-6">
-            <h4 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Seguridad</h4>
+          <div class="border-t border-steel-soft pt-6">
+            <h4 class="text-sm font-semibold text-ink mb-4 uppercase tracking-wider">Seguridad</h4>
             <div class="max-w-xs space-y-4">
               <div>
-                <label htmlFor="perfil-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva Contraseña (mínimo 12 caracteres)</label>
+                <label htmlFor="perfil-password" class="block text-sm font-medium text-ink mb-1">Nueva Contraseña (mínimo 12 caracteres)</label>
                 <input
                   name="password"
                   id="perfil-password"
@@ -267,19 +267,19 @@ export default function Perfil() {
                   placeholder="Dejar en blanco para no cambiar"
                   value={formData.password}
                   onInput={handleChange}
-                  class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
                 />
               </div>
               {formData.password && (
                 <div>
-                  <label htmlFor="perfil-password-actual" class="block text-sm font-medium text-slate-700 mb-1">Contraseña Actual</label>
+                  <label htmlFor="perfil-password-actual" class="block text-sm font-medium text-ink mb-1">Contraseña Actual</label>
                   <input
                     name="password_actual"
                     id="perfil-password-actual"
                     type="password"
                     value={formData.password_actual}
                     onInput={handleChange}
-                    class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                    class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
                   />
                 </div>
               )}
@@ -290,7 +290,7 @@ export default function Perfil() {
             <button 
               type="submit" 
               disabled={saving}
-              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              class="px-8 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Guardando...' : 'Guardar Cambios'}
             </button>
@@ -299,51 +299,51 @@ export default function Perfil() {
       </div>
 
       {/* Graduaciones Display */}
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <h3 class="text-lg font-bold mb-4 text-slate-800">Sus Graduaciones</h3>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
+        <h3 class="text-lg font-bold mb-4 text-ink">Sus Graduaciones</h3>
         <div class="flex flex-wrap gap-3">
           {formData.grad_kendo && formData.grad_kendo !== 'SIN_GRADUACION' && (
-            <div class="inline-flex items-center gap-2 bg-amber-50 border border-amber-200 rounded-full px-4 py-2">
-              <span class="text-xs font-bold text-amber-800 uppercase tracking-wider">Kendo</span>
-              <span class="text-sm font-semibold text-amber-900">{getGradLabel(formData.grad_kendo)}</span>
-              {formData.f_grad_kendo && <span class="text-[10px] text-amber-600 italic">{new Date(formData.f_grad_kendo).toLocaleDateString()}</span>}
+            <div class="inline-flex items-center gap-2 bg-warning-soft border border-warning/20 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-warning uppercase tracking-wider">Kendo</span>
+              <span class="text-sm font-semibold text-warning">{getGradLabel(formData.grad_kendo)}</span>
+              {formData.f_grad_kendo && <span class="text-[10px] text-warning italic">{new Date(formData.f_grad_kendo).toLocaleDateString()}</span>}
             </div>
           )}
           {formData.grad_iaido && formData.grad_iaido !== 'SIN_GRADUACION' && (
-            <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-200 rounded-full px-4 py-2">
-              <span class="text-xs font-bold text-indigo-800 uppercase tracking-wider">Iaido</span>
-              <span class="text-sm font-semibold text-indigo-900">{getGradLabel(formData.grad_iaido)}</span>
-              {formData.f_grad_iaido && <span class="text-[10px] text-indigo-600 italic">{new Date(formData.f_grad_iaido).toLocaleDateString()}</span>}
+            <div class="inline-flex items-center gap-2 bg-ai-soft border border-ai/20 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-ai uppercase tracking-wider">Iaido</span>
+              <span class="text-sm font-semibold text-ai-strong">{getGradLabel(formData.grad_iaido)}</span>
+              {formData.f_grad_iaido && <span class="text-[10px] text-ai italic">{new Date(formData.f_grad_iaido).toLocaleDateString()}</span>}
             </div>
           )}
           {formData.grad_jodo && formData.grad_jodo !== 'SIN_GRADUACION' && (
-            <div class="inline-flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-full px-4 py-2">
-              <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider">Jodo</span>
-              <span class="text-sm font-semibold text-emerald-900">{getGradLabel(formData.grad_jodo)}</span>
-              {formData.f_grad_jodo && <span class="text-[10px] text-emerald-600 italic">{new Date(formData.f_grad_jodo).toLocaleDateString()}</span>}
+            <div class="inline-flex items-center gap-2 bg-success-soft border border-success/20 rounded-full px-4 py-2">
+              <span class="text-xs font-bold text-success uppercase tracking-wider">Jodo</span>
+              <span class="text-sm font-semibold text-success">{getGradLabel(formData.grad_jodo)}</span>
+              {formData.f_grad_jodo && <span class="text-[10px] text-success italic">{new Date(formData.f_grad_jodo).toLocaleDateString()}</span>}
             </div>
           )}
           {(!formData.grad_kendo || formData.grad_kendo === 'SIN_GRADUACION') &&
            (!formData.grad_iaido || formData.grad_iaido === 'SIN_GRADUACION') &&
            (!formData.grad_jodo || formData.grad_jodo === 'SIN_GRADUACION') && (
-            <p class="text-sm text-slate-400">Sin graduaciones registradas.</p>
+            <p class="text-sm text-steel">Sin graduaciones registradas.</p>
           )}
         </div>
       </div>
 
       {/* Reimpresión de Diploma */}
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <h3 class="text-lg font-bold mb-4 text-slate-800">Reimpresión de Diploma</h3>
-        <p class="text-sm text-slate-500 mb-4">Solicite una reimpresión de su diploma nacional (FAK) para la disciplina que desee. El pago se realiza a través de Mercado Pago.</p>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
+        <h3 class="text-lg font-bold mb-4 text-ink">Reimpresión de Diploma</h3>
+        <p class="text-sm text-steel mb-4">Solicite una reimpresión de su diploma nacional de Kendo Argentina para la disciplina que desee. El pago se realiza a través de Mercado Pago.</p>
         <button
           onClick={() => { setReimpresionModal(true); setReimpMsg(''); }}
-          class="px-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors text-sm"
+          class="px-6 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong transition-colors text-sm"
         >
           Solicitar Reimpresión
         </button>
 
         {reimpMsg && (
-          <p class={`mt-3 text-sm ${reimpMsg.includes('Error') || reimpMsg.includes('No se') ? 'text-red-600' : 'text-green-600'}`}>
+          <p class={`mt-3 text-sm ${reimpMsg.includes('Error') || reimpMsg.includes('No se') ? 'text-hinomaru' : 'text-success'}`}>
             {reimpMsg}
           </p>
         )}
@@ -352,19 +352,19 @@ export default function Perfil() {
       <Modal isOpen={reimpresionModal} onClose={() => setReimpresionModal(false)} title="Solicitar Reimpresión">
         <div class="space-y-4">
               <div>
-                <label htmlFor="perfil-reimp-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+                <label htmlFor="perfil-reimp-disciplina" class="block text-sm font-medium text-ink mb-1">Disciplina</label>
                 <select
                   id="perfil-reimp-disciplina"
                   value={reimpDisc}
                   onChange={(e: Event) => setReimpDisc((e.target as HTMLSelectElement).value)}
-                  class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                  class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
                 >
                   <option value="KENDO">Kendo</option>
                   <option value="IAIDO">Iaido</option>
                   <option value="JODO">Jodo</option>
                 </select>
               </div>
-              <p class="text-sm text-slate-500">Se reimprimirá el último diploma nacional de <strong>{{ KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo' }[reimpDisc] || reimpDisc}</strong> registrado a su nombre.</p>
+              <p class="text-sm text-steel">Se reimprimirá el último diploma nacional de <strong>{{ KENDO: 'Kendo', IAIDO: 'Iaido', JODO: 'Jodo' }[reimpDisc] || reimpDisc}</strong> registrado a su nombre.</p>
               <button
                 onClick={async () => {
                   setReimpLoading(true);
@@ -390,7 +390,7 @@ export default function Perfil() {
                   }
                 }}
                 disabled={reimpLoading}
-                class="w-full px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
+                class="w-full px-8 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
               >
                 {reimpLoading ? 'Generando pago...' : 'Continuar al pago'}
               </button>
@@ -411,7 +411,7 @@ export default function Perfil() {
                       }
                     }}
                     disabled={reimpLoading}
-                    class="w-full bg-green-600 text-white px-8 py-2 rounded font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
+                    class="w-full bg-success text-white px-8 py-2 rounded font-medium hover:bg-success/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center"
                   >
                     {reimpLoading ? 'Procesando...' : 'Pagar en modo prueba (simulado)'}
                   </button>
@@ -422,19 +422,19 @@ export default function Perfil() {
             </div>
             <button
               onClick={() => setReimpresionModal(false)}
-              class="mt-4 w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors text-sm"
+              class="mt-4 w-full bg-paper text-ink py-2 rounded-md font-medium hover:bg-ai-soft transition-colors text-sm"
             >
               Cancelar
             </button>
       </Modal>
 
       {user?.estado_reg === 'APROBADO' && (
-        <div class="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-          <h3 class="text-lg font-bold mb-2 text-slate-800">Desafiliación</h3>
-          <p class="text-sm text-slate-500 mb-4">Solicitar su desafiliación de la federación. Esta acción es inmediata: conservará su historial y podrá solicitar una nueva afiliación en el futuro.</p>
+        <div class="bg-surface rounded-lg shadow-sm border border-hinomaru/20 p-6">
+          <h3 class="text-lg font-bold mb-2 text-ink">Desafiliación</h3>
+          <p class="text-sm text-steel mb-4">Solicitar su desafiliación de la federación. Esta acción es inmediata: conservará su historial y podrá solicitar una nueva afiliación en el futuro.</p>
           <button
             onClick={() => { setBajaModal(true); setBajaMotivo(''); }}
-            class="px-6 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition-colors text-sm"
+            class="px-6 py-2 bg-hinomaru text-white rounded font-medium hover:bg-hinomaru/90 transition-colors text-sm"
           >
             Solicitar desafiliación
           </button>

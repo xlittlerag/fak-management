@@ -260,14 +260,14 @@ export default function Mesas() {
 
   if (!eventoId) {
     return (
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8 text-center">
-        <h4 class="font-semibold text-slate-800 mb-2">Mesas examinadoras</h4>
-        <p class="text-slate-500 text-sm mb-4">
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-8 text-center">
+        <h4 class="font-semibold text-ink mb-2">Mesas examinadoras</h4>
+        <p class="text-steel text-sm mb-4">
           Seleccione un examen desde Gestión de Eventos para administrar sus mesas.
         </p>
         <button
           onClick={() => route('/dashboard/eventos-admin')}
-          class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+          class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
         >
           Ir a Gestión de Eventos
         </button>
@@ -279,9 +279,9 @@ export default function Mesas() {
     <div class="space-y-6">
       <div class="flex justify-between items-center">
         <div>
-          <h3 class="text-lg font-semibold text-slate-800">Mesas examinadoras</h3>
+          <h3 class="text-lg font-semibold text-ink">Mesas examinadoras</h3>
           {evento && (
-            <p class="text-sm text-slate-500">
+            <p class="text-sm text-steel">
               {new Date(evento.fecha_inicio).toLocaleDateString('es-AR')}
             </p>
           )}
@@ -289,32 +289,32 @@ export default function Mesas() {
         <div class="flex gap-2">
           <button
             onClick={() => route('/dashboard/eventos-admin')}
-            class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+            class="px-4 py-2 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
           >
             ← Volver a Eventos
           </button>
           <button
             onClick={openCreate}
-            class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+            class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
           >
             Nueva Mesa
           </button>
         </div>
       </div>
 
-      {error && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>}
-      {msg && <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>}
+      {error && <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>}
+      {msg && <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>}
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h4 class="font-semibold text-slate-800">Mesas</h4>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
+        <div class="px-6 py-4 border-b border-steel-soft">
+          <h4 class="font-semibold text-ink">Mesas</h4>
         </div>
         {mesas.length === 0 ? (
-          <p class="px-6 py-8 text-center text-slate-500 text-sm">No hay mesas creadas para este examen.</p>
+          <p class="px-6 py-8 text-center text-steel text-sm">No hay mesas creadas para este examen.</p>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                 <tr>
                   <th class="px-4 py-2">Disciplina</th>
                   <th class="px-4 py-2">Examinadores</th>
@@ -322,17 +322,17 @@ export default function Mesas() {
                   <th class="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
+              <tbody class="divide-y divide-steel-soft/60">
                 {mesas.map((mesa) => (
-                  <tr key={mesa.id} class="hover:bg-slate-50">
+                  <tr key={mesa.id} class="hover:bg-ai-soft/50">
                     <td class="px-4 py-2 font-medium">{DISC_LABEL[mesa.disciplina] || mesa.disciplina}</td>
-                    <td class="px-4 py-2 text-slate-600">{mesa.examinadores.join(', ')}</td>
-                    <td class="px-4 py-2 text-slate-600">
+                    <td class="px-4 py-2 text-steel">{mesa.examinadores.join(', ')}</td>
+                    <td class="px-4 py-2 text-steel">
                       {GRAD_LABEL[mesa.grad_min]} - {GRAD_LABEL[mesa.grad_max]}
                     </td>
                     <td class="px-4 py-2 text-right space-x-2">
-                      <button onClick={() => openEdit(mesa)} class="text-blue-600 hover:underline">Editar</button>
-                      <button onClick={() => setConfirmDelete(mesa)} class="text-red-600 hover:underline">Eliminar</button>
+                      <button onClick={() => openEdit(mesa)} class="text-ai hover:underline">Editar</button>
+                      <button onClick={() => setConfirmDelete(mesa)} class="text-hinomaru hover:underline">Eliminar</button>
                     </td>
                   </tr>
                 ))}
@@ -342,12 +342,12 @@ export default function Mesas() {
         )}
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h4 class="font-semibold text-slate-800">Resultados por candidato</h4>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
+        <div class="px-6 py-4 border-b border-steel-soft">
+          <h4 class="font-semibold text-ink">Resultados por candidato</h4>
         </div>
-        <div class="px-6 py-3 border-b border-slate-100 bg-blue-50/60">
-          <p class="text-xs text-slate-600">
+        <div class="px-6 py-3 border-b border-steel-soft bg-ai-soft/60">
+          <p class="text-xs text-steel">
             <span class="font-semibold">¿Cómo se cargan los resultados?</span> Las
             instancias se aprueban en orden: Práctico → Kata → Escrito. Haga clic en la
             instancia hasta la que el candidato aprobó (las anteriores se rellenan solas)
@@ -358,13 +358,13 @@ export default function Mesas() {
         </div>
         {resultados.length === 0 ? (
           <div class="px-6 py-8 text-center">
-            <p class="text-slate-500 text-sm mb-4">
+            <p class="text-steel text-sm mb-4">
               Los candidatos aparecen cuando su inscripción al examen está aprobada.
               Apruebe las inscripciones desde Gestión de Eventos.
             </p>
             <button
               onClick={() => route(`/dashboard/inscripciones?eventoId=${eventoId}`)}
-              class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+              class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
             >
               Ver inscripciones
             </button>
@@ -372,7 +372,7 @@ export default function Mesas() {
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                 <tr>
                   <th class="px-4 py-2">Candidato</th>
                   <th class="px-4 py-2">DNI</th>
@@ -384,7 +384,7 @@ export default function Mesas() {
                   <th class="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
+              <tbody class="divide-y divide-steel-soft/60">
                 {resultados.flatMap((candidato) => {
                   const grupos = new Map<string, InstanciaResultado[]>();
                   for (const inst of candidato.instancias) {
@@ -416,31 +416,31 @@ export default function Mesas() {
                       return (
                         <tr
                           key={`${candidato.inscripcion_id}-${disciplina}`}
-                          class="hover:bg-slate-50"
+                          class="hover:bg-ai-soft/50"
                         >
                           <td class="px-4 py-2 font-medium">
                             {candidato.usuario.nombre}
                           </td>
-                          <td class="px-4 py-2 text-slate-600">
+                          <td class="px-4 py-2 text-steel">
                             {candidato.usuario.dni}
                           </td>
                           <td class="px-4 py-2">
                             {DISC_LABEL[disciplina] || disciplina}
                           </td>
-                          <td class="px-4 py-2 text-slate-600">
+                          <td class="px-4 py-2 text-steel">
                             {GRAD_LABEL[graduacion] || graduacion}
                           </td>
                           <td class="px-4 py-2">
                             <div class="flex flex-wrap items-center gap-1">
                               {instancias.map((inst, i) => {
                                 let cls =
-                                  'border border-slate-300 text-slate-600 bg-white';
+                                  'border border-steel-soft text-steel bg-surface';
                                 if (inst.aprobado === true) {
                                   cls =
-                                    'bg-green-600 text-white border-green-600';
+                                    'bg-success text-white border-success';
                                 } else if (inst.aprobado === false) {
                                   cls =
-                                    'bg-red-600 text-white border-red-600';
+                                    'bg-hinomaru text-white border-hinomaru';
                                 }
                                 return (
                                   <div
@@ -464,14 +464,14 @@ export default function Mesas() {
                                       {INSTANCIA_LABEL[inst.instancia] || inst.instancia}
                                     </button>
                                     {i < instancias.length - 1 && (
-                                      <span class="text-slate-300 text-xs">→</span>
+                                      <span class="text-steel-soft text-xs">→</span>
                                     )}
                                   </div>
                                 );
                               })}
                             </div>
                           </td>
-                          <td class="px-4 py-2 text-slate-600">
+                          <td class="px-4 py-2 text-steel">
                             {mesaActual ? (
                               `#${mesaActual}`
                             ) : compatibles.length > 1 ? (
@@ -486,7 +486,7 @@ export default function Mesas() {
                                     ),
                                   });
                                 }}
-                                class="border border-slate-300 rounded px-2 py-1 text-xs"
+                                class="border border-steel-soft rounded px-2 py-1 text-xs"
                               >
                                 <option value="">Seleccionar mesa</option>
                                 {compatibles.map((m) => (
@@ -499,7 +499,7 @@ export default function Mesas() {
                           </td>
                           <td class="px-4 py-2">
                             {registro.registro_pagado ? (
-                              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-green-50 text-green-700">
+                              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-success-soft text-success">
                                 {registro.graduacion_aplicada
                                   ? 'Pagado y graduado'
                                   : 'Pagado'}
@@ -512,12 +512,12 @@ export default function Mesas() {
                                     disciplina,
                                   )
                                 }
-                                class="text-blue-600 hover:underline whitespace-nowrap"
+                                class="text-ai hover:underline whitespace-nowrap"
                               >
                                 Registrar pago
                               </button>
                             ) : (
-                              <span class="text-slate-400 text-xs whitespace-nowrap">
+                              <span class="text-steel text-xs whitespace-nowrap">
                                 Requiere aprobar todas las instancias
                               </span>
                             )}
@@ -541,8 +541,8 @@ export default function Mesas() {
                                 }
                                 class={`hover:underline ${
                                   fallo
-                                    ? 'text-slate-500'
-                                    : 'text-red-600'
+                                    ? 'text-steel'
+                                    : 'text-hinomaru'
                                 }`}
                               >
                                 {fallo ? 'Quitar desaprobado' : 'Desaprobado'}
@@ -564,13 +564,13 @@ export default function Mesas() {
         <Modal isOpen={formOpen} onClose={() => setFormOpen(false)} title={form.id ? 'Editar Mesa' : 'Nueva Mesa'}>
           <div class="space-y-4">
             <div>
-              <label htmlFor="mesa-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+              <label htmlFor="mesa-disciplina" class="block text-sm font-medium text-ink mb-1">Disciplina</label>
               <select
                 id="mesa-disciplina"
                 value={form.disciplina}
                 disabled={!!form.id}
                 onChange={(e: Event) => setForm({ ...form, disciplina: (e.target as HTMLSelectElement).value })}
-                class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 disabled:bg-slate-100"
+                class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20 disabled:bg-paper"
               >
                 {(evento?.examen?.disciplinas || ['KENDO', 'IAIDO', 'JODO']).map((d: string) => (
                   <option key={d} value={d}>{DISC_LABEL[d] || d}</option>
@@ -578,35 +578,35 @@ export default function Mesas() {
               </select>
             </div>
             <div>
-              <label htmlFor="mesa-examinadores" class="block text-sm font-medium text-slate-700 mb-1">Examinadores (separados por coma)</label>
+              <label htmlFor="mesa-examinadores" class="block text-sm font-medium text-ink mb-1">Examinadores (separados por coma)</label>
               <input
                 id="mesa-examinadores"
                 type="text"
                 value={form.examinadores}
                 onInput={(e: Event) => setForm({ ...form, examinadores: (e.target as HTMLInputElement).value })}
                 placeholder="Juan Pérez, Ana López"
-                class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
               />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label htmlFor="mesa-grad-min" class="block text-sm font-medium text-slate-700 mb-1">Graduación mínima</label>
+                <label htmlFor="mesa-grad-min" class="block text-sm font-medium text-ink mb-1">Graduación mínima</label>
                 <select
                   id="mesa-grad-min"
                   value={form.grad_min}
                   onChange={(e: Event) => setForm({ ...form, grad_min: (e.target as HTMLSelectElement).value })}
-                  class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
                 >
                   {GRADOS.map((g) => <option key={g} value={g}>{GRAD_LABEL[g]}</option>)}
                 </select>
               </div>
               <div>
-                <label htmlFor="mesa-grad-max" class="block text-sm font-medium text-slate-700 mb-1">Graduación máxima</label>
+                <label htmlFor="mesa-grad-max" class="block text-sm font-medium text-ink mb-1">Graduación máxima</label>
                 <select
                   id="mesa-grad-max"
                   value={form.grad_max}
                   onChange={(e: Event) => setForm({ ...form, grad_max: (e.target as HTMLSelectElement).value })}
-                  class="w-full border border-slate-300 rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
                 >
                   {GRADOS.map((g) => <option key={g} value={g}>{GRAD_LABEL[g]}</option>)}
                 </select>
@@ -614,12 +614,12 @@ export default function Mesas() {
             </div>
             <div class="flex gap-3 pt-2">
               <button onClick={() => setFormOpen(false)}
-                class="w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors"
+                class="w-full bg-paper text-ink py-2 rounded-md font-medium hover:bg-ai-soft transition-colors"
               >
                 Cancelar
               </button>
               <button onClick={handleSaveMesa} disabled={saving}
-                class="w-full bg-slate-900 text-white py-2 rounded-md font-medium hover:bg-slate-800 transition-colors disabled:opacity-50"
+                class="w-full bg-ai text-white py-2 rounded-md font-medium hover:bg-ai-strong transition-colors disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Guardar'}
               </button>

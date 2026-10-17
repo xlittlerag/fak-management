@@ -99,25 +99,25 @@ export default function Afiliacion() {
 
   if (user?.estado_reg !== 'DESAFILIADO') {
     return (
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <p class="text-slate-600">Su afiliación se encuentra activa. No necesita solicitar una nueva afiliación.</p>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-8">
+        <p class="text-steel">Su afiliación se encuentra activa. No necesita solicitar una nueva afiliación.</p>
       </div>
     );
   }
 
   return (
     <div class="space-y-6">
-      <div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-lg p-4">
+      <div class="bg-warning-soft border border-warning/20 text-warning rounded-lg p-4">
         <p class="font-semibold">Usted se encuentra desafiliado.</p>
         <p class="text-sm">Complete el siguiente formulario para solicitar su afiliación a una asociación.</p>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h3 class="text-lg font-bold mb-6 text-slate-800">Solicitar Afiliación</h3>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-8">
+        <h3 class="text-lg font-bold mb-6 text-ink">Solicitar Afiliación</h3>
 
         {message.text && (
           <div class={`mb-6 p-4 rounded text-sm font-medium ${
-            message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
+            message.type === 'success' ? 'bg-success-soft text-success border border-success/20' : 'bg-hinomaru-soft text-hinomaru border border-hinomaru/20'
           }`}>
             {message.text}
           </div>
@@ -125,12 +125,12 @@ export default function Afiliacion() {
 
         <form onSubmit={handleSubmit} class="space-y-6 max-w-xl">
           <div>
-            <label htmlFor="afil-asociacion" class="block text-sm font-medium text-slate-700 mb-1">Asociación de destino</label>
+            <label htmlFor="afil-asociacion" class="block text-sm font-medium text-ink mb-1">Asociación de destino</label>
             <select
               id="afil-asociacion"
               value={asociacionId}
               onChange={(e: Event) => setAsociacionId((e.target as HTMLSelectElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
             >
               <option value="">Seleccione una asociación...</option>
               {asociaciones.map(a => <option key={a.id} value={a.id}>{a.nombre}</option>)}
@@ -138,13 +138,13 @@ export default function Afiliacion() {
           </div>
 
           <div>
-            <label htmlFor="afil-dojo" class="block text-sm font-medium text-slate-700 mb-1">Dojo de destino</label>
+            <label htmlFor="afil-dojo" class="block text-sm font-medium text-ink mb-1">Dojo de destino</label>
             <select
               id="afil-dojo"
               value={dojoId}
               onChange={(e: Event) => setDojoId((e.target as HTMLSelectElement).value)}
               disabled={!asociacionId}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 disabled:bg-slate-50 disabled:text-slate-400"
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20 disabled:bg-paper disabled:text-steel"
             >
               <option value="">Seleccione un dojo...</option>
               {dojos.map(d => <option key={d.id} value={d.id}>{d.nombre}</option>)}
@@ -152,13 +152,13 @@ export default function Afiliacion() {
           </div>
 
           <div>
-            <label htmlFor="afil-motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+            <label htmlFor="afil-motivo" class="block text-sm font-medium text-ink mb-1">Motivo (opcional)</label>
             <textarea
               id="afil-motivo"
               value={motivo}
               onInput={(e: Event) => setMotivo((e.target as HTMLTextAreaElement).value)}
               rows={3}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
               placeholder="Indique el motivo de su solicitud..."
             />
           </div>
@@ -166,25 +166,25 @@ export default function Afiliacion() {
           <button
             type="submit"
             disabled={saving}
-            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="px-8 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {saving ? 'Enviando...' : 'Enviar Solicitud'}
           </button>
         </form>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h4 class="font-semibold text-slate-800">Historial de solicitudes</h4>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
+        <div class="px-6 py-4 border-b border-steel-soft">
+          <h4 class="font-semibold text-ink">Historial de solicitudes</h4>
         </div>
         {loadingSolicitudes ? (
           <div class="p-8"><Spinner text="Cargando solicitudes..." /></div>
         ) : solicitudes.length === 0 ? (
-          <div class="p-8 text-center text-slate-500">No tiene solicitudes registradas.</div>
+          <div class="p-8 text-center text-steel">No tiene solicitudes registradas.</div>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                 <tr>
                   <th class="px-4 py-2">Solicitud</th>
                   <th class="px-4 py-2">Destino</th>
@@ -192,20 +192,20 @@ export default function Afiliacion() {
                   <th class="px-4 py-2">Estado</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
+              <tbody class="divide-y divide-steel-soft/60">
                 {solicitudes.map(s => (
-                  <tr key={s.id} class="hover:bg-slate-50">
+                  <tr key={s.id} class="hover:bg-ai-soft/50">
                     <td class="px-4 py-2 font-medium">{TIPO_LABELS[s.tipo] || s.tipo}</td>
-                    <td class="px-4 py-2 text-slate-600">
+                    <td class="px-4 py-2 text-steel">
                       {s.asociacion?.nombre || '-'}
                       {s.dojo?.nombre ? ` / ${s.dojo.nombre}` : ''}
                     </td>
-                    <td class="px-4 py-2 text-slate-600">{formatDate(s.created_at)}</td>
+                    <td class="px-4 py-2 text-steel">{formatDate(s.created_at)}</td>
                     <td class="px-4 py-2">
                       <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        s.estado === 'APROBADO' ? 'bg-green-100 text-green-700' :
-                        s.estado === 'RECHAZADO' ? 'bg-red-100 text-red-700' :
-                        'bg-amber-100 text-amber-700'
+                        s.estado === 'APROBADO' ? 'bg-success-soft text-success' :
+                        s.estado === 'RECHAZADO' ? 'bg-hinomaru-soft text-hinomaru' :
+                        'bg-warning-soft text-warning'
                       }`}>
                         {ESTADO_LABELS[s.estado] || s.estado}
                       </span>

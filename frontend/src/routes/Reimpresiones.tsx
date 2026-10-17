@@ -36,22 +36,22 @@ export default function Reimpresiones() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div class="text-slate-400">Cargando reimpresiones...</div>;
+  if (loading) return <div class="text-steel">Cargando reimpresiones...</div>;
 
   return (
     <div class="space-y-4">
       {msg && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{msg}</div>
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{msg}</div>
       )}
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
         {reimpresiones.length === 0 ? (
-          <div class="px-6 py-8 text-center text-slate-400">No hay solicitudes de reimpresión.</div>
+          <div class="px-6 py-8 text-center text-steel">No hay solicitudes de reimpresión.</div>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                <tr class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                   <th class="px-4 py-2">Usuario</th>
                   <th class="px-4 py-2">Disciplina</th>
                   <th class="px-4 py-2">Graduación</th>
@@ -62,20 +62,20 @@ export default function Reimpresiones() {
               </thead>
               <tbody>
                 {reimpresiones.map(r => (
-                  <tr key={r.id} class="border-b border-slate-100 hover:bg-slate-50">
+                  <tr key={r.id} class="border-b border-steel-soft hover:bg-ai-soft/50">
                     <td class="px-4 py-2 font-medium">{r.usuario.nombre} {r.usuario.apellido}</td>
                     <td class="px-4 py-2">{DISC_LABEL[r.diploma.disciplina] || r.diploma.disciplina}</td>
                     <td class="px-4 py-2">{GRADUACIONES.find(g => g.value === r.diploma.graduacion)?.label || r.diploma.graduacion}</td>
                     <td class="px-4 py-2">
                       <span class={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                        r.pagado ? 'bg-green-50 text-green-700 border-green-200' : 'bg-amber-50 text-amber-700 border-amber-200'
+                        r.pagado ? 'bg-success-soft text-success border-success/20' : 'bg-warning-soft text-warning border-warning/20'
                       }`}>
                         {r.pagado ? 'Pagado' : 'Pendiente'}
                       </span>
                     </td>
-                    <td class="px-4 py-2 text-slate-500">{new Date(r.created_at).toLocaleDateString('es-AR')}</td>
+                    <td class="px-4 py-2 text-steel">{new Date(r.created_at).toLocaleDateString('es-AR')}</td>
                     <td class="px-4 py-2">
-                      <a href={r.diploma.url_archivo} target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 underline">Ver {fileLabel(r.diploma.url_archivo)}</a>
+                      <a href={r.diploma.url_archivo} target="_blank" rel="noopener noreferrer" class="text-steel hover:text-ink underline">Ver {fileLabel(r.diploma.url_archivo)}</a>
                     </td>
                   </tr>
                 ))}

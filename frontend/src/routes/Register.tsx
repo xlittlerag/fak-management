@@ -3,6 +3,10 @@ import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { PROVINCIAS, SEXOS } from '../constants';
 import { getErrorMessage } from '../lib/error';
+import { AuthLayout } from '../components/AuthLayout';
+import { Alert } from '../components/ui/Alert';
+import { Button } from '../components/ui/Button';
+import { Field, Input, Select } from '../components/ui/Field';
 
 interface Asociacion {
   id: number;
@@ -39,23 +43,27 @@ export default function Register() {
   const [passTouched, setPassTouched] = useState(false);
 
   useEffect(() => {
-    api.get('/asociaciones')
-      .then(res => setAsociaciones(res.data))
-      .catch(() => setError('Error crítico: No se pudieron cargar las asociaciones.'));
+    api
+      .get('/asociaciones')
+      .then((res) => setAsociaciones(res.data))
+      .catch(() =>
+        setError('Error crítico: No se pudieron cargar las asociaciones.'),
+      );
   }, []);
 
   // Fetch dojos when association changes
   useEffect(() => {
     if (formData.asociacion_id) {
-      api.get(`/dojos/asociacion/${formData.asociacion_id}`)
-        .then(res => {
+      api
+        .get(`/dojos/asociacion/${formData.asociacion_id}`)
+        .then((res) => {
           setDojos(res.data);
-          setFormData(prev => ({ ...prev, dojo_id: '' })); // Reset dojo
+          setFormData((prev) => ({ ...prev, dojo_id: '' })); // Reset dojo
         })
         .catch(() => setError('Error al cargar dojos.'));
     } else {
       setDojos([]);
-      setFormData(prev => ({ ...prev, dojo_id: '' }));
+      setFormData((prev) => ({ ...prev, dojo_id: '' }));
     }
   }, [formData.asociacion_id]);
 
@@ -84,7 +92,7 @@ export default function Register() {
     // Actualización funcional: evita perder campos ante eventos seguidos
     // (p. ej. autocompletado o relleno rápido), donde `formData` estaría
     // desactualizado por el cierre.
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const strength = (() => {
@@ -97,146 +105,240 @@ export default function Register() {
     if (/\d/.test(p)) score++;
     if (/[^a-zA-Z0-9]/.test(p)) score++;
     const map = [
-      { label: 'Débil', color: 'bg-red-500', width: '20%' },
-      { label: 'Moderada', color: 'bg-orange-500', width: '40%' },
-      { label: 'Buena', color: 'bg-yellow-500', width: '60%' },
-      { label: 'Fuerte', color: 'bg-lime-500', width: '80%' },
-      { label: 'Muy fuerte', color: 'bg-green-500', width: '100%' },
+      { label: 'Débil', color: 'bg-hinomaru', width: '20%' },
+      { label: 'Moderada', color: 'bg-warning', width: '40%' },
+      { label: 'Buena', color: 'bg-bamboo', width: '60%' },
+      { label: 'Fuerte', color: 'bg-success', width: '80%' },
+      { label: 'Muy fuerte', color: 'bg-success', width: '100%' },
     ];
     return { level: score, ...map[Math.min(score, 4)] };
   })();
 
   return (
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4">
-      <div class="max-w-2xl w-full bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h1 class="text-2xl font-bold text-slate-900 mb-6 text-center">Registro de Usuario</h1>
-        
-        {error && (
-          <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="reg-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
-              <input name="nombre" id="reg-nombre" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-            </div>
-            <div>
-              <label htmlFor="reg-apellido" class="block text-sm font-medium text-slate-700 mb-1">Apellido</label>
-              <input name="apellido" id="reg-apellido" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="reg-email" class="block text-sm font-medium text-slate-700 mb-1">Correo Electrónico</label>
-              <input name="email" id="reg-email" type="email" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-            </div>
-            <div>
-              <label htmlFor="reg-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña (mínimo 12 caracteres)</label>
-              <input name="password" id="reg-password" type="password" required onChange={handleChange} onBlur={() => setPassTouched(true)} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-              {passTouched && formData.password && (
-                <div class="mt-2">
-                  <div class="h-1.5 w-full bg-slate-200 rounded-full overflow-hidden">
-                    <div class={`h-full ${strength.color} rounded-full transition-all`} style={{ width: strength.width }} />
-                  </div>
-                  <p class={`text-xs mt-1 ${strength.level >= 3 ? 'text-green-600' : strength.level >= 2 ? 'text-yellow-600' : 'text-red-600'}`}>
-                    {strength.label}
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="reg-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
-              <input name="dni" id="reg-dni" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
-            </div>
-            <div>
-              <label htmlFor="reg-fecha-nacimiento" class="block text-sm font-medium text-slate-700 mb-1">Fecha Nac.</label>
-              <input name="fecha_nacimiento" id="reg-fecha-nacimiento" type="date" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="reg-sexo" class="block text-sm font-medium text-slate-700 mb-1">Sexo Registral</label>
-              <select name="sexo" id="reg-sexo" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
-                {SEXOS.map(s => <option key={s.value} value={s.value}>{s.label}</option>)}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="reg-asociacion" class="block text-sm font-medium text-slate-700 mb-1">Asociación</label>
-              <select name="asociacion_id" id="reg-asociacion" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
-                <option value="">Seleccionar...</option>
-                {asociaciones.map(a => (
-                  <option key={a.id} value={a.id}>{a.nombre}</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label htmlFor="reg-dojo" class="block text-sm font-medium text-slate-700 mb-1">Dojo</label>
-              <select name="dojo_id" id="reg-dojo" required={dojos.length > 0} disabled={!formData.asociacion_id || dojos.length === 0} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
-                <option value="">Seleccionar...</option>
-                {dojos.map(d => (
-                  <option key={d.id} value={d.id}>{d.nombre}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          <div class="border-t border-slate-100 pt-4">
-            <h3 class="text-sm font-semibold text-slate-900 mb-4 uppercase tracking-wider">Domicilio Real</h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="md:col-span-2">
-                <label htmlFor="reg-calle-altura" class="block text-sm font-medium text-slate-700 mb-1">Calle y Altura</label>
-                <input name="calle_altura" id="reg-calle-altura" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-              </div>
-              <div>
-                <label htmlFor="reg-piso-depto" class="block text-sm font-medium text-slate-700 mb-1">Piso/Depto (Opcional)</label>
-                <input name="piso_depto" id="reg-piso-depto" onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-              </div>
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
-              <div>
-                <label htmlFor="reg-ciudad" class="block text-sm font-medium text-slate-700 mb-1">Ciudad</label>
-                <input name="ciudad" id="reg-ciudad" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-              </div>
-              <div>
-                <label htmlFor="reg-provincia" class="block text-sm font-medium text-slate-700 mb-1">Provincia</label>
-                <select name="provincia" id="reg-provincia" value={formData.provincia} onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
-                  {PROVINCIAS.map(p => (
-                    <option key={p.value} value={p.value}>{p.label}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="reg-codigo-postal" class="block text-sm font-medium text-slate-700 mb-1">Código Postal</label>
-                <input name="codigo_postal" id="reg-codigo-postal" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono" />
-              </div>
-            </div>
-            <div class="mt-4">
-              <label htmlFor="reg-telefono" class="block text-sm font-medium text-slate-700 mb-1">Teléfono</label>
-              <input name="telefono" id="reg-telefono" required onChange={handleChange} class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            class="w-full mt-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    <AuthLayout
+      wide
+      title="Registro de usuario"
+      subtitle="Complete sus datos. Su solicitud quedará pendiente de aprobación."
+      footer={
+        <>
+          ¿Ya tiene una cuenta?{' '}
+          <a
+            href="/login"
+            class="font-medium text-ai underline hover:text-ai-strong"
           >
-            {loading ? 'Registrando...' : 'Registrarse'}
-          </button>
-        </form>
+            Inicie sesión
+          </a>
+        </>
+      }
+    >
+      {error && (
+        <Alert tone="error" class="mb-4">
+          {error}
+        </Alert>
+      )}
 
-        <p class="mt-6 text-center text-sm text-slate-600">
-          ¿Ya tiene una cuenta? <a href="/login" class="text-slate-900 font-semibold underline">Inicie sesión</a>
-        </p>
-      </div>
-    </div>
+      <form onSubmit={handleSubmit} class="space-y-4">
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Field label="Nombre" htmlFor="reg-nombre">
+            <Input
+              name="nombre"
+              id="reg-nombre"
+              required
+              onChange={handleChange}
+            />
+          </Field>
+          <Field label="Apellido" htmlFor="reg-apellido">
+            <Input
+              name="apellido"
+              id="reg-apellido"
+              required
+              onChange={handleChange}
+            />
+          </Field>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Field label="Correo Electrónico" htmlFor="reg-email">
+            <Input
+              name="email"
+              id="reg-email"
+              type="email"
+              required
+              onChange={handleChange}
+            />
+          </Field>
+          <Field
+            label="Contraseña (mínimo 12 caracteres)"
+            htmlFor="reg-password"
+          >
+            <Input
+              name="password"
+              id="reg-password"
+              type="password"
+              required
+              onChange={handleChange}
+              onBlur={() => setPassTouched(true)}
+            />
+            {passTouched && formData.password && (
+              <div class="mt-2">
+                <div class="h-1.5 w-full overflow-hidden rounded-full bg-paper">
+                  <div
+                    class={`h-full ${strength.color} rounded-full transition-all`}
+                    style={{ width: strength.width }}
+                  />
+                </div>
+                <p
+                  class={`mt-1 text-xs ${strength.level >= 3 ? 'text-success' : strength.level >= 2 ? 'text-warning' : 'text-hinomaru'}`}
+                >
+                  {strength.label}
+                </p>
+              </div>
+            )}
+          </Field>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Field label="DNI (solo números)" htmlFor="reg-dni">
+            <Input
+              name="dni"
+              id="reg-dni"
+              required
+              inputMode="numeric"
+              class="font-mono"
+              onChange={handleChange}
+            />
+          </Field>
+          <Field label="Fecha Nac." htmlFor="reg-fecha-nacimiento">
+            <Input
+              name="fecha_nacimiento"
+              id="reg-fecha-nacimiento"
+              type="date"
+              required
+              class="font-mono"
+              onChange={handleChange}
+            />
+          </Field>
+        </div>
+
+        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <Field label="Sexo Registral" htmlFor="reg-sexo">
+            <Select name="sexo" id="reg-sexo" onChange={handleChange}>
+              {SEXOS.map((s) => (
+                <option key={s.value} value={s.value}>
+                  {s.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Asociación" htmlFor="reg-asociacion">
+            <Select
+              name="asociacion_id"
+              id="reg-asociacion"
+              required
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar...</option>
+              {asociaciones.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.nombre}
+                </option>
+              ))}
+            </Select>
+          </Field>
+          <Field label="Dojo" htmlFor="reg-dojo">
+            <Select
+              name="dojo_id"
+              id="reg-dojo"
+              required={dojos.length > 0}
+              disabled={!formData.asociacion_id || dojos.length === 0}
+              onChange={handleChange}
+            >
+              <option value="">Seleccionar...</option>
+              {dojos.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.nombre}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        </div>
+
+        <div class="border-t border-steel-soft pt-4">
+          <h3 class="mb-4 text-sm font-semibold tracking-wider text-steel uppercase">
+            Domicilio Real
+          </h3>
+          <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <div class="md:col-span-2">
+              <Field label="Calle y Altura" htmlFor="reg-calle-altura">
+                <Input
+                  name="calle_altura"
+                  id="reg-calle-altura"
+                  required
+                  onChange={handleChange}
+                />
+              </Field>
+            </div>
+            <Field label="Piso/Depto (Opcional)" htmlFor="reg-piso-depto">
+              <Input
+                name="piso_depto"
+                id="reg-piso-depto"
+                onChange={handleChange}
+              />
+            </Field>
+          </div>
+          <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+            <Field label="Ciudad" htmlFor="reg-ciudad">
+              <Input
+                name="ciudad"
+                id="reg-ciudad"
+                required
+                onChange={handleChange}
+              />
+            </Field>
+            <Field label="Provincia" htmlFor="reg-provincia">
+              <Select
+                name="provincia"
+                id="reg-provincia"
+                value={formData.provincia}
+                onChange={handleChange}
+              >
+                {PROVINCIAS.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.label}
+                  </option>
+                ))}
+              </Select>
+            </Field>
+            <Field label="Código Postal" htmlFor="reg-codigo-postal">
+              <Input
+                name="codigo_postal"
+                id="reg-codigo-postal"
+                required
+                class="font-mono"
+                onChange={handleChange}
+              />
+            </Field>
+          </div>
+          <div class="mt-4">
+            <Field
+              label="Teléfono (solo números, espacios y + - ( ) .)"
+              htmlFor="reg-telefono"
+            >
+              <Input
+                name="telefono"
+                id="reg-telefono"
+                required
+                inputMode="tel"
+                onChange={handleChange}
+              />
+            </Field>
+          </div>
+        </div>
+
+        <Button type="submit" class="mt-2 w-full" loading={loading}>
+          {loading ? 'Registrando...' : 'Registrarse'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

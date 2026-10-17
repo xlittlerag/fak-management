@@ -41,36 +41,36 @@ function ConfigFakEmail() {
     }
   };
 
-  if (loading) return <div class="text-slate-400">Cargando configuración...</div>;
+  if (loading) return <div class="text-steel">Cargando configuración...</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-      <h3 class="text-base font-bold text-slate-800 mb-6">Email de la Federación</h3>
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
+      <h3 class="text-base font-bold text-ink mb-6">Email de la Federación</h3>
 
       {msg && (
         <div class={`px-4 py-3 rounded text-sm border mb-4 ${
           msg === 'Email de la federación actualizado correctamente'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+            ? 'bg-success-soft border-success/20 text-success'
+            : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
         }`}>{msg}</div>
       )}
 
-      <p class="text-sm text-slate-500 mb-4">Recibe las notificaciones de solicitudes de baja de socios y altas registradas.</p>
+      <p class="text-sm text-steel mb-4">Recibe las notificaciones de solicitudes de baja de socios y altas registradas.</p>
 
       <div class="max-w-md space-y-4">
         <div>
-          <label htmlFor="config-fak-email" class="block text-sm font-medium text-slate-700 mb-1">Correo electrónico</label>
+          <label htmlFor="config-fak-email" class="block text-sm font-medium text-ink mb-1">Correo electrónico</label>
           <input
             id="config-fak-email"
             type="email"
             value={fakEmail}
             onInput={(e: Event) => setFakEmail((e.target as HTMLInputElement).value)}
             placeholder="presidente@kendoargentina.org"
-            class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+            class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
           />
         </div>
         <button onClick={handleSave} disabled={saving}
-          class="bg-slate-900 text-white py-2 px-6 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          class="bg-ai text-white py-2 px-6 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
       </div>
@@ -116,30 +116,30 @@ function ConfigCuota() {
     }
   };
 
-  if (loading) return <div class="text-slate-400">Cargando cuota...</div>;
+  if (loading) return <div class="text-steel">Cargando cuota...</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-      <h3 class="text-base font-bold text-slate-800 mb-6">Cuota Federativa</h3>
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
+      <h3 class="text-base font-bold text-ink mb-6">Cuota Federativa</h3>
 
-      {error && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm">{error}</div>}
-      {success && <div class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-4 text-sm">{success}</div>}
+      {error && <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded mb-4 text-sm">{error}</div>}
+      {success && <div class="bg-success-soft border border-success/20 text-success px-4 py-3 rounded mb-4 text-sm">{success}</div>}
 
       <form onSubmit={handleSubmit} class="max-w-md space-y-4">
         <div>
-          <label htmlFor="config-cuota-monto" class="block text-sm font-medium text-slate-700 mb-1">Monto actual ($)</label>
+          <label htmlFor="config-cuota-monto" class="block text-sm font-medium text-ink mb-1">Monto actual ($)</label>
           <input id="config-cuota-monto" type="number" step="0.01" min="0" required value={monto}
             onInput={(e: Event) => setMonto((e.currentTarget as HTMLInputElement).value)}
-            class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+            class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20" />
         </div>
         <div>
-          <label htmlFor="config-cuota-fecha" class="block text-sm font-medium text-slate-700 mb-1">Fecha de vencimiento</label>
+          <label htmlFor="config-cuota-fecha" class="block text-sm font-medium text-ink mb-1">Fecha de vencimiento</label>
           <input id="config-cuota-fecha" type="date" required value={fecha}
             onInput={(e: Event) => setFecha((e.currentTarget as HTMLInputElement).value)}
-            class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+            class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20" />
         </div>
         <button type="submit" disabled={saving}
-          class="bg-slate-900 text-white py-2 px-6 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          class="bg-ai text-white py-2 px-6 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           {saving ? 'Guardando...' : 'Guardar Cambios'}
         </button>
       </form>
@@ -227,26 +227,26 @@ function ConfigPreciosExamen() {
     }
   };
 
-  if (loading) return <div class="text-slate-400">Cargando precios de exámenes...</div>;
+  if (loading) return <div class="text-steel">Cargando precios de exámenes...</div>;
 
   const disponibles = GRAD_EXAMEN.filter(g => !precios.find(p => p.graduacion === g.value));
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
       <div class="flex justify-between items-center mb-4">
-        <h3 class="text-base font-bold text-slate-800">Precios de Exámenes</h3>
+        <h3 class="text-base font-bold text-ink">Precios de Exámenes</h3>
         <button onClick={() => { setAdding(true); setNewGraduacion(disponibles[0]?.value || ''); setNewCostoIns(''); setNewCostoReg(''); }}
           disabled={disponibles.length === 0}
-          class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           Agregar Precio
         </button>
       </div>
 
-      {error && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-4 text-sm">{error}</div>}
+      {error && <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded mb-4 text-sm">{error}</div>}
 
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
-          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+          <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
             <tr>
               <th class="px-4 py-2">Graduación</th>
               <th class="px-4 py-2">Inscripción</th>
@@ -254,62 +254,62 @@ function ConfigPreciosExamen() {
               <th class="px-4 py-2 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-steel-soft/60">
             {precios.map(p => (
-              <tr key={p.id} class="hover:bg-slate-50">
+              <tr key={p.id} class="hover:bg-ai-soft/50">
                 <td class="px-4 py-2 font-medium">{GRAD_LABELS[p.graduacion] || p.graduacion}</td>
                 <td class="px-4 py-2">
                   {editing?.id === p.id ? (
                     <input type="number" value={newCostoIns} aria-label="Costo de inscripción"
                       onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
-                      class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                      class="w-28 text-sm border-steel-soft rounded-md shadow-sm p-1" />
                   ) : `$${p.costo_inscripcion.toLocaleString('es-AR')}`}
                 </td>
                 <td class="px-4 py-2">
                   {editing?.id === p.id ? (
                     <input type="number" value={newCostoReg} aria-label="Costo de registro"
                       onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
-                      class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" />
+                      class="w-28 text-sm border-steel-soft rounded-md shadow-sm p-1" />
                   ) : `$${p.costo_registro.toLocaleString('es-AR')}`}
                 </td>
                 <td class="px-4 py-2 text-right space-x-2">
                   {editing?.id === p.id ? (
                     <>
-                      <button onClick={handleUpdate} class="text-green-600 hover:underline">Guardar</button>
-                      <button onClick={() => { setEditing(null); setNewCostoIns(''); setNewCostoReg(''); }} class="text-slate-600 hover:underline">Cancelar</button>
+                      <button onClick={handleUpdate} class="text-success hover:underline">Guardar</button>
+                      <button onClick={() => { setEditing(null); setNewCostoIns(''); setNewCostoReg(''); }} class="text-steel hover:underline">Cancelar</button>
                     </>
                   ) : (
                     <>
-                      <button onClick={() => { setEditing(p); setNewCostoIns(String(p.costo_inscripcion)); setNewCostoReg(String(p.costo_registro)); }} class="text-blue-600 hover:underline">Editar</button>
-                      <button onClick={() => setConfirmDeletePrice(p.id)} class="text-red-600 hover:underline">Eliminar</button>
+                      <button onClick={() => { setEditing(p); setNewCostoIns(String(p.costo_inscripcion)); setNewCostoReg(String(p.costo_registro)); }} class="text-ai hover:underline">Editar</button>
+                      <button onClick={() => setConfirmDeletePrice(p.id)} class="text-hinomaru hover:underline">Eliminar</button>
                     </>
                   )}
                 </td>
               </tr>
             ))}
             {adding && (
-              <tr class="bg-slate-50">
+              <tr class="bg-paper">
                 <td class="px-4 py-2">
                   <select value={newGraduacion} aria-label="Graduación"
                     onChange={(e: Event) => setNewGraduacion((e.target as HTMLSelectElement).value)}
-                    class="w-full text-sm border-slate-300 rounded-md shadow-sm p-1">
+                    class="w-full text-sm border-steel-soft rounded-md shadow-sm p-1">
                     {disponibles.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
                   </select>
                 </td>
                 <td class="px-4 py-2"><input type="number" value={newCostoIns} aria-label="Costo de inscripción"
                   onInput={(e: Event) => setNewCostoIns((e.target as HTMLInputElement).value)}
-                  class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" /></td>
+                  class="w-28 text-sm border-steel-soft rounded-md shadow-sm p-1" /></td>
                 <td class="px-4 py-2"><input type="number" value={newCostoReg} aria-label="Costo de registro"
                   onInput={(e: Event) => setNewCostoReg((e.target as HTMLInputElement).value)}
-                  class="w-28 text-sm border-slate-300 rounded-md shadow-sm p-1" /></td>
+                  class="w-28 text-sm border-steel-soft rounded-md shadow-sm p-1" /></td>
                 <td class="px-4 py-2 text-right space-x-2">
-                  <button onClick={handleAdd} class="text-green-600 hover:underline">Guardar</button>
-                  <button onClick={() => { setAdding(false); setNewGraduacion(''); setNewCostoIns(''); setNewCostoReg(''); }} class="text-slate-600 hover:underline">Cancelar</button>
+                  <button onClick={handleAdd} class="text-success hover:underline">Guardar</button>
+                  <button onClick={() => { setAdding(false); setNewGraduacion(''); setNewCostoIns(''); setNewCostoReg(''); }} class="text-steel hover:underline">Cancelar</button>
                 </td>
               </tr>
             )}
             {precios.length === 0 && !adding && (
-              <tr><td colSpan={4} class="px-4 py-8 text-center text-slate-500">No hay precios configurados.</td></tr>
+              <tr><td colSpan={4} class="px-4 py-8 text-center text-steel">No hay precios configurados.</td></tr>
             )}
           </tbody>
         </table>
@@ -356,29 +356,29 @@ function ConfigReimpresion() {
     }
   };
 
-  if (loading) return <div class="text-slate-400">Cargando configuración de reimpresión...</div>;
+  if (loading) return <div class="text-steel">Cargando configuración de reimpresión...</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-      <h3 class="text-base font-bold text-slate-800 mb-6">Costo de Reimpresión de Diplomas</h3>
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
+      <h3 class="text-base font-bold text-ink mb-6">Costo de Reimpresión de Diplomas</h3>
 
       {msg && (
         <div class={`px-4 py-3 rounded text-sm border mb-4 ${
           msg === 'Precio actualizado correctamente'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+            ? 'bg-success-soft border-success/20 text-success'
+            : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
         }`}>{msg}</div>
       )}
 
       <div class="max-w-xs space-y-4">
         <div>
-          <label htmlFor="config-reimpresion-precio" class="block text-sm font-medium text-slate-700 mb-1">Precio de reimpresión ($)</label>
+          <label htmlFor="config-reimpresion-precio" class="block text-sm font-medium text-ink mb-1">Precio de reimpresión ($)</label>
           <input id="config-reimpresion-precio" type="number" min="0" value={precio}
             onInput={(e: Event) => setPrecio(parseFloat((e.target as HTMLInputElement).value) || 0)}
-            class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+            class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20" />
         </div>
         <button onClick={handleSave} disabled={saving}
-          class="bg-slate-900 text-white py-2 px-6 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+          class="bg-ai text-white py-2 px-6 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
       </div>

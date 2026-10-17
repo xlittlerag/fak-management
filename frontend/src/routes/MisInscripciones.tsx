@@ -142,43 +142,43 @@ export default function MisInscripciones() {
   }
 
   if (loading) return <Spinner text="Cargando inscripciones..." />;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
+  if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   return (
     <div class="space-y-4">
       {msg && (
-        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>
+        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>
       )}
 
       {inscripciones.length === 0 ? (
-        <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 text-center text-slate-500">
+        <div class="bg-surface p-8 rounded-lg shadow-sm border border-steel-soft text-center text-steel">
           No se ha inscripto a ningún evento.
         </div>
       ) : (
         <div class="grid gap-4">
           {inscripciones.map(ins => (
-            <div key={ins.id} class="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <div key={ins.id} class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
               <div class="flex justify-between items-start">
                 <div>
-                  <h3 class="font-semibold text-slate-900">{ins.evento?.tipo || 'Evento'}</h3>
-                  <p class="text-sm text-slate-500">
+                  <h3 class="font-semibold text-ink">{ins.evento?.tipo || 'Evento'}</h3>
+                  <p class="text-sm text-steel">
                     {ins.evento?.fecha_inicio ? new Date(ins.evento.fecha_inicio).toLocaleDateString('es-AR') : ''}
                   </p>
                   {ins.evento?.tipo === 'EXAMEN' && ins.disciplinas && ins.disciplinas.length > 0 && (
-                    <p class="text-sm text-slate-500">Disciplinas: {ins.disciplinas.join(', ')}</p>
+                    <p class="text-sm text-steel">Disciplinas: {ins.disciplinas.join(', ')}</p>
                   )}
-                  <p class="text-sm text-slate-500 mt-1">{ins.evento?.tipo === 'EXAMEN' ? 'Graduaciones' : 'Categoría'}: {(ins.categorias || []).join(', ') || 'General'}</p>
+                  <p class="text-sm text-steel mt-1">{ins.evento?.tipo === 'EXAMEN' ? 'Graduaciones' : 'Categoría'}: {(ins.categorias || []).join(', ') || 'General'}</p>
                 </div>
                 <div class="text-right">
                   <span class={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                    ins.estado_aprob === 'APROBADO' ? 'bg-green-50 text-green-700' :
-                    ins.estado_aprob === 'RECHAZADO' ? 'bg-red-50 text-red-700' :
-                    'bg-amber-50 text-amber-700'
+                    ins.estado_aprob === 'APROBADO' ? 'bg-success-soft text-success' :
+                    ins.estado_aprob === 'RECHAZADO' ? 'bg-hinomaru-soft text-hinomaru' :
+                    'bg-warning-soft text-warning'
                   }`}>
                     {estadoLabel(ins.estado_aprob)}
                   </span>
                   <span class={`ml-2 inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                    ins.pagado ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600'
+                    ins.pagado ? 'bg-success-soft text-success' : 'bg-paper text-steel'
                   }`}>
                     {ins.pagado ? 'Pagado' : 'No pagado'}
                   </span>
@@ -186,24 +186,24 @@ export default function MisInscripciones() {
               </div>
 
               {editingId === ins.id ? (
-                <div class="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                <div class="mt-4 space-y-3 border-t border-steel-soft pt-4">
                   <div>
-                    <label htmlFor="misedit-cats" class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
+                    <label htmlFor="misedit-cats" class="block text-xs font-bold text-steel uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
                     <input id="misedit-cats" type="text" value={editCats.join(', ')}
                       onInput={(e: Event) => setEditCats((e.target as HTMLInputElement).value.split(',').map(s => s.trim()))}
-                      class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" />
+                      class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2" />
                   </div>
                   <div class="flex items-center gap-2">
                     <input type="checkbox" checked={editNecesidades}
                       onChange={(e: Event) => setEditNecesidades((e.target as HTMLInputElement).checked)}
                       class="w-4 h-4" />
-                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Necesidades especiales</span>
+                    <span class="text-xs font-bold text-steel uppercase tracking-wider">Necesidades especiales</span>
                   </div>
                   {editNecesidades && (
                     <>
                       <textarea value={editDescNecesidades}
                         onInput={(e: Event) => setEditDescNecesidades((e.target as HTMLTextAreaElement).value)}
-                        class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
+                        class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2" rows={2}
                         placeholder="Describa la necesidad especial" />
                       <FileUpload
                         label="Certificado médico"
@@ -214,9 +214,9 @@ export default function MisInscripciones() {
                   )}
                   <div class="flex gap-2">
                     <button onClick={() => setEditingId(null)}
-                      class="px-4 py-1.5 bg-slate-100 text-slate-700 rounded text-sm hover:bg-slate-200">Cancelar</button>
+                      class="px-4 py-1.5 bg-paper text-ink rounded text-sm hover:bg-ai-soft">Cancelar</button>
                     <button onClick={() => handleSaveEdit(ins.id)} disabled={savingEdit}
-                      class="px-4 py-1.5 bg-slate-900 text-white rounded text-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed">
+                      class="px-4 py-1.5 bg-ai text-white rounded text-sm hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed">
                       {savingEdit ? 'Guardando...' : 'Guardar'}
                     </button>
                   </div>
@@ -225,11 +225,11 @@ export default function MisInscripciones() {
                 <div class="mt-3 flex gap-2">
                   {ins.estado_aprob !== 'RECHAZADO' && (
                     <button onClick={() => startEdit(ins)}
-                      class="text-xs text-blue-600 hover:underline">Editar</button>
+                      class="text-xs text-ai hover:underline">Editar</button>
                   )}
                   {ins.estado_aprob !== 'RECHAZADO' && (
                     <button onClick={() => setConfirmBaja(ins.id)}
-                      class="text-xs text-red-600 hover:underline">Darse de baja</button>
+                      class="text-xs text-hinomaru hover:underline">Darse de baja</button>
                   )}
                 </div>
               )}
@@ -239,7 +239,7 @@ export default function MisInscripciones() {
                   {simulatedPayment?.inscripcionId === ins.id ? (
                     <button
                       onClick={handleSimulatePayment}
-                      class="w-full bg-green-600 text-white py-2 rounded font-medium hover:bg-green-700 transition-colors text-sm"
+                      class="w-full bg-success text-white py-2 rounded font-medium hover:bg-success/90 transition-colors text-sm"
                     >
                       Pagar en modo prueba (simulado)
                     </button>
@@ -247,7 +247,7 @@ export default function MisInscripciones() {
                     <button
                       onClick={() => handlePagar(ins.id)}
                       disabled={payingId === ins.id}
-                      class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      class="w-full bg-ai text-white py-2 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
                       {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
                     </button>
@@ -255,7 +255,7 @@ export default function MisInscripciones() {
                 </div>
               )}
               {ins.estado_aprob === 'RECHAZADO' && (
-                <p class="mt-2 text-sm text-red-600">Su inscripción fue rechazada.</p>
+                <p class="mt-2 text-sm text-hinomaru">Su inscripción fue rechazada.</p>
               )}
             </div>
           ))}

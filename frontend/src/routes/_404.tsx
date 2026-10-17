@@ -1,15 +1,18 @@
 import { useLocation } from 'preact-iso';
+import { Wordmark } from '../components/ui/Wordmark';
+import { buttonClass } from '../components/ui/Button';
 
 export default function NotFound() {
   const { route } = useLocation();
   return (
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div class="text-center max-w-sm">
-        <h1 class="text-6xl font-bold text-slate-200 mb-4">404</h1>
-        <p class="text-lg text-slate-600 mb-6">Página no encontrada</p>
-        <button onClick={() => route('/')}
-          class="px-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 transition-colors"
-        >
+    <div class="flex min-h-screen flex-col items-center justify-center bg-paper p-4">
+      <div class="mb-8">
+        <Wordmark />
+      </div>
+      <div class="w-full max-w-sm rounded-xl border border-steel-soft bg-surface p-10 text-center shadow-panel">
+        <p class="font-display text-6xl text-steel-soft">404</p>
+        <p class="mt-4 mb-6 text-lg text-ink">Página no encontrada</p>
+        <button onClick={() => route('/')} class={buttonClass('primary')}>
           Volver al inicio
         </button>
       </div>

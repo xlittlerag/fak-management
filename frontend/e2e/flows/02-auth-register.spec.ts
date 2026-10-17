@@ -1,7 +1,17 @@
 import { test, expect } from '@playwright/test';
-import { adminApi, anonApi, baseAsociacionDojo, registerUser } from '../helpers/api';
+import {
+  adminApi,
+  anonApi,
+  baseAsociacionDojo,
+  registerUser,
+} from '../helpers/api';
 import { loginAs } from '../helpers/auth-ui';
-import { BASICO_DNI, USER_PASSWORD, uniqueDni, uniqueSuffix } from '../helpers/env';
+import {
+  BASICO_DNI,
+  USER_PASSWORD,
+  uniqueDni,
+  uniqueSuffix,
+} from '../helpers/env';
 
 test.describe('Autenticación y registro', () => {
   test('registro por UI crea la cuenta y muestra el aviso de aprobación', async ({
@@ -58,7 +68,9 @@ test.describe('Autenticación y registro', () => {
     await page.locator('#login-dni').fill(pending.dni);
     await page.locator('#login-password').fill(USER_PASSWORD);
     await page.getByRole('button', { name: 'Iniciar Sesión' }).click();
-    await expect(page.locator('.bg-red-50').first()).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole('alert').first()).toBeVisible({
+      timeout: 15000,
+    });
     await expect(page).toHaveURL(/\/login/);
   });
 });

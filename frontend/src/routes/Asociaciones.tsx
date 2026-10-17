@@ -128,7 +128,7 @@ export default function Asociaciones() {
   };
 
   if (loading) return <Spinner text="Cargando asociaciones..." />;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
+  if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   return (
     <div class="space-y-6">
@@ -137,8 +137,8 @@ export default function Asociaciones() {
           msg === 'Asociación creada correctamente'
           || msg === 'Asociación actualizada correctamente'
           || msg === 'Asociación eliminada correctamente'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+            ? 'bg-success-soft border-success/20 text-success'
+            : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
         }`}>
           {msg}
         </div>
@@ -147,95 +147,95 @@ export default function Asociaciones() {
       <div class="flex justify-end">
         <button
           onClick={openCreate}
-          class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+          class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
         >
           Crear Asociación
         </button>
       </div>
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
         {asociaciones.length === 0 ? (
-          <div class="px-6 py-8 text-center text-slate-400">No hay asociaciones registradas.</div>
+          <div class="px-6 py-8 text-center text-steel">No hay asociaciones registradas.</div>
         ) : (
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm font-semibold">
+            <thead class="bg-paper border-b border-steel-soft text-steel text-sm font-semibold">
               <tr>
                 <th class="px-6 py-4">Nombre Asociación</th>
                 <th class="px-6 py-4">Dojos</th>
                 <th class="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
+            <tbody class="divide-y divide-steel-soft/60">
               {asociaciones.map(a => (
                 <Fragment key={a.id}>
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-slate-900">{a.nombre}</td>
-                    <td class="px-6 py-4 text-sm text-slate-500">{a.dojos?.length || 0} dojos</td>
+                  <tr class="hover:bg-ai-soft/50 transition-colors">
+                    <td class="px-6 py-4 font-medium text-ink">{a.nombre}</td>
+                    <td class="px-6 py-4 text-sm text-steel">{a.dojos?.length || 0} dojos</td>
                     <td class="px-6 py-4 text-right space-x-2">
                       <button
                         onClick={() => openEdit(a)}
-                        class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-medium transition-colors"
+                        class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
                       >
                         Editar
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(a.id)}
-                        class="px-3 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-full text-xs font-medium transition-colors"
+                        class="px-3 py-1 bg-hinomaru-soft hover:bg-hinomaru/10 text-hinomaru rounded-full text-xs font-medium transition-colors"
                       >
                         Eliminar
                       </button>
                       <button
                         onClick={() => setExpanded(expanded === a.id ? null : a.id)}
-                        class="px-3 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-medium transition-colors"
+                        class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
                       >
                         {expanded === a.id ? 'Ocultar Dojos' : 'Gestionar Dojos'}
                       </button>
                     </td>
                   </tr>
                   {expanded === a.id && (
-                    <tr class="bg-slate-50/50">
+                    <tr class="bg-paper/50">
                       <td colSpan={3} class="px-6 py-4">
                         <div class="space-y-4">
-                          <div class="bg-white p-4 rounded-lg border border-slate-200 shadow-sm">
-                              <h5 class="text-xs font-bold text-slate-500 uppercase mb-3">Dojos vinculados</h5>
+                          <div class="bg-surface p-4 rounded-lg border border-steel-soft shadow-sm">
+                              <h5 class="text-xs font-bold text-steel uppercase mb-3">Dojos vinculados</h5>
                               <ul class="space-y-2">
                               {a.dojos?.map(d => (
-                                  <li key={d.id} class="flex items-center justify-between text-sm text-slate-700 bg-slate-50 p-2 rounded border border-slate-200">
+                                  <li key={d.id} class="flex items-center justify-between text-sm text-ink bg-paper p-2 rounded border border-steel-soft">
                                   {editingDojoId === d.id ? (
                                       <input
                                       id={`editar-dojo-${d.id}`}
                                       aria-label="Nombre del dojo"
                                       value={editingDojoNombre}
                                       onInput={(e: Event) => setEditingDojoNombre((e.target as HTMLInputElement).value)}
-                                      class="text-sm px-2 py-1 border border-slate-300 rounded flex-1 mr-2"
+                                      class="text-sm px-2 py-1 border border-steel-soft rounded flex-1 mr-2"
                                       />
                                   ) : <span class="font-medium">{d.nombre}</span>}
 
                                   <div class="flex gap-2">
                                       {editingDojoId === d.id ? (
-                                      <button onClick={() => handleUpdateDojo(d.id)} class="text-blue-600 hover:underline text-xs font-bold px-2 py-1 bg-blue-50 rounded">Guardar</button>
+                                      <button onClick={() => handleUpdateDojo(d.id)} class="text-ai hover:underline text-xs font-bold px-2 py-1 bg-ai-soft rounded">Guardar</button>
                                       ) : (
-                                      <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-slate-600 hover:underline text-xs px-2 py-1 bg-slate-100 rounded">Editar</button>
+                                      <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-steel hover:underline text-xs px-2 py-1 bg-paper rounded">Editar</button>
                                       )}
-                                      <button onClick={() => setConfirmDeleteDojo(d.id)} class="text-red-600 hover:underline text-xs px-2 py-1 bg-red-50 rounded">Eliminar</button>
+                                      <button onClick={() => setConfirmDeleteDojo(d.id)} class="text-hinomaru hover:underline text-xs px-2 py-1 bg-hinomaru-soft rounded">Eliminar</button>
                                   </div>
                                   </li>
                               ))}
                               </ul>
                           </div>
 
-                          <div class="flex gap-2 items-center bg-white p-3 rounded-lg border border-slate-200">
+                          <div class="flex gap-2 items-center bg-surface p-3 rounded-lg border border-steel-soft">
                             <input
                               id={`nuevo-dojo-${a.id}`}
                               aria-label="Nombre del nuevo dojo"
                               placeholder="Nombre del nuevo dojo..."
                               value={newDojoNombre}
                               onInput={(e: Event) => setNewDojoNombre((e.target as HTMLInputElement).value)}
-                              class="text-sm px-3 py-1.5 border border-slate-300 rounded flex-1"
+                              class="text-sm px-3 py-1.5 border border-steel-soft rounded flex-1"
                             />
                             <button
                               onClick={() => handleCreateDojo(a.id)}
-                              class="px-4 py-1.5 bg-slate-900 text-white rounded text-xs font-bold hover:bg-slate-800"
+                              class="px-4 py-1.5 bg-ai text-white rounded text-xs font-bold hover:bg-ai-strong"
                             >
                               Añadir Dojo
                             </button>
@@ -259,26 +259,26 @@ export default function Asociaciones() {
       >
         <div class="space-y-4">
           <div>
-            <label htmlFor="asociacion-nombre" class="block text-sm font-medium text-slate-700 mb-1">Nombre</label>
+            <label htmlFor="asociacion-nombre" class="block text-sm font-medium text-ink mb-1">Nombre</label>
             <input
               id="asociacion-nombre"
               value={formNombre}
               onInput={(e: Event) => setFormNombre((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
               placeholder="Nombre de la asociación"
             />
           </div>
           <div class="flex justify-end gap-2">
             <button
               onClick={() => { setEditing(undefined); setMsg(''); }}
-              class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+              class="px-4 py-2 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
             >
               Cancelar
             </button>
             <button
               onClick={handleSave}
               disabled={saving || !formNombre.trim()}
-              class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               {saving ? 'Guardando...' : 'Guardar'}
             </button>

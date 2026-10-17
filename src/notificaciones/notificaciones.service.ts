@@ -90,7 +90,7 @@ export class NotificacionesService {
 
   async sendWelcomeEmail(to: string, nombre: string): Promise<void> {
     const html = render(this.getTemplate('welcome'), { nombre });
-    await this.send({ to, subject: 'Bienvenido a la FAK', html });
+    await this.send({ to, subject: 'Bienvenido a Kendo Argentina', html });
   }
 
   async sendPasswordResetEmail(
@@ -101,7 +101,7 @@ export class NotificacionesService {
     const html = render(this.getTemplate('password-reset'), { nombre, codigo });
     await this.send({
       to,
-      subject: 'Restablecimiento de Contraseña - FAK',
+      subject: 'Restablecimiento de Contraseña - Kendo Argentina',
       html,
     });
   }
@@ -128,7 +128,11 @@ export class NotificacionesService {
       // HTML estático del servicio (sin datos de usuario): no se escapa.
       ['mensaje_adicional'],
     );
-    await this.send({ to, subject: `Inscripción ${estadoLabel} - FAK`, html });
+    await this.send({
+      to,
+      subject: `Inscripción ${estadoLabel} - Kendo Argentina`,
+      html,
+    });
   }
 
   async sendCertificacionStatusEmail(
@@ -150,7 +154,7 @@ export class NotificacionesService {
     });
     await this.send({
       to,
-      subject: `Certificación ${estadoLabel[estado] || estado} - FAK`,
+      subject: `Certificación ${estadoLabel[estado] || estado} - Kendo Argentina`,
       html,
     });
   }
@@ -164,7 +168,11 @@ export class NotificacionesService {
       socio,
       asociacion,
     });
-    await this.send({ to, subject: 'Solicitud de baja de socio - FAK', html });
+    await this.send({
+      to,
+      subject: 'Solicitud de baja de socio - Kendo Argentina',
+      html,
+    });
   }
 
   async sendBajaConfirmadaSocio(
@@ -176,7 +184,11 @@ export class NotificacionesService {
       nombre,
       asociacion,
     });
-    await this.send({ to, subject: 'Desafiliación efectivizada - FAK', html });
+    await this.send({
+      to,
+      subject: 'Desafiliación efectivizada - Kendo Argentina',
+      html,
+    });
   }
 
   async sendBajaRechazadaAsociacion(
@@ -185,7 +197,11 @@ export class NotificacionesService {
     socio: string,
   ): Promise<void> {
     const html = render(this.getTemplate('baja-rechazada'), { nombre, socio });
-    await this.send({ to, subject: 'Solicitud de baja rechazada - FAK', html });
+    await this.send({
+      to,
+      subject: 'Solicitud de baja rechazada - Kendo Argentina',
+      html,
+    });
   }
 
   async sendBajaInformadaAsociacion(
@@ -197,7 +213,11 @@ export class NotificacionesService {
       nombre,
       socio,
     });
-    await this.send({ to, subject: 'Socio desafiliado - FAK', html });
+    await this.send({
+      to,
+      subject: 'Socio desafiliado - Kendo Argentina',
+      html,
+    });
   }
 
   async sendBajaInformadaFederacion(
@@ -209,7 +229,11 @@ export class NotificacionesService {
       socio,
       asociacion,
     });
-    await this.send({ to, subject: 'Socio auto-desafiliado - FAK', html });
+    await this.send({
+      to,
+      subject: 'Socio auto-desafiliado - Kendo Argentina',
+      html,
+    });
   }
 
   async sendAltaSolicitadaAsociacion(
@@ -218,7 +242,11 @@ export class NotificacionesService {
     socio: string,
   ): Promise<void> {
     const html = render(this.getTemplate('alta-solicitada'), { nombre, socio });
-    await this.send({ to, subject: 'Solicitud de afiliación - FAK', html });
+    await this.send({
+      to,
+      subject: 'Solicitud de afiliación - Kendo Argentina',
+      html,
+    });
   }
 
   async sendAltaConfirmadaSocio(
@@ -230,7 +258,11 @@ export class NotificacionesService {
       nombre,
       asociacion,
     });
-    await this.send({ to, subject: 'Afiliación confirmada - FAK', html });
+    await this.send({
+      to,
+      subject: 'Afiliación confirmada - Kendo Argentina',
+      html,
+    });
   }
 
   async sendAltaRechazadaSocio(
@@ -241,7 +273,7 @@ export class NotificacionesService {
     const html = render(this.getTemplate('alta-rechazada'), { nombre, motivo });
     await this.send({
       to,
-      subject: 'Solicitud de afiliación rechazada - FAK',
+      subject: 'Solicitud de afiliación rechazada - Kendo Argentina',
       html,
     });
   }
@@ -255,6 +287,10 @@ export class NotificacionesService {
       socio,
       asociacion,
     });
-    await this.send({ to, subject: 'Afiliación registrada - FAK', html });
+    await this.send({
+      to,
+      subject: 'Afiliación registrada - Kendo Argentina',
+      html,
+    });
   }
 }

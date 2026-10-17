@@ -1,19 +1,91 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
+/*
+ * Kendo Argentina — sistema de diseño "ai-zome & shiaijo".
+ * Índigo ai-zome como material, carmesí hinomaru como único acento,
+ * tipografía display Zen Old Mincho + UI Zen Kaku Gothic New.
+ */
 @theme {
-  --font-sans: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif, apple color emoji, segoe ui emoji;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
+  --font-sans:
+    'Zen Kaku Gothic New', system-ui, -apple-system, 'Segoe UI', Roboto,
+    Helvetica, Arial, sans-serif;
+  --font-display: 'Zen Old Mincho', ui-serif, Georgia, 'Times New Roman', serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+
+  /* ai-zome (índigo del dogi/bōgu) */
+  --color-ink: #101a2e;
+  --color-ai: #2b4a79;
+  --color-ai-strong: #1e355c;
+  --color-ai-soft: #e7ecf6;
+
+  /* papel y superficie */
+  --color-paper: #f4f6f9;
+  --color-surface: #ffffff;
+
+  /* acentos y semánticos */
+  --color-hinomaru: #b23a2e;
+  --color-hinomaru-soft: #f7e7e4;
+  --color-bamboo: #8a7c4e;
+  --color-steel: #68748c;
+  --color-steel-soft: #c7cedb;
+  --color-success: #2f6b4f;
+  --color-success-soft: #e3efe9;
+  --color-warning: #a9761f;
+  --color-warning-soft: #f6eede;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+
+  --shadow-panel: 0 1px 2px rgba(16, 26, 46, 0.06);
+  --shadow-float: 0 10px 30px -12px rgba(16, 26, 46, 0.28);
 }
 
-html,
-body {
-  margin: 0;
-  padding: 0;
-  @apply bg-slate-50 text-slate-900 font-sans;
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    @apply bg-paper text-ink font-sans antialiased;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ai);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--color-ai);
+    color: #fff;
+  }
 }
 
-* {
-  box-sizing: border-box;
+@layer utilities {
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Sidebar nav scrollbar */
@@ -24,6 +96,6 @@ aside nav::-webkit-scrollbar-track {
   background: transparent;
 }
 aside nav::-webkit-scrollbar-thumb {
-  background: #475569;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
 }

@@ -1,8 +1,8 @@
-# Requerimiento: Kendo Manager
+# Requerimiento: Kendo Argentina
 
 ## Descripción General
 
-Kendo Manager es una aplicación web para llevar el registro de los practicantes de la **Federación Argentina de Kendo**. Permite la gestión de practicantes de las disciplinas de **Kendo**, **Iaido** y **Jodo**, la administración de asociaciones (dojos/filiales), el control del estado de la cuota federativa anual mediante integración con MercadoPago, la actualización del legajo de graduaciones y la inscripción a exámenes y torneos locales.
+Kendo Argentina es una aplicación web para llevar el registro de los practicantes de la **Federación Argentina de Kendo**. Permite la gestión de practicantes de las disciplinas de **Kendo**, **Iaido** y **Jodo**, la administración de asociaciones (dojos/filiales), el control del estado de la cuota federativa anual mediante integración con MercadoPago, la actualización del legajo de graduaciones y la inscripción a exámenes y torneos locales.
 
 El sistema está pensado para ser utilizado por practicantes, administradores de asociación y un administrador general, con una expectativa de **baja concurrencia** (menos de 50 usuarios simultáneos) y un volumen de datos reducido, acorde a la cantidad de practicantes federados en Argentina.
 
@@ -155,7 +155,7 @@ Cuenta dedicada y centralizada.
 
 El sistema permite la carga de archivos en los siguientes contextos:
 
-- **Diplomas nacionales:** el administrador general sube el PDF del diploma emitido por la FAK.
+- **Diplomas nacionales:** el administrador general sube el PDF del diploma emitido por la Federación Argentina de Kendo.
 - **Certificaciones externas:** el usuario sube el PDF o imagen de su diploma extranjero.
 - **Certificados médicos:** el usuario puede adjuntar un certificado médico al inscribirse en un evento.
 
@@ -246,7 +246,7 @@ Cualquier nueva funcionalidad no contemplada en este requerimiento inicial deber
 
 1. **Relevamiento:** El solicitante describe la nueva funcionalidad.  
 2. **Estimación:** Se evalúa el esfuerzo técnico requerido y se cotiza como un proyecto independiente.  
-3. **Aprobación:** La comisión directiva de la FAK aprueba la ejecución.  
+3. **Aprobación:** La comisión directiva de la Federación Argentina de Kendo aprueba la ejecución.  
 4. **Desarrollo e implementación:** Se lleva a cabo el desarrollo, pruebas y puesta en producción.
 
 ---
@@ -257,7 +257,7 @@ Cualquier nueva funcionalidad no contemplada en este requerimiento inicial deber
 | :---- | :---- |
 | **ABM** | Altas, Bajas y Modificaciones (operaciones CRUD: Create, Read, Update, Delete). |
 | **Blanqueo** | Proceso de restablecimiento de contraseña aprobado por un administrador, que permite al usuario ingresar con cualquier contraseña para luego fijar una nueva. |
-| **FAK** | Federación Argentina de Kendo. |
+| **Kendo Argentina** | Plataforma de gestión de la Federación Argentina de Kendo. |
 | **Graduación** | Grado obtenido en Kendo, Iaido o Jodo (Kyu o Dan). |
 | **SLA** | Service Level Agreement (Acuerdo de Nivel de Servicio). |
 

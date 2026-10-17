@@ -18,10 +18,10 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 const ESTADO_COLORS: Record<string, string> = {
-  PENDIENTE: 'bg-amber-50 text-amber-700 border-amber-200',
-  APROBADO_ASOCIACION: 'bg-blue-50 text-blue-700 border-blue-200',
-  APROBADO: 'bg-green-50 text-green-700 border-green-200',
-  RECHAZADO: 'bg-red-50 text-red-700 border-red-200',
+  PENDIENTE: 'bg-warning-soft text-warning border-warning/20',
+  APROBADO_ASOCIACION: 'bg-ai-soft text-ai border-ai/20',
+  APROBADO: 'bg-success-soft text-success border-success/20',
+  RECHAZADO: 'bg-hinomaru-soft text-hinomaru border-hinomaru/20',
 };
 
 interface CertificadoAdmin {
@@ -80,15 +80,15 @@ export default function CertificadosPendientesAdmin() {
   const paged = filtered.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   if (loading) return <Spinner text="Cargando certificaciones..." />;
-  if (error) return <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>;
+  if (error) return <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>;
 
   return (
     <div class="space-y-6">
       {msg && (
         <div class={`px-4 py-3 rounded text-sm border ${
           msg === 'Estado actualizado correctamente'
-            ? 'bg-green-50 border-green-200 text-green-700'
-            : 'bg-red-50 border-red-200 text-red-700'
+            ? 'bg-success-soft border-success/20 text-success'
+            : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
         }`}>
           {msg}
         </div>
@@ -100,20 +100,20 @@ export default function CertificadosPendientesAdmin() {
         aria-label="Buscar por nombre, apellido o DNI"
         onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
         placeholder="Buscar por nombre, apellido o DNI..."
-        class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+        class="w-full max-w-md px-4 py-2 border border-steel-soft rounded text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
       />
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-        <div class="px-6 py-4 border-b border-slate-100">
-          <h3 class="font-semibold text-slate-800">Certificaciones Externas</h3>
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
+        <div class="px-6 py-4 border-b border-steel-soft">
+          <h3 class="font-semibold text-ink">Certificaciones Externas</h3>
         </div>
         {filtered.length === 0 ? (
-          <div class="px-6 py-8 text-center text-slate-400">No hay certificaciones registradas.</div>
+          <div class="px-6 py-8 text-center text-steel">No hay certificaciones registradas.</div>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
               <thead>
-                <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                <tr class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                   <th class="px-4 py-2">Usuario</th>
                   <th class="px-4 py-2">DNI</th>
                   <th class="px-4 py-2">Disciplina</th>
@@ -126,9 +126,9 @@ export default function CertificadosPendientesAdmin() {
               </thead>
               <tbody>
                 {paged.map(c => (
-                  <tr key={c.id} class="border-b border-slate-100 hover:bg-slate-50">
+                  <tr key={c.id} class="border-b border-steel-soft hover:bg-ai-soft/50">
                     <td class="px-4 py-2 font-medium">{c.usuario.nombre} {c.usuario.apellido}</td>
-                    <td class="px-4 py-2 text-slate-500">{c.usuario.dni}</td>
+                    <td class="px-4 py-2 text-steel">{c.usuario.dni}</td>
                     <td class="px-4 py-2">{DISCIPLINA_LABELS[c.disciplina] || c.disciplina}</td>
                     <td class="px-4 py-2">{GRADUACIONES.find(g => g.value === c.grad_solicitada)?.label || c.grad_solicitada}</td>
                     <td class="px-4 py-2">
@@ -136,9 +136,9 @@ export default function CertificadosPendientesAdmin() {
                         {ESTADO_LABELS[c.estado] || c.estado}
                       </span>
                     </td>
-                    <td class="px-4 py-2 text-slate-500">{new Date(c.created_at).toLocaleDateString('es-AR')}</td>
+                    <td class="px-4 py-2 text-steel">{new Date(c.created_at).toLocaleDateString('es-AR')}</td>
                     <td class="px-4 py-2">
-                      <a href={c.url_archivo} target="_blank" rel="noopener noreferrer" class="text-slate-600 hover:text-slate-900 underline">
+                      <a href={c.url_archivo} target="_blank" rel="noopener noreferrer" class="text-steel hover:text-ink underline">
                         Ver PDF
                       </a>
                     </td>
@@ -149,14 +149,14 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-asociacion')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2 py-1 bg-surface border border-steel-soft text-ink rounded text-[10px] font-medium hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Aprobar
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2 py-1 bg-surface border border-steel-soft text-ink rounded text-[10px] font-medium hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Rechazar
                             </button>
@@ -167,27 +167,27 @@ export default function CertificadosPendientesAdmin() {
                             <button
                               onClick={() => handleAction(c.id, 'aprobar-general')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2 py-1 bg-surface border border-steel-soft text-ink rounded text-[10px] font-medium hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Aprobar Definitivamente
                             </button>
                             <button
                               onClick={() => handleAction(c.id, 'rechazar')}
                               disabled={processing === c.id}
-                              class="px-2 py-1 bg-white border border-slate-300 text-slate-700 rounded text-[10px] font-medium hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                              class="px-2 py-1 bg-surface border border-steel-soft text-ink rounded text-[10px] font-medium hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
                             >
                               Rechazar
                             </button>
                           </>
                         )}
                         {c.estado === 'APROBADO' && (
-                          <span class="text-[10px] text-green-600 font-medium">Completado</span>
+                          <span class="text-[10px] text-success font-medium">Completado</span>
                         )}
                         {c.estado === 'RECHAZADO' && (
-                          <span class="text-[10px] text-red-600 font-medium">Rechazado</span>
+                          <span class="text-[10px] text-hinomaru font-medium">Rechazado</span>
                         )}
                         {c.estado === 'PENDIENTE' && isAdminGeneral && (
-                          <span class="text-[10px] text-slate-400">Esperando aprobación de asociación</span>
+                          <span class="text-[10px] text-steel">Esperando aprobación de asociación</span>
                         )}
                       </div>
                     </td>

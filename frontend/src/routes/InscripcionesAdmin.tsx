@@ -91,7 +91,7 @@ export default function InscripcionesAdmin() {
   };
 
   if (loading) return <div class="p-8"><Spinner text="Cargando inscripciones..." /></div>;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
+  if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   const query = search.toLowerCase();
   const pendientes = inscripciones.filter(i => i.estado_aprob === 'PENDIENTE' && (
@@ -110,26 +110,26 @@ export default function InscripcionesAdmin() {
           value={search}
           onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
           placeholder="Buscar por nombre o DNI..."
-          class="w-full max-w-md px-4 py-2 border border-slate-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-slate-400"
+          class="w-full max-w-md px-4 py-2 border border-steel-soft rounded text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
         />
         {eventoId && (
-          <button onClick={() => route('/dashboard/eventos-admin')} class="text-sm text-blue-600 hover:underline whitespace-nowrap">
+          <button onClick={() => route('/dashboard/eventos-admin')} class="text-sm text-ai hover:underline whitespace-nowrap">
             ← Volver a Eventos
           </button>
         )}
       </div>
 
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>
       )}
       {msg && (
-        <div class="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded text-sm">{msg}</div>
+        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>
       )}
 
-      <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse">
-            <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 text-sm uppercase tracking-wider font-semibold">
+            <thead class="bg-paper border-b border-steel-soft text-steel text-sm uppercase tracking-wider font-semibold">
               <tr>
                 <th class="px-6 py-4">Usuario</th>
                 <th class="px-6 py-4">Evento</th>
@@ -137,49 +137,49 @@ export default function InscripcionesAdmin() {
                 <th class="px-6 py-4 text-right">Acciones</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-200">
+            <tbody class="divide-y divide-steel-soft/60">
               {pendientes.length === 0 ? (
                 <tr>
-                  <td colspan={4} class="px-6 py-8 text-center text-slate-500">
+                  <td colspan={4} class="px-6 py-8 text-center text-steel">
                     No hay inscripciones pendientes.
                   </td>
                 </tr>
               ) : (
                 pagedPendientes.map(ins => (
-                  <tr key={ins.id} class="hover:bg-slate-50 transition-colors">
+                  <tr key={ins.id} class="hover:bg-ai-soft/50 transition-colors">
                     <td class="px-6 py-4">
-                      <div class="font-medium text-slate-900">{ins.usuario?.nombre || 'Usuario #' + ins.usuario_id}</div>
-                      <div class="text-xs text-slate-500 font-mono">{ins.usuario?.dni || ''}</div>
+                      <div class="font-medium text-ink">{ins.usuario?.nombre || 'Usuario #' + ins.usuario_id}</div>
+                      <div class="text-xs text-steel font-mono">{ins.usuario?.dni || ''}</div>
                     </td>
                     <td class="px-6 py-4 text-sm">
                       <div>{ins.evento?.tipo || 'Evento #' + ins.evento_id}</div>
-                      <div class="text-xs text-slate-400">
+                      <div class="text-xs text-steel">
                         {ins.evento?.fecha_inicio ? new Date(ins.evento.fecha_inicio).toLocaleDateString('es-AR') : ''}
                       </div>
                     </td>
-                    <td class="px-6 py-4 text-sm text-slate-600">
+                    <td class="px-6 py-4 text-sm text-steel">
                       {ins.evento?.tipo === 'EXAMEN' && ins.disciplinas && ins.disciplinas.length > 0 && (
-                        <div class="text-xs text-slate-400 mb-1">Disc: {ins.disciplinas.join(', ')}</div>
+                        <div class="text-xs text-steel mb-1">Disc: {ins.disciplinas.join(', ')}</div>
                       )}
                       {(ins.categorias || []).join(', ') || 'General'}
                     </td>
                     <td class="px-6 py-4 text-right space-x-2">
                       <button
                         onClick={() => handleAction(ins.id, 'APROBAR')}
-                        class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+                        class="px-3 py-1 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
                       >
                         Aprobar
                       </button>
                       <button
                         onClick={() => handleAction(ins.id, 'RECHAZAR')}
-                        class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+                        class="px-3 py-1 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
                       >
                         Rechazar
                       </button>
                       {!ins.pagado && (
                         <button
                           onClick={() => setConfirmPagoManual(ins.id)}
-                          class="px-3 py-1 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+                          class="px-3 py-1 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
                         >
                           Pago manual
                         </button>

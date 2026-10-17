@@ -67,7 +67,7 @@ export default function EventosAdmin() {
   return (
     <div class="space-y-6">
       <div class="flex justify-between items-center">
-        <h2 class="text-lg font-semibold text-slate-800">
+        <h2 class="text-lg font-semibold text-ink">
           {showPasados ? 'Eventos Pasados' : 'Próximos Eventos'}
         </h2>
         <div class="flex gap-2">
@@ -75,13 +75,13 @@ export default function EventosAdmin() {
             <>
               <button
                 onClick={() => setShowPasados(!showPasados)}
-                class="px-4 py-2 bg-white border border-slate-300 text-slate-700 rounded text-sm font-medium hover:bg-slate-50 transition-colors"
+                class="px-4 py-2 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
               >
                 {showPasados ? 'Ver próximos' : 'Ver eventos pasados'}
               </button>
               <button
                 onClick={() => setEditing(null)}
-                class="px-4 py-2 bg-slate-900 text-white rounded text-sm font-medium hover:bg-slate-800 transition-colors"
+                class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
               >
                 Crear Evento
               </button>
@@ -90,13 +90,13 @@ export default function EventosAdmin() {
         </div>
       </div>
 
-      {tableError && <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{tableError}</div>}
+      {tableError && <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{tableError}</div>}
 
       {!isFormOpen && (
-        <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
-              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                 <tr>
                   <th class="px-4 py-2">Tipo</th>
                   <th class="px-4 py-2">Fecha</th>
@@ -107,17 +107,17 @@ export default function EventosAdmin() {
                   <th class="px-4 py-2 text-right">Acciones</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
+              <tbody class="divide-y divide-steel-soft/60">
                 {eventosVisibles.map(ev => (
-                  <tr key={ev.id} class="hover:bg-slate-50">
+                  <tr key={ev.id} class="hover:bg-ai-soft/50">
                     <td class="px-4 py-2 font-medium">{ev.tipo}</td>
-                    <td class="px-4 py-2 text-slate-600">
+                    <td class="px-4 py-2 text-steel">
                       {new Date(ev.fecha_inicio).toLocaleDateString('es-AR')}
                     </td>
-                    <td class="px-4 py-2 text-slate-600">{((ev.datos_lugar as { direccion: string })?.direccion ?? '-')}</td>
+                    <td class="px-4 py-2 text-steel">{((ev.datos_lugar as { direccion: string })?.direccion ?? '-')}</td>
                     <td class="px-4 py-2">
                       <span class={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        ev.publicado ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'
+                        ev.publicado ? 'bg-success-soft text-success' : 'bg-warning-soft text-warning'
                       }`}>
                         {ev.publicado ? 'Publicado' : 'Borrador'}
                       </span>
@@ -126,19 +126,19 @@ export default function EventosAdmin() {
                       {ev.tipo === 'EXAMEN' ? 'Variable' : `$${(ev.torneo?.costo_inscripcion ?? ev.seminario?.costo_inscripcion ?? 0)}`}
                     </td>
                     <td class="px-4 py-2">
-                      <button onClick={() => route(`/dashboard/inscripciones?eventoId=${ev.id}`)} class="text-blue-600 hover:underline text-xs">
+                      <button onClick={() => route(`/dashboard/inscripciones?eventoId=${ev.id}`)} class="text-ai hover:underline text-xs">
                         Ver inscripciones
                       </button>
                     </td>
                     <td class="px-4 py-2 text-right space-x-2">
                       {canEditEvent(ev, user) && (
                         <>
-                          <button onClick={() => setEditing(ev)} class="text-blue-600 hover:underline">Editar</button>
+                          <button onClick={() => setEditing(ev)} class="text-ai hover:underline">Editar</button>
                           {!ev.publicado && (
-                            <button onClick={() => handlePublicar(ev.id)} class="text-green-600 hover:underline">Publicar</button>
+                            <button onClick={() => handlePublicar(ev.id)} class="text-success hover:underline">Publicar</button>
                           )}
                           {ev.tipo === 'TORNEO' && ev.torneo?.inscripciones_abiertas && (
-                            <button onClick={() => setConfirmCerrarId(ev.id)} class="text-orange-600 hover:underline">Cerrar insc.</button>
+                            <button onClick={() => setConfirmCerrarId(ev.id)} class="text-warning hover:underline">Cerrar insc.</button>
                           )}
                           {user?.rol === 'ADMIN_GENERAL' && ev.tipo === 'EXAMEN' && (
                             <button onClick={() => route(`/dashboard/mesas?eventoId=${ev.id}`)} class="text-purple-600 hover:underline">Mesas</button>
@@ -150,7 +150,7 @@ export default function EventosAdmin() {
                 ))}
                 {eventosVisibles.length === 0 && (
                   <tr>
-                    <td colspan={7} class="px-4 py-8 text-center text-slate-500">
+                    <td colspan={7} class="px-4 py-8 text-center text-steel">
                       {showPasados ? 'No hay eventos pasados.' : 'No hay eventos próximos.'}
                     </td>
                   </tr>

@@ -112,33 +112,33 @@ export default function DiplomasAdmin() {
       {msg && (
         <div class={`px-4 py-3 rounded text-sm border ${
           msg.startsWith('Error') || msg.startsWith('No')
-            ? 'bg-red-50 border-red-200 text-red-700'
-            : 'bg-green-50 border-green-200 text-green-700'
+            ? 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
+            : 'bg-success-soft border-success/20 text-success'
         }`}>{msg}</div>
       )}
 
-      <div class="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+      <div class="flex gap-1 bg-paper p-1 rounded-lg w-fit">
         <button onClick={() => setMode('individual')}
-          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'individual' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}>
+          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'individual' ? 'bg-surface text-ink shadow-sm' : 'text-steel'}`}>
           Individual
         </button>
         <button onClick={() => setMode('lote')}
-          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'lote' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'}`}>
+          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${mode === 'lote' ? 'bg-surface text-ink shadow-sm' : 'text-steel'}`}>
           Por Lote (post-examen)
         </button>
       </div>
 
       {mode === 'individual' && (
-        <form onSubmit={handleSubmitIndividual} class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
-          <h3 class="text-base font-bold text-slate-800">Cargar Diploma Individual</h3>
+        <form onSubmit={handleSubmitIndividual} class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6 space-y-4">
+          <h3 class="text-base font-bold text-ink">Cargar Diploma Individual</h3>
           <div>
-            <label htmlFor="dipl-buscar" class="block text-sm font-medium text-slate-700 mb-1">Buscar usuario</label>
+            <label htmlFor="dipl-buscar" class="block text-sm font-medium text-ink mb-1">Buscar usuario</label>
             <input id="dipl-buscar" type="text" placeholder="Nombre, apellido o DNI..." value={searchTerm}
               onInput={(e: Event) => setSearchTerm((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 mb-2" />
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20 mb-2" />
             <select aria-label="Seleccionar usuario" value={usuarioId ?? ''}
               onChange={(e: Event) => setUsuarioId(parseInt((e.target as HTMLSelectElement).value) || null)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
               <option value="">Seleccionar usuario...</option>
               {filteredUsuarios.map(u => (
                 <option key={u.id} value={u.id}>{u.nombre} {u.apellido} ({u.dni})</option>
@@ -147,25 +147,25 @@ export default function DiplomasAdmin() {
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="dipl-disciplina" class="block text-sm font-medium text-slate-700 mb-1">Disciplina</label>
+              <label htmlFor="dipl-disciplina" class="block text-sm font-medium text-ink mb-1">Disciplina</label>
               <select id="dipl-disciplina" value={disciplina} onChange={(e: Event) => setDisciplina((e.target as HTMLSelectElement).value)}
-                class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
                 {DISCIPLINAS.map(d => <option key={d.value} value={d.value}>{d.label}</option>)}
               </select>
             </div>
             <div>
-              <label htmlFor="dipl-graduacion" class="block text-sm font-medium text-slate-700 mb-1">Graduación (si no hay inscripción)</label>
+              <label htmlFor="dipl-graduacion" class="block text-sm font-medium text-ink mb-1">Graduación (si no hay inscripción)</label>
               <select id="dipl-graduacion" value={graduacion} onChange={(e: Event) => setGraduacion((e.target as HTMLSelectElement).value)}
-                class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+                class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
                 {GRADUACIONES.filter(g => g.value !== 'SIN_GRADUACION').map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
               </select>
             </div>
           </div>
           <div>
-            <label htmlFor="dipl-inscripcion" class="block text-sm font-medium text-slate-700 mb-1">ID de inscripción (opcional)</label>
+            <label htmlFor="dipl-inscripcion" class="block text-sm font-medium text-ink mb-1">ID de inscripción (opcional)</label>
             <input id="dipl-inscripcion" type="number" placeholder="Dejar vacío si es carga manual" value={inscripcionId ?? ''}
               onInput={(e: Event) => setInscripcionId(parseInt((e.target as HTMLInputElement).value) || undefined)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500" />
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20" />
           </div>
           <FileUpload
             label="Archivo del diploma"
@@ -174,20 +174,20 @@ export default function DiplomasAdmin() {
             required
           />
           <button type="submit" disabled={saving || !usuarioId || !file}
-            class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+            class="px-8 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
             {saving ? 'Cargando...' : 'Cargar Diploma'}
           </button>
         </form>
       )}
 
       {mode === 'lote' && (
-        <div class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
-          <h3 class="text-base font-bold text-slate-800">Carga por Lote</h3>
+        <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6 space-y-4">
+          <h3 class="text-base font-bold text-ink">Carga por Lote</h3>
           <div>
-            <label htmlFor="dipl-evento" class="block text-sm font-medium text-slate-700 mb-1">Evento</label>
+            <label htmlFor="dipl-evento" class="block text-sm font-medium text-ink mb-1">Evento</label>
             <select id="dipl-evento" value={eventoId ?? ''}
               onChange={(e: Event) => loadInscripciones(parseInt((e.target as HTMLSelectElement).value) || 0)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500">
+              class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20">
               <option value="">Seleccionar evento...</option>
               {eventos.filter(e => e.tipo === 'EXAMEN').map(e => (
                 <option key={e.id} value={e.id}>{e.tipo} - {new Date(e.fecha_inicio).toLocaleDateString('es-AR')}</option>
@@ -198,7 +198,7 @@ export default function DiplomasAdmin() {
             <div class="overflow-x-auto">
               <table class="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+                  <tr class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                     <th class="px-3 py-2">Usuario</th>
                     <th class="px-3 py-2">Disciplinas</th>
                     <th class="px-3 py-2">Archivo</th>
@@ -208,7 +208,7 @@ export default function DiplomasAdmin() {
                   {inscripciones.map((ins: any) => {
                     const disciplinas = (ins.categoria_grad ? Object.keys(ins.categoria_grad) : []);
                     return disciplinas.map((disc: string) => (
-                      <tr key={`${ins.id}_${disc}`} class="border-b border-slate-100">
+                      <tr key={`${ins.id}_${disc}`} class="border-b border-steel-soft">
                         <td class="px-3 py-2">{ins.usuario?.nombre} {ins.usuario?.apellido} ({ins.usuario?.dni})</td>
                         <td class="px-3 py-2">{DISC_LABEL[disc] || disc}</td>
                         <td class="px-3 py-2">
@@ -236,7 +236,7 @@ export default function DiplomasAdmin() {
           )}
           {Object.keys(loteFiles).length > 0 && (
             <button onClick={handleSubmitLote} disabled={saving}
-              class="px-8 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              class="px-8 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {saving ? 'Cargando...' : `Cargar ${Object.keys(loteFiles).length} diploma(s)`}
             </button>
           )}

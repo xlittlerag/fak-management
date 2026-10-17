@@ -3,6 +3,10 @@ import { useLocation } from 'preact-iso';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
+import { AuthLayout } from '../components/AuthLayout';
+import { Alert } from '../components/ui/Alert';
+import { Button } from '../components/ui/Button';
+import { Field, Input } from '../components/ui/Field';
 
 export default function Login() {
   const { url, route } = useLocation();
@@ -13,11 +17,14 @@ export default function Login() {
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const isRegistered = new URLSearchParams(url.split('?')[1]).get('registered') === 'true';
+  const isRegistered =
+    new URLSearchParams(url.split('?')[1]).get('registered') === 'true';
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     setError('');
+    // TC-03: el mensaje de blanqueo anterior se limpia al iniciar sesión.
+    setSuccess('');
     setLoading(true);
 
     try {
@@ -40,89 +47,104 @@ export default function Login() {
       setError('Por favor, ingrese su DNI para solicitar el blanqueo.');
       return;
     }
+    // TC-03: se limpia cualquier mensaje previo antes de la nueva solicitud.
+    setError('');
+    setSuccess('');
     try {
-      await api.post('/auth/reset-password/request', { dni });
-      setSuccess('Solicitud de blanqueo enviada. Si el DNI está registrado, recibirá un correo con el código.');
-      setError('');
-    } catch {
-      setError('Error al solicitar el blanqueo.');
+      // TC-02: se muestra el mensaje del servidor (genérico a propósito:
+      // no revela si el DNI existe). Falla solo por red o límite de intentos.
+      const res = await api.post('/auth/reset-password/request', { dni });
+      setSuccess(
+        res.data?.mensaje ||
+          'Solicitud de blanqueo enviada. Si el DNI está registrado, recibirá un correo con el código.',
+      );
+    } catch (err) {
+      setError(getErrorMessage(err));
     }
   };
 
   return (
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div class="max-w-md w-full bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h1 class="text-2xl font-bold text-slate-900 mb-6 text-center">Kendo Manager</h1>
-
-        {isRegistered && !error && (
-          <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded text-sm">
-            Registro exitoso. Su cuenta aguarda la aprobación del administrador de su asociación.
-          </div>
-        )}
-
-        {success && (
-          <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded text-sm">
-            {success}
-          </div>
-        )}
-
-        {error && (
-          <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded text-sm">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div>
-            <label htmlFor="login-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
-            <input
-              id="login-dni"
-              type="text"
-              value={dni}
-              onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="login-password" class="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-            <input
-              id="login-password"
-              type="password"
-              value={password}
-              onInput={(e: Event) => setPassword((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            class="w-full mt-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+    <AuthLayout
+      title="Iniciar sesión"
+      subtitle="Ingrese con su DNI y contraseña."
+      footer={
+        <>
+          ¿No tiene una cuenta?{' '}
+          <a
+            href="/register"
+            class="font-medium text-ai underline hover:text-ai-strong"
           >
-            {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
-          </button>
-        </form>
-
-        <div class="mt-4 text-center">
-          <button
-            onClick={handleRequestReset}
-            class="text-sm text-slate-500 hover:text-slate-900 underline"
-          >
-            ¿Olvidó su contraseña? Solicitar blanqueo
-          </button>
-        </div>
-
-        <div class="mt-2 text-center">
-          <a href="/admin-login" class="text-sm text-slate-500 hover:text-slate-900 underline">
-            Acceso administrador
+            Regístrese aquí
           </a>
-        </div>
+        </>
+      }
+    >
+      {isRegistered && !error && (
+        <Alert tone="success" class="mb-4">
+          Registro exitoso. Su cuenta aguarda la aprobación del administrador de
+          su asociación.
+        </Alert>
+      )}
 
-        <p class="mt-6 text-center text-sm text-slate-600">
-          ¿No tiene una cuenta? <a href="/register" class="text-slate-900 font-semibold underline">Regístrese aquí</a>
-        </p>
+      {success && (
+        <Alert tone="success" class="mb-4">
+          {success}
+        </Alert>
+      )}
+
+      {error && (
+        <Alert tone="error" class="mb-4">
+          {error}
+        </Alert>
+      )}
+
+      <form onSubmit={handleSubmit} class="space-y-4">
+        <Field label="DNI" htmlFor="login-dni">
+          <Input
+            id="login-dni"
+            type="text"
+            inputMode="numeric"
+            value={dni}
+            onInput={(e: Event) => {
+              setDni((e.target as HTMLInputElement).value);
+              setSuccess('');
+            }}
+          />
+        </Field>
+
+        <Field label="Contraseña" htmlFor="login-password">
+          <Input
+            id="login-password"
+            type="password"
+            value={password}
+            onInput={(e: Event) =>
+              setPassword((e.target as HTMLInputElement).value)
+            }
+          />
+        </Field>
+
+        <Button type="submit" class="mt-2 w-full" loading={loading}>
+          {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+        </Button>
+      </form>
+
+      <div class="mt-4 text-center">
+        <button
+          onClick={handleRequestReset}
+          class="text-sm text-ai underline hover:text-ai-strong"
+        >
+          ¿Olvidó su contraseña? Solicitar blanqueo
+        </button>
       </div>
-    </div>
+
+      <div class="mt-2 text-center">
+        <a
+          href="/admin-login"
+          class="text-sm text-ai underline hover:text-ai-strong"
+        >
+          Acceso administrador
+        </a>
+      </div>
+    </AuthLayout>
   );
 }

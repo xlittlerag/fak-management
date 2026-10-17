@@ -131,7 +131,7 @@ export class MercadoPagoService {
               },
             ],
           },
-          statement_descriptor: 'FAK - Cuota Federativa',
+          statement_descriptor: 'KendoArgentina Cuota',
         },
       });
 
@@ -211,7 +211,7 @@ export class MercadoPagoService {
               },
             ],
           },
-          statement_descriptor: 'FAK - Evento',
+          statement_descriptor: 'KendoArgentina Evento',
         },
       });
 
@@ -472,7 +472,7 @@ export class MercadoPagoService {
           payment_methods: {
             excluded_payment_types: [{ id: 'credit_card' }],
           },
-          statement_descriptor: 'FAK - Reimpresión',
+          statement_descriptor: 'KendoArgentina Reimp',
         },
       });
 

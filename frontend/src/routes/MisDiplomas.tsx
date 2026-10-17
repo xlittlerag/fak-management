@@ -19,8 +19,8 @@ function fileLabel(url: string): string {
 }
 
 const DISCIPLINA_COLORS: Record<string, string> = {
-  KENDO: 'bg-blue-50 text-blue-700 border-blue-200',
-  IAIDO: 'bg-green-50 text-green-700 border-green-200',
+  KENDO: 'bg-ai-soft text-ai border-ai/20',
+  IAIDO: 'bg-success-soft text-success border-success/20',
   JODO: 'bg-purple-50 text-purple-700 border-purple-200',
 };
 
@@ -45,17 +45,17 @@ export default function MisDiplomas() {
   }, []);
 
   if (loading) return <Spinner text="Cargando diplomas..." />;
-  if (error) return <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>;
+  if (error) return <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
       {diplomas.length === 0 ? (
-        <div class="px-6 py-8 text-center text-slate-400">No tiene diplomas emitidos.</div>
+        <div class="px-6 py-8 text-center text-steel">No tiene diplomas emitidos.</div>
       ) : (
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse text-xs">
             <thead>
-              <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+              <tr class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
                 <th class="px-4 py-2">Disciplina</th>
                 <th class="px-4 py-2">Graduación</th>
                 <th class="px-4 py-2">Fecha de emisión</th>
@@ -64,7 +64,7 @@ export default function MisDiplomas() {
             </thead>
             <tbody>
               {diplomas.map(d => (
-                <tr key={d.id} class="border-b border-slate-100 hover:bg-slate-50">
+                <tr key={d.id} class="border-b border-steel-soft hover:bg-ai-soft/50">
                   <td class="px-4 py-2">
                     <span class={`inline-block px-2 py-0.5 rounded-full text-[10px] font-bold border ${DISCIPLINA_COLORS[d.disciplina] || ''}`}>
                       {DISCIPLINA_LABELS[d.disciplina] || d.disciplina}
@@ -73,7 +73,7 @@ export default function MisDiplomas() {
                   <td class="px-4 py-2 font-medium">
                     {GRADUACIONES.find(g => g.value === d.graduacion)?.label || d.graduacion}
                   </td>
-                  <td class="px-4 py-2 text-slate-500">
+                  <td class="px-4 py-2 text-steel">
                     {new Date(d.created_at).toLocaleDateString('es-AR')}
                   </td>
                   <td class="px-4 py-2">
@@ -81,7 +81,7 @@ export default function MisDiplomas() {
                       href={d.url_archivo}
                       target="_blank"
                       rel="noopener noreferrer"
-                      class="text-slate-600 hover:text-slate-900 underline text-xs"
+                      class="text-steel hover:text-ink underline text-xs"
                     >
                       Ver {fileLabel(d.url_archivo)}
                     </a>

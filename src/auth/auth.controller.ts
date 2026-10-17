@@ -23,6 +23,18 @@ import { Throttle } from '@nestjs/throttler';
 import { clearAuthCookie, setAuthCookie } from './auth-cookie';
 import type { Request, Response } from 'express';
 
+/**
+ * Límite de throttling para endpoints de autenticación. En producción es
+ * estricto (5/min); la suite E2E lo eleva vía THROTTLE_LIMIT para evitar
+ * falsos 429 por múltiples logins desde una misma IP (ver app.module.ts).
+ */
+const AUTH_THROTTLE = {
+  default: {
+    limit: parseInt(process.env.THROTTLE_LIMIT ?? '5', 10),
+    ttl: parseInt(process.env.THROTTLE_TTL ?? '60000', 10),
+  },
+};
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
@@ -34,7 +46,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(AUTH_THROTTLE)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -48,7 +60,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(AUTH_THROTTLE)
   @Post('admin-login')
   @HttpCode(HttpStatus.OK)
   async adminLogin(
@@ -66,7 +78,7 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(AUTH_THROTTLE)
   @Post('admin-2fa/verificar')
   @HttpCode(HttpStatus.OK)
   async verificarAdmin2fa(
@@ -134,14 +146,14 @@ export class AuthController {
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(AUTH_THROTTLE)
   @Post('reset-password/request')
   async requestReset(@Body('dni') dni: string) {
     return this.authService.requestReset(dni);
   }
 
   @Public()
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
+  @Throttle(AUTH_THROTTLE)
   @Post('reset-password/complete')
   @HttpCode(HttpStatus.OK)
   async completeReset(@Body() dto: CompleteResetDto) {

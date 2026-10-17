@@ -23,6 +23,11 @@ import AfiliacionesAdmin from './AfiliacionesAdmin';
 import BajasAdmin from './BajasAdmin';
 import Mesas from './Mesas';
 import Admin2FA from './Admin2FA';
+import { Wordmark } from '../components/ui/Wordmark';
+import { Panel } from '../components/ui/Panel';
+import { Button } from '../components/ui/Button';
+import { Badge } from '../components/ui/Badge';
+import { Alert } from '../components/ui/Alert';
 
 interface CuotaData {
   monto_actual: number | null;
@@ -37,13 +42,24 @@ export default function Dashboard() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const redirectLogin = !loading && !user;
-  const redirectUsuarios = !loading && !!user && user.rol === 'ADMIN_GENERAL' && path === '/dashboard';
-  const redirectPerfil = !loading && !!user && user.estado_reg === 'DESAFILIADO'
-    && path !== '/dashboard/perfil' && path !== '/dashboard/afiliacion';
+  const redirectUsuarios =
+    !loading && !!user && user.rol === 'ADMIN_GENERAL' && path === '/dashboard';
+  const redirectPerfil =
+    !loading &&
+    !!user &&
+    user.estado_reg === 'DESAFILIADO' &&
+    path !== '/dashboard/perfil' &&
+    path !== '/dashboard/afiliacion';
 
-  useEffect(() => { if (redirectLogin) route('/login'); }, [redirectLogin, route]);
-  useEffect(() => { if (redirectUsuarios) route('/dashboard/usuarios'); }, [redirectUsuarios, route]);
-  useEffect(() => { if (redirectPerfil) route('/dashboard/perfil'); }, [redirectPerfil, route]);
+  useEffect(() => {
+    if (redirectLogin) route('/login');
+  }, [redirectLogin, route]);
+  useEffect(() => {
+    if (redirectUsuarios) route('/dashboard/usuarios');
+  }, [redirectUsuarios, route]);
+  useEffect(() => {
+    if (redirectPerfil) route('/dashboard/perfil');
+  }, [redirectPerfil, route]);
 
   if (loading) return null;
   if (!user) {
@@ -61,56 +77,150 @@ export default function Dashboard() {
   const isDesafiliado = user.estado_reg === 'DESAFILIADO';
 
   const menuItems = [
-    { label: 'Inicio', path: '/dashboard', roles: ['BASICO', 'ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Mi Perfil', path: '/dashboard/perfil', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
+    {
+      label: 'Inicio',
+      path: '/dashboard',
+      roles: ['BASICO', 'ADMIN_ASOCIACION', 'ADMIN_GENERAL'],
+    },
+    {
+      label: 'Mi Perfil',
+      path: '/dashboard/perfil',
+      roles: ['BASICO', 'ADMIN_ASOCIACION'],
+    },
     { label: 'Solicitar Afiliación', path: '/dashboard/afiliacion', roles: [] },
-    { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Afiliaciones', path: '/dashboard/afiliaciones', roles: ['ADMIN_ASOCIACION'] },
-    { label: 'Ver Eventos', path: '/dashboard/eventos', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
-    { label: 'Mis Inscripciones', path: '/dashboard/mis-inscripciones', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
-    { label: 'Inscripciones', path: '/dashboard/inscripciones', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'] },
-    { label: 'Mis Diplomas', path: '/dashboard/mis-diplomas', roles: ['BASICO', 'ADMIN_ASOCIACION'] },
-    { label: 'Mis Certificados', path: '/dashboard/certificados', roles: ['BASICO'] },
-    { label: 'Certificados Pendientes', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'] },
-    { label: 'Gestionar Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
+    {
+      label: 'Miembros',
+      path: '/dashboard/usuarios',
+      roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'],
+    },
+    {
+      label: 'Afiliaciones',
+      path: '/dashboard/afiliaciones',
+      roles: ['ADMIN_ASOCIACION'],
+    },
+    {
+      label: 'Ver Eventos',
+      path: '/dashboard/eventos',
+      roles: ['BASICO', 'ADMIN_ASOCIACION'],
+    },
+    {
+      label: 'Mis Inscripciones',
+      path: '/dashboard/mis-inscripciones',
+      roles: ['BASICO', 'ADMIN_ASOCIACION'],
+    },
+    {
+      label: 'Inscripciones',
+      path: '/dashboard/inscripciones',
+      roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'],
+    },
+    {
+      label: 'Eventos',
+      path: '/dashboard/eventos-admin',
+      roles: ['ADMIN_GENERAL', 'ADMIN_ASOCIACION'],
+    },
+    {
+      label: 'Mis Diplomas',
+      path: '/dashboard/mis-diplomas',
+      roles: ['BASICO', 'ADMIN_ASOCIACION'],
+    },
+    {
+      label: 'Mis Certificados',
+      path: '/dashboard/certificados',
+      roles: ['BASICO'],
+    },
+    {
+      label: 'Certificados Pendientes',
+      path: '/dashboard/certificados-pendientes',
+      roles: ['ADMIN_ASOCIACION', 'ADMIN_GENERAL'],
+    },
+    {
+      label: 'Gestionar Asociaciones',
+      path: '/dashboard/asociaciones',
+      roles: ['ADMIN_GENERAL'],
+    },
   ];
 
   const adminSections = [
     {
       title: 'Gestión',
       items: [
-        { label: 'Miembros', path: '/dashboard/usuarios', roles: ['ADMIN_GENERAL'] },
-        { label: 'Asociaciones', path: '/dashboard/asociaciones', roles: ['ADMIN_GENERAL'] },
-        { label: 'Eventos', path: '/dashboard/eventos-admin', roles: ['ADMIN_GENERAL'] },
-        { label: 'Bajas Pendientes', path: '/dashboard/bajas', roles: ['ADMIN_GENERAL'] },
+        {
+          label: 'Miembros',
+          path: '/dashboard/usuarios',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Asociaciones',
+          path: '/dashboard/asociaciones',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Eventos',
+          path: '/dashboard/eventos-admin',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Bajas Pendientes',
+          path: '/dashboard/bajas',
+          roles: ['ADMIN_GENERAL'],
+        },
       ],
     },
     {
       title: 'Certificaciones',
       items: [
-        { label: 'Cert. Externas', path: '/dashboard/certificados-pendientes', roles: ['ADMIN_GENERAL'] },
-        { label: 'Diplomas Nacionales', path: '/dashboard/diplomas-admin', roles: ['ADMIN_GENERAL'] },
-        { label: 'Reimpresiones', path: '/dashboard/reimpresiones', roles: ['ADMIN_GENERAL'] },
+        {
+          label: 'Cert. Externas',
+          path: '/dashboard/certificados-pendientes',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Diplomas Nacionales',
+          path: '/dashboard/diplomas-admin',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Reimpresiones',
+          path: '/dashboard/reimpresiones',
+          roles: ['ADMIN_GENERAL'],
+        },
       ],
     },
     {
       title: 'Finanzas',
       items: [
-        { label: 'Configuración', path: '/dashboard/admin/config', roles: ['ADMIN_GENERAL'] },
+        {
+          label: 'Configuración',
+          path: '/dashboard/admin/config',
+          roles: ['ADMIN_GENERAL'],
+        },
       ],
     },
     {
       title: 'Auditoría',
       items: [
-        { label: 'Auditoría', path: '/dashboard/auditoria', roles: ['ADMIN_GENERAL'] },
-        { label: 'Seguridad (2FA)', path: '/dashboard/seguridad', roles: ['ADMIN_GENERAL'] },
+        {
+          label: 'Auditoría',
+          path: '/dashboard/auditoria',
+          roles: ['ADMIN_GENERAL'],
+        },
+        {
+          label: 'Seguridad (2FA)',
+          path: '/dashboard/seguridad',
+          roles: ['ADMIN_GENERAL'],
+        },
       ],
     },
   ];
 
-  const filteredMenu = menuItems.filter(item => item.roles.includes(user.rol));
-  const desafiliadoMenu = menuItems.filter(item => item.path === '/dashboard/perfil' || item.path === '/dashboard/afiliacion');
+  const filteredMenu = menuItems.filter((item) =>
+    item.roles.includes(user.rol),
+  );
+  const desafiliadoMenu = menuItems.filter(
+    (item) =>
+      item.path === '/dashboard/perfil' ||
+      item.path === '/dashboard/afiliacion',
+  );
 
   function pageTitle(path: string) {
     if (path === '/dashboard') return 'Inicio';
@@ -138,74 +248,104 @@ export default function Dashboard() {
     return labels[path] || 'Dashboard';
   }
 
+  const navLinkClass = (active: boolean) =>
+    `relative flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
+      active
+        ? 'bg-white/10 font-medium text-white'
+        : 'text-white/70 hover:bg-white/5 hover:text-white'
+    }`;
+
+  const renderLink = (item: { label: string; path: string }) => (
+    <a
+      key={item.path}
+      href={item.path}
+      onClick={() => setSidebarOpen(false)}
+      class={navLinkClass(path === item.path)}
+    >
+      {path === item.path && (
+        <span
+          aria-hidden="true"
+          class="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-hinomaru"
+        />
+      )}
+      {item.label}
+    </a>
+  );
+
   return (
-    <div class="flex h-screen bg-slate-50">
+    <div class="flex h-screen bg-paper">
       {sidebarOpen && (
         <button
           type="button"
           aria-label="Cerrar menú"
-          class="fixed inset-0 bg-black/50 z-20 lg:hidden cursor-default"
+          class="fixed inset-0 z-20 cursor-default bg-ink/50 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside class={`max-lg:fixed lg:static inset-y-0 left-0 z-30 w-64 bg-slate-900 text-slate-300 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      }`}>
-        <div class="p-6 border-b border-slate-800">
-          <div class="flex items-center justify-between">
-            <h1 class="text-xl font-bold text-white">Kendo Manager</h1>
-            <button onClick={() => setSidebarOpen(false)} aria-label="Cerrar menú" class="lg:hidden text-slate-400 hover:text-white">
-              <svg aria-hidden="true" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+      <aside
+        class={`max-lg:fixed lg:static inset-y-0 left-0 z-30 w-64 bg-ink text-white/80 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        <div class="border-b border-white/10 p-5">
+          <div class="flex items-start justify-between gap-2">
+            <Wordmark tone="light" showSubtitle={false} />
+            <button
+              onClick={() => setSidebarOpen(false)}
+              aria-label="Cerrar menú"
+              class="text-white/50 hover:text-white lg:hidden"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-5 w-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
             </button>
           </div>
-          <p class="text-xs mt-1 text-slate-500 uppercase tracking-wider font-semibold">{user.rol.replace('_', ' ')}</p>
+          <p class="mt-3 text-xs font-semibold tracking-wider text-white/40 uppercase">
+            {user.rol.replace('_', ' ')}
+          </p>
         </div>
-        
-        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+
+        <nav class="flex-1 space-y-1 overflow-y-auto p-3">
           {isDesafiliado
-            ? desafiliadoMenu.map(item => (
-                <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
-                  class={`block px-4 py-2 rounded transition-colors ${
-                    path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
-                  }`}>
-                  {item.label}
-                </a>
-              ))
+            ? desafiliadoMenu.map(renderLink)
             : user.rol === 'ADMIN_GENERAL'
-              ? adminSections.map(section => {
-                  const visible = section.items.filter(i => i.roles.includes(user.rol));
+              ? adminSections.map((section) => {
+                  const visible = section.items.filter((i) =>
+                    i.roles.includes(user.rol),
+                  );
                   if (visible.length === 0) return null;
                   return (
                     <div key={section.title}>
-                      <p class="px-4 pt-3 pb-1 text-xs font-semibold text-slate-500 uppercase tracking-wider">{section.title}</p>
-                      {visible.map(item => (
-                        <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
-                          class={`block px-4 py-1.5 rounded transition-colors ${
-                            path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
-                          }`}>
-                          {item.label}
-                        </a>
-                      ))}
+                      <p class="px-3 pt-4 pb-1 text-[11px] font-semibold tracking-wider text-white/40 uppercase">
+                        {section.title}
+                      </p>
+                      {visible.map(renderLink)}
                     </div>
                   );
                 })
-              : filteredMenu.map(item => (
-                  <a key={item.path} href={item.path} onClick={() => setSidebarOpen(false)}
-                    class={`block px-4 py-2 rounded transition-colors ${
-                      path === item.path ? 'bg-slate-800 text-white' : 'hover:bg-slate-800 hover:text-slate-100'
-                    }`}>
-                    {item.label}
-                  </a>
-                ))
-          }
+              : filteredMenu.map(renderLink)}
         </nav>
 
-        <div class="p-4 border-t border-slate-800">
+        <div class="border-t border-white/10 p-3">
           <button
-            onClick={() => { logout(); route('/login'); }}
-            class="w-full text-left px-4 py-2 text-red-400 hover:bg-red-950/30 rounded transition-colors"
+            onClick={() => {
+              logout();
+              route('/login');
+            }}
+            class="w-full rounded-md px-3 py-2 text-left text-sm text-white/70 transition-colors hover:bg-white/5 hover:text-white"
           >
             Cerrar Sesión
           </button>
@@ -213,17 +353,32 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main class="flex-1 overflow-y-auto min-w-0 bg-slate-50">
-        <header class="bg-white border-b border-slate-200 px-4 sm:px-8 py-4 flex justify-between items-center gap-4">
+      <main class="min-w-0 flex-1 overflow-y-auto bg-paper">
+        <header class="flex items-center justify-between gap-4 border-b border-steel-soft bg-surface px-4 py-3.5 sm:px-8">
           <div class="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} aria-label="Abrir menú" class="lg:hidden text-slate-600 hover:text-slate-900">
-              <svg aria-hidden="true" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+            <button
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Abrir menú"
+              class="text-steel hover:text-ink lg:hidden"
+            >
+              <svg
+                aria-hidden="true"
+                class="h-6 w-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
             </button>
-            <h2 class="text-lg font-semibold text-slate-800">{pageTitle(path)}</h2>
+            <h2 class="font-display text-lg text-ink">{pageTitle(path)}</h2>
           </div>
-          <div class="text-sm text-slate-500 truncate">
-            {user.email}
-          </div>
+          <div class="truncate text-sm text-steel">{user.email}</div>
         </header>
 
         <div class="p-4 sm:p-8">
@@ -239,7 +394,9 @@ export default function Dashboard() {
           {path === '/dashboard/admin/config' && <AdminConfig />}
           {path === '/dashboard/eventos-admin' && <EventosAdmin />}
           {path === '/dashboard/certificados' && <Certificados />}
-          {path === '/dashboard/certificados-pendientes' && <CertificadosPendientesAdmin />}
+          {path === '/dashboard/certificados-pendientes' && (
+            <CertificadosPendientesAdmin />
+          )}
           {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
           {path === '/dashboard/reimpresiones' && <Reimpresiones />}
           {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
@@ -262,23 +419,37 @@ function DashboardHome() {
   const [checkoutError, setCheckoutError] = useState('');
   const [proximos, setProximos] = useState<EventoResumen[]>([]);
   const [loadingProximos, setLoadingProximos] = useState(true);
-  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string } | null>(null);
+  const [simulatedPayment, setSimulatedPayment] = useState<{
+    externalReference: string;
+  } | null>(null);
 
   useEffect(() => {
     const ac = new AbortController();
-    api.get('/eventos', { signal: ac.signal })
-      .then(res => setProximos(res.data.filter((e: EventoResumen) => new Date(e.fecha_inicio) > new Date()).slice(0, 5)))
+    api
+      .get('/eventos', { signal: ac.signal })
+      .then((res) =>
+        setProximos(
+          res.data
+            .filter((e: EventoResumen) => new Date(e.fecha_inicio) > new Date())
+            .slice(0, 5),
+        ),
+      )
       .catch(() => {})
-      .finally(() => { if (!ac.signal.aborted) setLoadingProximos(false); });
+      .finally(() => {
+        if (!ac.signal.aborted) setLoadingProximos(false);
+      });
     return () => ac.abort();
   }, []);
 
   useEffect(() => {
     const ac = new AbortController();
-    api.get('/usuarios/cuota', { signal: ac.signal })
-      .then(res => setCuota(res.data))
+    api
+      .get('/usuarios/cuota', { signal: ac.signal })
+      .then((res) => setCuota(res.data))
       .catch(() => {})
-      .finally(() => { if (!ac.signal.aborted) setLoadingCuota(false); });
+      .finally(() => {
+        if (!ac.signal.aborted) setLoadingCuota(false);
+      });
     return () => ac.abort();
   }, []);
 
@@ -293,7 +464,9 @@ function DashboardHome() {
         setSimulatedPayment({ externalReference });
         return;
       }
-      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+      const mp = new window.MercadoPago(
+        import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
+      );
       mp.checkout({
         preference: { id: preferenceId },
         render: { container: '#mp-checkout-container', label: 'Pagar' },
@@ -310,7 +483,9 @@ function DashboardHome() {
     setLoadingPreference(true);
     setCheckoutError('');
     try {
-      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
+      await api.post('/pagos/simulate', {
+        externalReference: simulatedPayment.externalReference,
+      });
       route('/pagos/exito');
     } catch (err) {
       setCheckoutError(getErrorMessage(err));
@@ -322,7 +497,9 @@ function DashboardHome() {
   function formatDate(dateStr: string | null) {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('es-AR', {
-      year: 'numeric', month: '2-digit', day: '2-digit',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
     });
   }
 
@@ -333,119 +510,122 @@ function DashboardHome() {
 
   return (
     <div class="space-y-6">
-      <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-        <h3 class="text-xl font-bold mb-2">Bienvenido, {user?.email}</h3>
-        <p class="text-slate-600">Este es su panel de control.</p>
-      </div>
+      <Panel frame bodyClass="p-6">
+        <h3 class="font-display text-xl text-ink">Bienvenido, {user?.email}</h3>
+        <p class="mt-1 text-steel">Este es su panel de control.</p>
+      </Panel>
 
-      <div class="md:grid md:grid-cols-2 gap-6 space-y-6 md:space-y-0">
+      <div class="grid gap-6 md:grid-cols-2">
         {loadingCuota ? (
-          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <p class="text-slate-400">Cargando información de cuota...</p>
-          </div>
+          <Panel>
+            <p class="text-steel">Cargando información de cuota...</p>
+          </Panel>
         ) : cuota && cuota.monto_actual !== null ? (
-          <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100">
-              <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
+          <Panel title="Mi Cuota Federativa" bodyClass="space-y-3 p-6">
+            <div class="flex items-center justify-between">
+              <span class="text-steel">Monto anual</span>
+              <span class="tnum font-semibold text-ink">
+                {formatMoney(cuota.monto_actual)}
+              </span>
             </div>
-            <div class="px-6 py-4 space-y-3">
-              <div class="flex justify-between items-center">
-                <span class="text-slate-600">Monto anual</span>
-                <span class="font-semibold text-slate-900">{formatMoney(cuota.monto_actual)}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-600">Fecha de vencimiento</span>
-                <span class="text-slate-900">{formatDate(cuota.fecha_vencimiento)}</span>
-              </div>
-              <div class="flex justify-between items-center">
-                <span class="text-slate-600">Estado</span>
-                {cuota.usuario_tiene_pago ? (
-                  <span class="inline-flex items-center gap-1 text-green-700 bg-green-50 px-3 py-1 rounded-full text-sm font-medium">
-                    <span class="w-2 h-2 bg-green-500 rounded-full" />
-                    Al día
-                  </span>
+            <div class="flex items-center justify-between">
+              <span class="text-steel">Fecha de vencimiento</span>
+              <span class="tnum text-ink">
+                {formatDate(cuota.fecha_vencimiento)}
+              </span>
+            </div>
+            <div class="flex items-center justify-between">
+              <span class="text-steel">Estado</span>
+              {cuota.usuario_tiene_pago ? (
+                <Badge tone="success">
+                  <span class="h-2 w-2 rounded-full bg-success" />
+                  Al día
+                </Badge>
+              ) : (
+                <Badge tone="danger">
+                  <span class="h-2 w-2 rounded-full bg-hinomaru" />
+                  Adeuda
+                </Badge>
+              )}
+            </div>
+
+            {cuota.esta_vencida && !cuota.usuario_tiene_pago && (
+              <Alert tone="warning">
+                Su cuota se encuentra vencida. Realice el pago para reactivar su
+                cuenta.
+              </Alert>
+            )}
+
+            {checkoutError && <Alert tone="error">{checkoutError}</Alert>}
+
+            {!cuota.usuario_tiene_pago && (
+              <div id="mp-checkout-container">
+                {simulatedPayment ? (
+                  <Button
+                    onClick={handleSimulatePayment}
+                    disabled={loadingPreference}
+                    class="w-full"
+                  >
+                    {loadingPreference
+                      ? 'Procesando pago simulado...'
+                      : 'Pagar en modo prueba (simulado)'}
+                  </Button>
                 ) : (
-                  <span class="inline-flex items-center gap-1 text-red-700 bg-red-50 px-3 py-1 rounded-full text-sm font-medium">
-                    <span class="w-2 h-2 bg-red-500 rounded-full" />
-                    Adeuda
-                  </span>
+                  <Button
+                    onClick={handlePay}
+                    disabled={loadingPreference}
+                    class="w-full"
+                  >
+                    {loadingPreference
+                      ? 'Generando pago...'
+                      : 'Pagar con Mercado Pago'}
+                  </Button>
                 )}
               </div>
-
-              {cuota.esta_vencida && !cuota.usuario_tiene_pago && (
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-                  Su cuota se encuentra vencida. Realice el pago para reactivar su cuenta.
-                </div>
-              )}
-
-              {checkoutError && (
-                <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">
-                  {checkoutError}
-                </div>
-              )}
-
-              {!cuota.usuario_tiene_pago && (
-                <div id="mp-checkout-container">
-                  {simulatedPayment ? (
-                    <button
-                      onClick={handleSimulatePayment}
-                      disabled={loadingPreference}
-                      class="bg-green-600 text-white px-8 py-2 rounded font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center w-full"
-                    >
-                      {loadingPreference ? 'Procesando pago simulado...' : 'Pagar en modo prueba (simulado)'}
-                    </button>
-                  ) : (
-                    <button
-                      onClick={handlePay}
-                      disabled={loadingPreference}
-                      class="bg-blue-600 text-white px-8 py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-center w-full"
-                    >
-                      {loadingPreference ? 'Generando pago...' : 'Pagar con Mercado Pago'}
-                    </button>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+            )}
+          </Panel>
         ) : cuota ? (
-          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <h4 class="font-semibold text-slate-800">Mi Cuota Federativa</h4>
-            <p class="text-slate-400 mt-2">La cuota federativa aún no ha sido configurada.</p>
-          </div>
+          <Panel title="Mi Cuota Federativa" bodyClass="p-6">
+            <p class="text-steel">
+              La cuota federativa aún no ha sido configurada.
+            </p>
+          </Panel>
         ) : null}
 
         {loadingProximos ? (
-          <div class="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
-            <p class="text-slate-400">Cargando próximos eventos...</p>
-          </div>
+          <Panel>
+            <p class="text-steel">Cargando próximos eventos...</p>
+          </Panel>
         ) : proximos.length > 0 ? (
-          <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
-            <div class="px-6 py-4 border-b border-slate-100">
-              <h4 class="font-semibold text-slate-800">Próximos Eventos</h4>
-            </div>
-            <div class="divide-y divide-slate-100">
+          <Panel title="Próximos Eventos" bodyClass="p-0">
+            <div class="divide-y divide-steel-soft/60">
               {proximos.map((ev: EventoResumen) => (
                 <button
                   key={ev.id}
                   onClick={() => route('/dashboard/eventos')}
-                  class="w-full text-left px-6 py-3 hover:bg-slate-50 transition-colors"
+                  class="w-full px-6 py-3 text-left transition-colors hover:bg-ai-soft/50"
                 >
-                  <div class="flex justify-between items-center">
-                    <span class="font-medium text-slate-900">{ev.tipo}</span>
-                    <span class="text-sm text-slate-500">
-                      {new Date(ev.fecha_inicio).toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })}
+                  <div class="flex items-center justify-between">
+                    <span class="font-medium text-ink">{ev.tipo}</span>
+                    <span class="tnum text-sm text-steel">
+                      {new Date(ev.fecha_inicio).toLocaleDateString('es-AR', {
+                        day: 'numeric',
+                        month: 'short',
+                      })}
                     </span>
                   </div>
                   {ev.datos_lugar && (
-                    <p class="text-xs text-slate-400 mt-0.5">
+                    <p class="mt-0.5 text-xs text-steel">
                       {ev.datos_lugar.direccion || ''}
-                      {ev.datos_lugar.provincia ? ` - ${ev.datos_lugar.provincia}` : ''}
+                      {ev.datos_lugar.provincia
+                        ? ` - ${ev.datos_lugar.provincia}`
+                        : ''}
                     </p>
                   )}
                 </button>
               ))}
             </div>
-          </div>
+          </Panel>
         ) : null}
       </div>
     </div>

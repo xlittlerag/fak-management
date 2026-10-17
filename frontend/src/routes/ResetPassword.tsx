@@ -2,6 +2,10 @@ import { useState } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
+import { AuthLayout } from '../components/AuthLayout';
+import { Alert } from '../components/ui/Alert';
+import { Button } from '../components/ui/Button';
+import { Field, Input } from '../components/ui/Field';
 
 export default function ResetPassword() {
   const { route } = useLocation();
@@ -50,84 +54,83 @@ export default function ResetPassword() {
   };
 
   return (
-    <div class="min-h-screen flex items-center justify-center bg-slate-50 p-4">
-      <div class="max-w-md w-full bg-white rounded-lg shadow-sm border border-slate-200 p-8">
-        <h1 class="text-2xl font-bold text-slate-900 mb-2 text-center">Restablecer Contraseña</h1>
-        <p class="text-sm text-slate-500 text-center mb-6">Ingrese el código recibido por correo electrónico y su nueva contraseña.</p>
+    <AuthLayout
+      title="Restablecer contraseña"
+      subtitle="Ingrese el código recibido por correo electrónico y su nueva contraseña."
+      footer={
+        <a
+          href="/login"
+          class="font-medium text-ai underline hover:text-ai-strong"
+        >
+          Volver al inicio de sesión
+        </a>
+      }
+    >
+      {success && (
+        <Alert tone="success" class="mb-4">
+          {success}
+        </Alert>
+      )}
+      {error && (
+        <Alert tone="error" class="mb-4">
+          {error}
+        </Alert>
+      )}
 
-        {success && (
-          <div class="mb-4 p-3 bg-green-50 text-green-700 border border-green-200 rounded text-sm">
-            {success}
-          </div>
-        )}
+      <form onSubmit={handleSubmit} class="space-y-4">
+        <Field label="DNI" htmlFor="reset-dni">
+          <Input
+            id="reset-dni"
+            type="text"
+            value={dni}
+            placeholder="DNI"
+            onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
+          />
+        </Field>
 
-        {error && (
-          <div class="mb-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded text-sm">
-            {error}
-          </div>
-        )}
+        <Field label="Código de blanqueo" htmlFor="reset-codigo">
+          <Input
+            id="reset-codigo"
+            type="text"
+            value={codigo}
+            placeholder="Ej: A3B2C1"
+            class="font-mono tracking-widest"
+            onInput={(e: Event) =>
+              setCodigo((e.target as HTMLInputElement).value)
+            }
+          />
+        </Field>
 
-        <form onSubmit={handleSubmit} class="space-y-4">
-          <div>
-            <label htmlFor="reset-dni" class="block text-sm font-medium text-slate-700 mb-1">DNI</label>
-            <input
-              id="reset-dni"
-              type="text"
-              value={dni}
-              onInput={(e: Event) => setDni((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
-              placeholder="DNI"
-            />
-          </div>
+        <Field label="Nueva contraseña" htmlFor="reset-nueva-password">
+          <Input
+            id="reset-nueva-password"
+            type="password"
+            value={nuevaPassword}
+            placeholder="Mínimo 12 caracteres"
+            onInput={(e: Event) =>
+              setNuevaPassword((e.target as HTMLInputElement).value)
+            }
+          />
+        </Field>
 
-          <div>
-            <label htmlFor="reset-codigo" class="block text-sm font-medium text-slate-700 mb-1">Código de blanqueo</label>
-            <input
-              id="reset-codigo"
-              type="text"
-              value={codigo}
-              onInput={(e: Event) => setCodigo((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500 font-mono tracking-widest"
-              placeholder="Ej: A3B2C1"
-            />
-          </div>
+        <Field
+          label="Confirmar nueva contraseña"
+          htmlFor="reset-confirm-password"
+        >
+          <Input
+            id="reset-confirm-password"
+            type="password"
+            value={confirmPassword}
+            onInput={(e: Event) =>
+              setConfirmPassword((e.target as HTMLInputElement).value)
+            }
+          />
+        </Field>
 
-          <div>
-            <label htmlFor="reset-nueva-password" class="block text-sm font-medium text-slate-700 mb-1">Nueva contraseña</label>
-            <input
-              id="reset-nueva-password"
-              type="password"
-              value={nuevaPassword}
-              onInput={(e: Event) => setNuevaPassword((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
-              placeholder="Mínimo 6 caracteres"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="reset-confirm-password" class="block text-sm font-medium text-slate-700 mb-1">Confirmar nueva contraseña</label>
-            <input
-              id="reset-confirm-password"
-              type="password"
-              value={confirmPassword}
-              onInput={(e: Event) => setConfirmPassword((e.target as HTMLInputElement).value)}
-              class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            class="w-full mt-6 py-2 bg-slate-900 text-white rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'Restableciendo...' : 'Restablecer Contraseña'}
-          </button>
-        </form>
-
-        <p class="mt-6 text-center text-sm text-slate-600">
-          <a href="/login" class="text-slate-900 font-semibold underline">Volver al inicio de sesión</a>
-        </p>
-      </div>
-    </div>
+        <Button type="submit" class="mt-2 w-full" loading={loading}>
+          {loading ? 'Restableciendo...' : 'Restablecer Contraseña'}
+        </Button>
+      </form>
+    </AuthLayout>
   );
 }

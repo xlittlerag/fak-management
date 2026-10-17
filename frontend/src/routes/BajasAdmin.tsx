@@ -26,13 +26,13 @@ export default function BajasAdmin() {
 
   return (
     <div class="space-y-4">
-      <div class="flex gap-1 bg-slate-100 p-1 rounded-lg w-fit">
+      <div class="flex gap-1 bg-paper p-1 rounded-lg w-fit">
         <button onClick={() => setTab('pendientes')}
-          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'pendientes' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'pendientes' ? 'bg-surface text-ink shadow-sm' : 'text-steel hover:text-ink'}`}>
           Bajas pendientes
         </button>
         <button onClick={() => setTab('desafiliados')}
-          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'desafiliados' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'}`}>
+          class={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${tab === 'desafiliados' ? 'bg-surface text-ink shadow-sm' : 'text-steel hover:text-ink'}`}>
           Usuarios desafiliados
         </button>
       </div>
@@ -83,13 +83,13 @@ function BajasPendientes() {
   };
 
   if (loading) return <div class="p-8"><Spinner text="Cargando bajas pendientes..." /></div>;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
+  if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
-          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+          <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
             <tr>
               <th class="px-4 py-2">Usuario / DNI</th>
               <th class="px-4 py-2">Asociación</th>
@@ -98,18 +98,18 @@ function BajasPendientes() {
               <th class="px-4 py-2 text-right">Acciones</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-steel-soft/60">
             {solicitudes.length === 0 ? (
-              <tr><td colspan={5} class="px-4 py-8 text-center text-slate-500">No hay bajas pendientes de aprobación.</td></tr>
+              <tr><td colspan={5} class="px-4 py-8 text-center text-steel">No hay bajas pendientes de aprobación.</td></tr>
             ) : solicitudes.map(s => (
-              <tr key={s.id} class="hover:bg-slate-50">
-                <td class="px-4 py-2 font-medium">{s.usuario.nombre} {s.usuario.apellido}<div class="text-[10px] text-slate-400 font-mono">{s.usuario.dni}</div></td>
-                <td class="px-4 py-2 text-slate-600">{s.asociacion?.nombre || '-'}</td>
-                <td class="px-4 py-2 text-slate-600 max-w-xs truncate">{s.motivo || '-'}</td>
-                <td class="px-4 py-2 text-slate-600">{new Date(s.created_at).toLocaleDateString('es-AR')}</td>
+              <tr key={s.id} class="hover:bg-ai-soft/50">
+                <td class="px-4 py-2 font-medium">{s.usuario.nombre} {s.usuario.apellido}<div class="text-[10px] text-steel font-mono">{s.usuario.dni}</div></td>
+                <td class="px-4 py-2 text-steel">{s.asociacion?.nombre || '-'}</td>
+                <td class="px-4 py-2 text-steel max-w-xs truncate">{s.motivo || '-'}</td>
+                <td class="px-4 py-2 text-steel">{new Date(s.created_at).toLocaleDateString('es-AR')}</td>
                 <td class="px-4 py-2 text-right space-x-2">
-                  <button onClick={() => aprobar(s.id)} class="text-green-600 hover:underline font-medium">Aprobar</button>
-                  <button onClick={() => { setRechazando(s); setMotivo(''); }} class="text-red-600 hover:underline font-medium">Rechazar</button>
+                  <button onClick={() => aprobar(s.id)} class="text-success hover:underline font-medium">Aprobar</button>
+                  <button onClick={() => { setRechazando(s); setMotivo(''); }} class="text-hinomaru hover:underline font-medium">Rechazar</button>
                 </td>
               </tr>
             ))}
@@ -119,22 +119,22 @@ function BajasPendientes() {
 
       {rechazando && (
         <div class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Rechazar solicitud de baja</h3>
-            <p class="text-sm text-slate-600 mb-4">¿Desea rechazar la baja de <strong>{rechazando.usuario.nombre} {rechazando.usuario.apellido}</strong>? El socio permanecerá activo.</p>
+          <div class="bg-surface rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 class="text-lg font-bold text-ink mb-4">Rechazar solicitud de baja</h3>
+            <p class="text-sm text-steel mb-4">¿Desea rechazar la baja de <strong>{rechazando.usuario.nombre} {rechazando.usuario.apellido}</strong>? El socio permanecerá activo.</p>
             <div class="mb-4">
-              <label htmlFor="baja-motivo" class="block text-sm font-medium text-slate-700 mb-1">Motivo (opcional)</label>
+              <label htmlFor="baja-motivo" class="block text-sm font-medium text-ink mb-1">Motivo (opcional)</label>
               <textarea
                 id="baja-motivo"
                 value={motivo}
                 onInput={(e: Event) => setMotivo((e.target as HTMLTextAreaElement).value)}
                 rows={3}
-                class="w-full px-3 py-2 border border-slate-300 rounded focus:outline-none focus:ring-1 focus:ring-slate-500"
+                class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
               />
             </div>
             <div class="flex gap-3">
-              <button onClick={() => setRechazando(null)} class="w-full bg-slate-100 text-slate-700 py-2 rounded-md font-medium hover:bg-slate-200 transition-colors">Cancelar</button>
-              <button onClick={rechazar} class="w-full bg-red-600 text-white py-2 rounded-md font-medium hover:bg-red-700 transition-colors">Rechazar</button>
+              <button onClick={() => setRechazando(null)} class="w-full bg-paper text-ink py-2 rounded-md font-medium hover:bg-ai-soft transition-colors">Cancelar</button>
+              <button onClick={rechazar} class="w-full bg-hinomaru text-white py-2 rounded-md font-medium hover:bg-hinomaru/90 transition-colors">Rechazar</button>
             </div>
           </div>
         </div>
@@ -156,27 +156,27 @@ function ListaDesafiliados() {
   }, []);
 
   if (loading) return <div class="p-8"><Spinner text="Cargando usuarios desafiliados..." /></div>;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
+  if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   return (
-    <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden">
+    <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
       <div class="overflow-x-auto">
         <table class="w-full text-left border-collapse text-xs">
-          <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 uppercase font-semibold">
+          <thead class="bg-paper border-b border-steel-soft text-steel uppercase font-semibold">
             <tr>
               <th class="px-4 py-2">Usuario / DNI</th>
               <th class="px-4 py-2">Email</th>
               <th class="px-4 py-2">Última asociación</th>
             </tr>
           </thead>
-          <tbody class="divide-y divide-slate-200">
+          <tbody class="divide-y divide-steel-soft/60">
             {usuarios.length === 0 ? (
-              <tr><td colspan={3} class="px-4 py-8 text-center text-slate-500">No hay usuarios desafiliados.</td></tr>
+              <tr><td colspan={3} class="px-4 py-8 text-center text-steel">No hay usuarios desafiliados.</td></tr>
             ) : usuarios.map(u => (
-              <tr key={u.id} class="hover:bg-slate-50">
-                <td class="px-4 py-2 font-medium">{u.nombre} {u.apellido}<div class="text-[10px] text-slate-400 font-mono">{u.dni}</div></td>
-                <td class="px-4 py-2 text-slate-600">{u.email}</td>
-                <td class="px-4 py-2 text-slate-600">{u.asociacion?.nombre || '-'}</td>
+              <tr key={u.id} class="hover:bg-ai-soft/50">
+                <td class="px-4 py-2 font-medium">{u.nombre} {u.apellido}<div class="text-[10px] text-steel font-mono">{u.dni}</div></td>
+                <td class="px-4 py-2 text-steel">{u.email}</td>
+                <td class="px-4 py-2 text-steel">{u.asociacion?.nombre || '-'}</td>
               </tr>
             ))}
           </tbody>

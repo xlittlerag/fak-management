@@ -161,13 +161,13 @@ const handlePagar = async (ins: Inscripcion) => {
   }
 
   function estadoBadge(ins: Inscripcion) {
-    if (ins.pagado) return { label: 'Pagado', cls: 'bg-green-50 text-green-700' };
+    if (ins.pagado) return { label: 'Pagado', cls: 'bg-success-soft text-success' };
     const map: Record<string, { label: string; cls: string }> = {
-      PENDIENTE: { label: 'Pendiente', cls: 'bg-amber-50 text-amber-700' },
-      APROBADO: { label: 'Aprobado', cls: 'bg-green-50 text-green-700' },
-      RECHAZADO: { label: 'Rechazado', cls: 'bg-red-50 text-red-700' },
+      PENDIENTE: { label: 'Pendiente', cls: 'bg-warning-soft text-warning' },
+      APROBADO: { label: 'Aprobado', cls: 'bg-success-soft text-success' },
+      RECHAZADO: { label: 'Rechazado', cls: 'bg-hinomaru-soft text-hinomaru' },
     };
-    return map[ins.estado_aprob] || { label: ins.estado_aprob, cls: 'bg-slate-50 text-slate-700' };
+    return map[ins.estado_aprob] || { label: ins.estado_aprob, cls: 'bg-paper text-ink' };
   }
 
   if (loading) return <Spinner text="Cargando eventos..." />;
@@ -176,14 +176,14 @@ const handlePagar = async (ins: Inscripcion) => {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-slate-800">Próximos Eventos</h2>
+      <h2 class="text-lg font-semibold text-ink">Próximos Eventos</h2>
 
       {error && (
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded text-sm">{error}</div>
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>
       )}
 
       {upcoming.length === 0 ? (
-        <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 text-center text-slate-500">
+        <div class="bg-surface p-8 rounded-lg shadow-sm border border-steel-soft text-center text-steel">
           No hay eventos próximos.
         </div>
       ) : (
@@ -197,13 +197,13 @@ const handlePagar = async (ins: Inscripcion) => {
             const rangosExamen: Array<{ disciplina: string; grad_min: string; grad_max: string }> = evento.examen?.graduaciones_a_rendir || [];
 
             return (
-              <div key={evento.id} class="bg-white rounded-lg shadow-sm border border-slate-200 p-6 space-y-4">
+              <div key={evento.id} class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6 space-y-4">
                 <div class="flex justify-between items-start">
                   <div class="min-w-0">
-                    <h3 class="text-lg font-semibold text-slate-900">{evento.tipo}</h3>
-                    <p class="text-sm text-slate-500 mt-1">{formatDate(evento.fecha_inicio)}</p>
+                    <h3 class="text-lg font-semibold text-ink">{evento.tipo}</h3>
+                    <p class="text-sm text-steel mt-1">{formatDate(evento.fecha_inicio)}</p>
                     {evento.datos_lugar && (
-                      <p class="text-sm text-slate-500">
+                      <p class="text-sm text-steel">
                         {evento.datos_lugar.direccion ?? ''}
                         {evento.datos_lugar.provincia ? ` - ${evento.datos_lugar.provincia}` : ''}
                       </p>
@@ -215,7 +215,7 @@ const handlePagar = async (ins: Inscripcion) => {
                         {estadoBadge(ins).label}
                       </span>
                     )}
-                    <span class="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
+                    <span class="px-3 py-1 bg-ai-soft text-ai rounded-full text-xs font-medium">
                       {evento.tipo}
                     </span>
                   </div>
@@ -223,38 +223,38 @@ const handlePagar = async (ins: Inscripcion) => {
 
                 {evento.tipo === 'EXAMEN' && disciplinas.length > 0 && (
                   <div class="flex flex-wrap gap-1">
-                    <span class="text-xs text-slate-500 mr-1">Disciplinas:</span>
+                    <span class="text-xs text-steel mr-1">Disciplinas:</span>
                     {disciplinas.map(d => (
-                      <span class="px-2 py-0.5 bg-indigo-50 text-indigo-600 rounded text-xs">{DISCIPLINA_LABELS[d] || d}</span>
+                      <span class="px-2 py-0.5 bg-ai-soft text-ai rounded text-xs">{DISCIPLINA_LABELS[d] || d}</span>
                     ))}
                   </div>
                 )}
 
                 {evento.tipo !== 'EXAMEN' && costo > 0 && (
-                  <p class="text-sm font-medium text-slate-700">
+                  <p class="text-sm font-medium text-ink">
                     Costo: ${costo.toLocaleString('es-AR')}
                   </p>
                 )}
 
                 {infoExtra && (
-                  <p class="text-sm text-slate-600 italic">{infoExtra}</p>
+                  <p class="text-sm text-steel italic">{infoExtra}</p>
                 )}
 
                 {evento.tipo === 'TORNEO' && cats.length > 0 && (
                   <div class="flex flex-wrap gap-1">
                     {cats.map((c: CategoriaDef) => (
-                      <span class="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-xs">{c.nombre}</span>
+                      <span class="px-2 py-0.5 bg-paper text-steel rounded text-xs">{c.nombre}</span>
                     ))}
                   </div>
                 )}
 
                 {!ins ? (
-                  <div class="space-y-3 pt-2 border-t border-slate-100">
+                  <div class="space-y-3 pt-2 border-t border-steel-soft">
                     {evento.tipo === 'TORNEO' && cats.length > 0 && (
                       <div>
-                        <label class="block text-sm text-slate-600 mb-1">
+                        <label class="block text-sm text-steel mb-1">
                           Categorías
-                          {!evento.torneo?.inscripcion_multiple && <span class="text-xs text-slate-400 ml-1">(seleccione una)</span>}
+                          {!evento.torneo?.inscripcion_multiple && <span class="text-xs text-steel ml-1">(seleccione una)</span>}
                         </label>
                         <div class="space-y-1">
                           {cats.map((c: CategoriaDef) => {
@@ -286,9 +286,9 @@ const handlePagar = async (ins: Inscripcion) => {
 
                     {evento.tipo === 'EXAMEN' && (
                       <fieldset>
-                        <legend class="block text-sm text-slate-600 mb-2">
+                        <legend class="block text-sm text-steel mb-2">
                           Disciplinas a rendir
-                          <span class="text-xs text-slate-400 ml-1">(seleccione una o más)</span>
+                          <span class="text-xs text-steel ml-1">(seleccione una o más)</span>
                         </legend>
                         <div class="space-y-2">
                           {disciplinas.map((d: string) => {
@@ -303,7 +303,7 @@ const handlePagar = async (ins: Inscripcion) => {
                               : false;
 
                             return (
-                              <div class={`border rounded-lg p-3 ${selected ? 'border-blue-300 bg-blue-50' : 'border-slate-200 bg-white'}`}>
+                              <div class={`border rounded-lg p-3 ${selected ? 'border-ai/40 bg-ai-soft' : 'border-steel-soft bg-surface'}`}>
                                 <label class="flex items-start gap-3 cursor-pointer">
                                   <input type="checkbox" checked={selected}
                                     disabled={!enRango}
@@ -317,20 +317,20 @@ const handlePagar = async (ins: Inscripcion) => {
                                     }}
                                     class="w-4 h-4 mt-0.5 disabled:opacity-40" />
                                   <div class="flex-1">
-                                    <p class="text-sm font-medium text-slate-800">{DISCIPLINA_LABELS[d] || d}</p>
+                                    <p class="text-sm font-medium text-ink">{DISCIPLINA_LABELS[d] || d}</p>
                                     {nextGrad && enRango && (
                                       <div class="mt-1">
-                                        <p class="text-xs text-slate-600">
-                                          Se va a inscribir para rendir: <span class="font-semibold text-slate-800">{GRAD_LABELS[nextGrad] || nextGrad}</span>
-                                          {costoGrad !== undefined && <span class="text-slate-400"> (${costoGrad.inscripcion.toLocaleString('es-AR')})</span>}
+                                        <p class="text-xs text-steel">
+                                          Se va a inscribir para rendir: <span class="font-semibold text-ink">{GRAD_LABELS[nextGrad] || nextGrad}</span>
+                                          {costoGrad !== undefined && <span class="text-steel"> (${costoGrad.inscripcion.toLocaleString('es-AR')})</span>}
                                         </p>
                                       </div>
                                     )}
                                     {nextGrad && !enRango && (
-                                      <p class="text-xs text-amber-600 mt-1">No disponible</p>
+                                      <p class="text-xs text-warning mt-1">No disponible</p>
                                     )}
                                     {!nextGrad && (
-                                      <p class="text-xs text-amber-600 mt-1">Máxima graduación alcanzada</p>
+                                      <p class="text-xs text-warning mt-1">Máxima graduación alcanzada</p>
                                     )}
                                   </div>
                                 </label>
@@ -339,7 +339,7 @@ const handlePagar = async (ins: Inscripcion) => {
                           })}
                         </div>
                         {(selectedDisciplinas[evento.id] || []).length > 0 && (
-                          <p class="text-sm font-medium text-slate-700 mt-2">
+                          <p class="text-sm font-medium text-ink mt-2">
                             Total: ${(selectedDisciplinas[evento.id] || []).reduce((sum, d) => {
                               const gradKey = `grad_${d.toLowerCase()}` as 'grad_kendo' | 'grad_iaido' | 'grad_jodo';
                               const userGrad = user?.[gradKey] || 'SIN_GRADUACION';
@@ -348,7 +348,7 @@ const handlePagar = async (ins: Inscripcion) => {
                             }, 0).toLocaleString('es-AR')}
                           </p>
                         )}
-                        <div class="border-t border-slate-100 pt-4 space-y-3">
+                        <div class="border-t border-steel-soft pt-4 space-y-3">
                           <label class="flex items-center gap-2 cursor-pointer">
                             <input type="checkbox" checked={necesidadesEsp[evento.id] || false}
                               onChange={(e: Event) => {
@@ -360,13 +360,13 @@ const handlePagar = async (ins: Inscripcion) => {
                                 }
                               }}
                               class="w-4 h-4" />
-                            <span class="text-sm text-slate-700">Declaro tener una dificultad que requiere consideración especial</span>
+                            <span class="text-sm text-ink">Declaro tener una dificultad que requiere consideración especial</span>
                           </label>
                           {necesidadesEsp[evento.id] && (
                             <>
                               <textarea value={descNecesidades[evento.id] || ''}
                                 onInput={(e: Event) => setDescNecesidades(prev => ({ ...prev, [evento.id]: (e.target as HTMLTextAreaElement).value }))}
-                                class="w-full text-sm border-slate-300 rounded-md shadow-sm p-2" rows={2}
+                                class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2" rows={2}
                                 placeholder="Describa la dificultad (uso de accesorio no reglamentado, incapacidad para realizar un movimiento, etc.)" />
                               <FileUpload
                                 label="Certificado médico"
@@ -382,17 +382,17 @@ const handlePagar = async (ins: Inscripcion) => {
                     <button
                       onClick={() => handleInscribir(evento.id)}
                       disabled={inscribiendo[evento.id]}
-                      class="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      class="w-full bg-ai text-white py-2 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                     >
                       {inscribiendo[evento.id] ? 'Inscribiendo...' : 'Inscribirme'}
                     </button>
                   </div>
                 ) : ins.estado_aprob === 'APROBADO' && !ins.pagado ? (
-                  <div class="pt-2 border-t border-slate-100" id={`mp-checkout-ev-${ins.id}`}>
+                  <div class="pt-2 border-t border-steel-soft" id={`mp-checkout-ev-${ins.id}`}>
                     {simulatedPayment?.inscripcionId === ins.id ? (
                       <button
                         onClick={handleSimulatePayment}
-                        class="w-full bg-green-600 text-white py-2 rounded font-medium hover:bg-green-700 transition-colors text-sm"
+                        class="w-full bg-success text-white py-2 rounded font-medium hover:bg-success/90 transition-colors text-sm"
                       >
                         Pagar en modo prueba (simulado)
                       </button>
@@ -400,14 +400,14 @@ const handlePagar = async (ins: Inscripcion) => {
                       <button
                         onClick={() => handlePagar(ins)}
                         disabled={payingId === ins.id}
-                        class="w-full bg-blue-600 text-white py-2 rounded font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                        class="w-full bg-ai text-white py-2 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
                       >
                         {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
                       </button>
                     )}
                   </div>
                 ) : ins.estado_aprob === 'RECHAZADO' ? (
-                  <p class="pt-2 border-t border-slate-100 text-sm text-red-600">Su inscripción fue rechazada.</p>
+                  <p class="pt-2 border-t border-steel-soft text-sm text-hinomaru">Su inscripción fue rechazada.</p>
                 ) : null}
               </div>
             );

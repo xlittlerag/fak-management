@@ -37,7 +37,9 @@ export function FileUpload({
     }
 
     if (file.size > maxSize) {
-      setError(`El archivo excede el tamaño máximo de ${(maxSize / 1024 / 1024).toFixed(0)}MB.`);
+      setError(
+        `El archivo excede el tamaño máximo de ${(maxSize / 1024 / 1024).toFixed(0)}MB.`,
+      );
       onFileChange(null);
       (e.target as HTMLInputElement).value = '';
       return;
@@ -59,14 +61,17 @@ export function FileUpload({
   };
 
   const inputClass = compact
-    ? 'text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-slate-100 file:text-slate-700'
-    : 'block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-slate-100 file:text-slate-700 hover:file:bg-slate-200';
+    ? 'text-xs text-steel file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-ai-soft file:text-ai'
+    : 'block w-full text-sm text-steel file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-ai-soft file:text-ai hover:file:bg-ai/20';
 
   return (
     <div>
-      <label htmlFor={inputId} class={`block ${compact ? 'text-xs' : 'text-sm'} font-medium text-slate-700 mb-1`}>
+      <label
+        htmlFor={inputId}
+        class={`mb-1 block ${compact ? 'text-xs' : 'text-sm'} font-medium text-ink`}
+      >
         {label}
-        {!required && <span class="text-slate-400 font-normal"> (opcional)</span>}
+        {!required && <span class="font-normal text-steel"> (opcional)</span>}
       </label>
       <div class="flex items-center gap-2">
         <input
@@ -81,19 +86,23 @@ export function FileUpload({
           <button
             type="button"
             onClick={handleClear}
-            class="text-red-500 hover:text-red-700 text-xs font-medium"
+            class="text-xs font-medium text-hinomaru hover:text-hinomaru/80"
           >
             Quitar
           </button>
         )}
       </div>
       {currentFile && (
-        <p class="text-xs text-green-600 mt-1">Archivo seleccionado: {currentFile.name}</p>
+        <p class="mt-1 text-xs text-success">
+          Archivo seleccionado: {currentFile.name}
+        </p>
       )}
       {error && (
-        <p class="text-xs text-red-600 mt-1">{error}</p>
+        <p class="mt-1 text-xs text-hinomaru" role="alert">
+          {error}
+        </p>
       )}
-      <p class={`text-xs text-slate-400 mt-0.5`}>
+      <p class="mt-0.5 text-xs text-steel">
         Máximo {(maxSize / 1024 / 1024).toFixed(0)}MB — PDF, JPG o PNG
       </p>
     </div>

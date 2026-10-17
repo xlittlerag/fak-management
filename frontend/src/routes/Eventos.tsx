@@ -1,5 +1,9 @@
 import { useState, useEffect } from 'preact/hooks';
 import api from '../services/api';
+import { Wordmark } from '../components/ui/Wordmark';
+import { Badge } from '../components/ui/Badge';
+import { EmptyState } from '../components/ui/EmptyState';
+import { Spinner } from '../components/Spinner';
 
 interface Evento {
   id: number;
@@ -17,64 +21,96 @@ export default function Eventos() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/eventos')
-      .then(res => setEventos(res.data))
+    api
+      .get('/eventos')
+      .then((res) => setEventos(res.data))
       .catch(() => setError('Error al cargar eventos'))
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div class="p-8 text-slate-400">Cargando eventos...</div>;
-  if (error) return <div class="p-8 text-red-600">{error}</div>;
-
   return (
-    <div class="max-w-4xl mx-auto p-4 sm:p-8 space-y-6">
-      <h1 class="text-2xl font-bold text-slate-900">Próximos Eventos</h1>
-
-      {eventos.length === 0 ? (
-        <div class="bg-white p-8 rounded-lg shadow-sm border border-slate-200 text-center text-slate-500">
-          No hay eventos próximos.
+    <div class="min-h-screen bg-paper">
+      <header class="border-b border-steel-soft bg-surface">
+        <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-8">
+          <a href="/">
+            <Wordmark />
+          </a>
+          <a
+            href="/login"
+            class="text-sm font-medium text-ai underline hover:text-ai-strong"
+          >
+            Iniciar sesión
+          </a>
         </div>
-      ) : (
-        <div class="grid gap-4">
-          {eventos
-            .filter(e => new Date(e.fecha_inicio) > new Date())
-            .map(evento => (
-              <a
-                key={evento.id}
-                href={`/eventos/${evento.id}`}
-                class="block bg-white rounded-lg shadow-sm border border-slate-200 p-6 hover:shadow-md transition-shadow"
-              >
-                <div class="flex justify-between items-start gap-4">
-                  <div class="min-w-0">
-                    <h3 class="text-lg font-semibold text-slate-900">{evento.tipo}</h3>
-                    <p class="text-sm text-slate-500 mt-1">
-                      {new Date(evento.fecha_inicio).toLocaleDateString('es-AR', {
-                        day: 'numeric', month: 'long', year: 'numeric',
-                      })}
-                    </p>
-                    {evento.datos_lugar && (
-                      <p class="text-sm text-slate-500">
-                        {evento.datos_lugar.direccion || ''}
-                        {evento.datos_lugar.provincia ? ` - ${evento.datos_lugar.provincia}` : ''}
+      </header>
+
+      <main class="mx-auto max-w-4xl space-y-6 p-4 sm:p-8">
+        <h1 class="font-display text-2xl text-ink">Próximos Eventos</h1>
+
+        {loading ? (
+          <Spinner text="Cargando eventos..." />
+        ) : error ? (
+          <div class="rounded-lg border border-hinomaru/20 bg-hinomaru-soft p-8 text-hinomaru">
+            {error}
+          </div>
+        ) : eventos.length === 0 ? (
+          <div class="rounded-lg border border-steel-soft bg-surface shadow-panel">
+            <EmptyState title="No hay eventos próximos." />
+          </div>
+        ) : (
+          <div class="grid gap-4">
+            {eventos
+              .filter((e) => new Date(e.fecha_inicio) > new Date())
+              .map((evento) => {
+                const costo =
+                  evento.torneo?.costo_inscripcion ??
+                  evento.seminario?.costo_inscripcion ??
+                  0;
+                return (
+                  <a
+                    key={evento.id}
+                    href={`/eventos/${evento.id}`}
+                    class="block rounded-lg border border-steel-soft bg-surface p-6 shadow-panel transition-shadow hover:shadow-float"
+                  >
+                    <div class="flex items-start justify-between gap-4">
+                      <div class="min-w-0">
+                        <h3 class="font-display text-lg text-ink">
+                          {evento.tipo}
+                        </h3>
+                        <p class="mt-1 text-sm text-steel">
+                          {new Date(evento.fecha_inicio).toLocaleDateString(
+                            'es-AR',
+                            {
+                              day: 'numeric',
+                              month: 'long',
+                              year: 'numeric',
+                            },
+                          )}
+                        </p>
+                        {evento.datos_lugar && (
+                          <p class="text-sm text-steel">
+                            {evento.datos_lugar.direccion || ''}
+                            {evento.datos_lugar.provincia
+                              ? ` - ${evento.datos_lugar.provincia}`
+                              : ''}
+                          </p>
+                        )}
+                      </div>
+                      <Badge tone="info" class="shrink-0">
+                        {evento.tipo}
+                      </Badge>
+                    </div>
+                    {costo > 0 && (
+                      <p class="tnum mt-3 text-sm font-medium text-ink">
+                        Costo: ${costo.toLocaleString('es-AR')}
                       </p>
                     )}
-                  </div>
-                  <span class="shrink-0 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-xs font-medium">
-                    {evento.tipo}
-                  </span>
-                </div>
-                {(() => {
-                  const costo = evento.torneo?.costo_inscripcion ?? evento.seminario?.costo_inscripcion ?? 0;
-                  return costo > 0 ? (
-                    <p class="text-sm font-medium text-slate-700 mt-3">
-                      Costo: ${costo.toLocaleString('es-AR')}
-                    </p>
-                  ) : null;
-                })()}
-              </a>
-            ))}
-        </div>
-      )}
+                  </a>
+                );
+              })}
+          </div>
+        )}
+      </main>
     </div>
   );
 }
