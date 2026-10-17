@@ -462,6 +462,73 @@ describe('Eventos (e2e)', () => {
         .send({ categorias: ['1° Dan'] })
         .expect(403);
     });
+
+    // TC-13: el rango a nivel evento aplica además del de la categoría.
+    it('debería rechazar inscripción fuera del rango del evento', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'DAN_3',
+      });
+
+      const evento = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'TORNEO',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          disciplina: 'KENDO',
+          costo_inscripcion: 0,
+          grad_min: 'KYU_3',
+          grad_max: 'DAN_1',
+          categorias: [
+            { nombre: 'Abierta', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
+        });
+
+      await request(app.getHttpServer())
+        .post(`/api/eventos/${evento.body.id}/inscribir`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ categorias: ['Abierta'] })
+        .expect(403);
+    });
+
+    it('debería permitir inscripción dentro del rango del evento', async () => {
+      const admin = await createAdminGeneral(prisma, jwt);
+      const { token } = await createTestUser(prisma, jwt, {
+        estado_pago: true,
+        grad_kendo: 'DAN_1',
+      });
+
+      const evento = await request(app.getHttpServer())
+        .post('/api/eventos')
+        .set('Authorization', `Bearer ${admin.token}`)
+        .send({
+          tipo: 'TORNEO',
+          fecha_inicio: new Date(Date.now() + 86400000).toISOString(),
+          fecha_fin: new Date(
+            Date.now() + 86400000 + 9 * 3600000,
+          ).toISOString(),
+          datos_lugar: { direccion: 'Test', provincia: 'CABA' },
+          disciplina: 'KENDO',
+          costo_inscripcion: 0,
+          grad_min: 'KYU_3',
+          grad_max: 'DAN_1',
+          categorias: [
+            { nombre: 'Abierta', grad_min: 'KYU_3', grad_max: 'DAN_8' },
+          ],
+        });
+
+      await request(app.getHttpServer())
+        .post(`/api/eventos/${evento.body.id}/inscribir`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ categorias: ['Abierta'] })
+        .expect(200);
+    });
   });
 
   describe('Validación de requisitos de examen', () => {

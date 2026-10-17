@@ -1,0 +1,27 @@
+ID,Módulo,Descripción,Resultado Esperado,Resultado,Prioridad,Notas,
+TC - 01,Login,"DNI: PepitoKendoka
+ Contraseña: Test1234!","Error 400, indicando que el DNI debe ser numérico",No Pasó,Baja,"Acepta el texto sin avisar, responde 401 en vez de error de formato o que solo se aceptan numeros",
+TC - 02,Blanqueo de contraseña,Solicitar blanqueo con DNI inexistente,Mensaje específico indicando que el usuario/dni no existe,No Pasó,Baja,"Backend devuelve correctamente 404 ""Usuario no encontrado"", pero el frontend muestra un mensaje genérico (""Error al solicitar el blanqueo"") en vez de mostrar el mensaje real",
+TC - 03,Blanqueo de contraseña,Solicitar blanqueo (éxito) y luego seguir navegando en las opciones de la UI,El mensaje de éxito del blanqueo debería desaparecer al iniciar una nueva acción,No Pasó,Baja,"El mensaje de éxito anterior queda visible en pantalla, sin limpiarse",
+TC - 04,Registro de usuario,"Registro con fecha de nacimiento imposibles
+ (11/01/1111) & /(11/01/2027)","El sistema devuelve un mensaje de ""Fecha de nacimiento invalida""",No Pasó,Baja,El sistema crea el usuario con fechas de nacimiento imposibles (+100 años o fechas a las que aun no se ha llegado),
+TC - 05,Registro de usuario,"Registro de DNI invalido
+ (dnisinnumero)","El sistema devuelve un mensaje de ""Solo se aceptan numeros""",No Pasó,Baja,El sistema crea el usuario con DNI sin numeros o con letras,
+TC - 06,Registro de usuario,"Registro de numero telefonico sin numeros
+ (telefonosinnumero)","El sistema devuelve un mensaje de ""Solo se aceptan numeros""",No Pasó,Baja,El sistema crea el usuario con telefono sin numeros,
+TC - 07,Mis Certificados,Fecha de graduacion,El sistema deberia dejar ingresar la fecha de graduacion del usuario,No paso,Alta,"El sistema toma como fecha de graduacion la fecha en la que se subio el archivo, sin contemplar si el grado se obtuvo en fechas anteriores, por lo que no deja anotarse en ciertos eventos/examenes",Preguntar a Fran si esto se ve o aplica en otra parte
+TC - 08,"Eventos
+ (Examen)",Inscribirme a un examen de segundo Dan siendo un grado mayor (Falta de aprobacion de grado por parte de un administrador),"El sistema devuelve un mensaje de ""No es posible inscribirse a esta instancia o Grado pendiente de aprobacion""",No Pasó,Media,"El sistema deja inscribirse a un examen de grado menor (2 Dan) siendo un grado mayor (3 Dan)
+ 
+"," NOTA: Esto solo pasa si el administrador general no ha confirmado el grado permanente de 3 Dan, es decir, debe tener aceptado el grado por dos administradores (Admin General y Admin de Asociacion). Lo anoto de todas formas por que  a lo mejor puede llegar a generar alguna confusión si se olvida o se pasa de aceptar algun grado"
+TC - 09,"Eventos
+ (Examen)",Graduacion de eventos (Iaido y Jodo),El sistema permite poner un grado (Desde y hasta),No Pasó,Alta,"El sistema permite ingresar un limite de graduaciones, pero al crear el evento se setean nuevamente en 3 kyu y 8vo dan respectivamente (Solo pasa con Iaido y Jodo)",
+TC - 10,"Eventos
+ (Examen)",Graduacion a rendir (Iaido y Jodo),El sistema muestra el grado a rendir del participante,No Pasó,Alta,El sistema muestra a todos los participantes en 3 Kyu independientemente de su grado (Solo pasa con Iaido y Jodo),
+TC - 11,"Eventos
+ (Torneo - Fecha Limite)","Fecha Limite (1/10/2026)
+ Fecha Real (2/10/2026)",El sistema deberia dejar inscribirse en el dia limite,No Pasó,Alta,El sistema envia un mensaje de que la fecha limite ya vencio,
+TC - 12,"Eventos
+ (Torneo - Fecha Limite)","Al guardar/editar un evento, verificar si las fechas límite coinciden con las ingresadas",Las fechas guardadas deben ser exactamente las ingresadas,No Pasó,Alta,Se detectó que las fechas límite suman +1 día al crear evento y tambien al guardar cambios,
+TC - 13,"Eventos
+ (Torneo)",Configurar Grad. Mínima/Máxima a nivel evento (arriba) distinto al de la categoría (abajo),,No Pasó,Media,"El sistema permite ingresar grados diferentes en las diferentes areas, pero solo toma en cuenta los grados de la categoria",Preguntar a Fran si la seccion de grados de arriba esta para algo mas

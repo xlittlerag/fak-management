@@ -117,6 +117,75 @@ describe('Auth (e2e)', () => {
         expect.arrayContaining([expect.stringMatching(/obligatorio/)]),
       );
     });
+
+    // TC-04: fechas de nacimiento imposibles.
+    it.each(['2027-01-11', '1111-01-11'])(
+      'debería rechazar registro con fecha de nacimiento %s',
+      async (fecha) => {
+        const assoc = await prisma.asociacion.create({
+          data: { nombre: 'Test Assoc' },
+        });
+        const dojo = await prisma.dojo.create({
+          data: { nombre: 'Test Dojo', asociacion_id: assoc.id },
+        });
+
+        const response = await request(app.getHttpServer())
+          .post('/api/auth/register')
+          .send({
+            nombre: 'X',
+            apellido: 'Y',
+            email: `tc04-${Date.now()}@example.com`,
+            password: 'Password123!',
+            dni: `${Date.now() % 90000000}`,
+            fecha_nacimiento: fecha,
+            sexo: 'MASCULINO',
+            asociacion_id: assoc.id,
+            dojo_id: dojo.id,
+            calle_altura: 'Calle 123',
+            ciudad: 'Ciudad',
+            provincia: 'BUENOS_AIRES',
+            codigo_postal: '1234',
+            telefono: '1199999999',
+          })
+          .expect(400);
+
+        expect(JSON.stringify(response.body.message)).toMatch(
+          /fecha de nacimiento/i,
+        );
+      },
+    );
+
+    // TC-06: teléfono con letras.
+    it('debería rechazar registro con teléfono sin números', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test Assoc' },
+      });
+      const dojo = await prisma.dojo.create({
+        data: { nombre: 'Test Dojo', asociacion_id: assoc.id },
+      });
+
+      const response = await request(app.getHttpServer())
+        .post('/api/auth/register')
+        .send({
+          nombre: 'X',
+          apellido: 'Y',
+          email: `tc06-${Date.now()}@example.com`,
+          password: 'Password123!',
+          dni: `${Date.now() % 90000000}`,
+          fecha_nacimiento: '1990-01-01',
+          sexo: 'MASCULINO',
+          asociacion_id: assoc.id,
+          dojo_id: dojo.id,
+          calle_altura: 'Calle 123',
+          ciudad: 'Ciudad',
+          provincia: 'BUENOS_AIRES',
+          codigo_postal: '1234',
+          telefono: 'telefonosinnumero',
+        })
+        .expect(400);
+
+      expect(JSON.stringify(response.body.message)).toMatch(/teléfono/i);
+    });
   });
 
   describe('POST /auth/login', () => {

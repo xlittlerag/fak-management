@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsEnum,
   IsOptional,
+  Matches,
   MaxLength,
   MinLength,
 } from 'class-validator';
@@ -71,5 +72,9 @@ export class RegisterUserDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[0-9+\-\s().]+$/, {
+    message:
+      'El teléfono solo puede contener números, espacios y los símbolos + - ( ) .',
+  })
   telefono: string;
 }

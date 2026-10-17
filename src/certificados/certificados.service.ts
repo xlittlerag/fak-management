@@ -11,6 +11,7 @@ import { AuthUser } from '../common/interfaces/auth-user.interface';
 import { CreateCertificadoDto } from './dto/create-certificado.dto';
 import { FilesService } from '../files/files.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { validarFechaObtencion } from '../utils/validar-fecha';
 
 @Injectable()
 export class CertificadosService {
@@ -27,6 +28,11 @@ export class CertificadosService {
     dto: CreateCertificadoDto,
     user: AuthUser,
   ) {
+    // TC-07: el grado puede haberse obtenido antes de subir el archivo.
+    // Se valida antes de subir para no dejar archivos huérfanos en un 400.
+    const fechaObtencion = dto.fecha_obtencion
+      ? validarFechaObtencion(dto.fecha_obtencion)
+      : null;
     const url_archivo = await this.filesService.upload(file);
     return this.prisma.certificadoExterno.create({
       data: {
@@ -35,6 +41,7 @@ export class CertificadosService {
         disciplina: dto.disciplina as Disciplina,
         grad_solicitada: dto.grad_solicitada as Graduacion,
         estado: 'PENDIENTE',
+        fecha_obtencion: fechaObtencion,
       },
       select: {
         id: true,
@@ -42,6 +49,7 @@ export class CertificadosService {
         disciplina: true,
         grad_solicitada: true,
         estado: true,
+        fecha_obtencion: true,
         created_at: true,
       },
     });
@@ -123,11 +131,14 @@ export class CertificadosService {
         where: { id },
         data: { estado: 'APROBADO' },
       });
+      // TC-07: la graduación se registra con la fecha real de obtención
+      // informada al cargar el certificado, no con la fecha de aprobación.
+      const fechaGrado = cert.fecha_obtencion ?? new Date();
       await tx.usuario.update({
         where: { id: cert.usuario_id },
         data: {
           [field]: cert.grad_solicitada,
-          [dateField]: new Date(),
+          [dateField]: fechaGrado,
         },
       });
       await tx.historialGraduacion.create({
@@ -135,7 +146,7 @@ export class CertificadosService {
           usuario_id: cert.usuario_id,
           disciplina: cert.disciplina,
           graduacion: cert.grad_solicitada,
-          fecha_obtencion: new Date(),
+          fecha_obtencion: fechaGrado,
           otorgado_por: `Certificación externa #${cert.id}`,
         },
       });

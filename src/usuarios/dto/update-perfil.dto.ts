@@ -4,6 +4,7 @@ import {
   IsNotEmpty,
   IsDateString,
   IsEnum,
+  Matches,
   MinLength,
   MaxLength,
   IsEmail,
@@ -63,6 +64,10 @@ export class UpdatePerfilDto {
 
   @IsString()
   @IsNotEmpty()
+  @Matches(/^[0-9+\-\s().]+$/, {
+    message:
+      'El teléfono solo puede contener números, espacios y los símbolos + - ( ) .',
+  })
   telefono: string;
 
   @IsString()

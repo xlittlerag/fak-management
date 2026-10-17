@@ -15,6 +15,7 @@ import { RegisterUserDto } from './dto/register-user.dto';
 import { LoginDto } from './dto/login.dto';
 import { EstadoRegistro } from '@prisma/client';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { validarFechaNacimiento } from '../utils/validar-fecha';
 import { randomInt } from 'crypto';
 
 // Alfabeto sin caracteres ambiguos (0/O, 1/I) para códigos de blanqueo.
@@ -132,6 +133,9 @@ export class AuthService {
   }
 
   async register(dto: RegisterUserDto) {
+    // TC-04: rechazar fechas imposibles (futuras o hace más de 120 años).
+    const fechaNacimiento = validarFechaNacimiento(dto.fecha_nacimiento);
+
     const blacklisted = await this.prisma.dniBlacklist.findUnique({
       where: { dni: dto.dni },
     });
@@ -162,7 +166,7 @@ export class AuthService {
         nombre: dto.nombre,
         apellido: dto.apellido,
         dni: dto.dni,
-        fecha_nacimiento: new Date(dto.fecha_nacimiento),
+        fecha_nacimiento: fechaNacimiento,
         sexo: dto.sexo,
         calle_altura: dto.calle_altura,
         piso_depto: dto.piso_depto,

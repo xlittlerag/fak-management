@@ -86,6 +86,9 @@ model CertificadoExterno {
   disciplina      Disciplina
   grad_solicitada Graduacion
   estado          EstadoSolicitud @default(PENDIENTE)
+  // Fecha real de obtención del grado (TC-07): la informa el usuario al
+  // cargar el certificado; si no la indica se usa la fecha de aprobación.
+  fecha_obtencion DateTime?
   created_at      DateTime        @default(now())
   usuario         Usuario         @relation(fields: [usuario_id], references: [id])
 }

@@ -241,6 +241,62 @@ describe('Certificados (e2e)', () => {
       expect(history[0].graduacion).toBe('DAN_1');
     });
 
+    // TC-07: la graduación se registra con la fecha real de obtención.
+    it('debería usar la fecha de obtención informada al aprobar', async () => {
+      const assoc = await prisma.asociacion.create({
+        data: { nombre: 'Test' },
+      });
+      const user = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        grad_kendo: 'KYU_1',
+      });
+      const adminAssoc = await createTestUser(prisma, jwt, {
+        asociacion_id: assoc.id,
+        rol: 'ADMIN_ASOCIACION',
+      });
+      const adminGen = await createAdminGeneral(prisma, jwt);
+
+      const certRes = await request(app.getHttpServer())
+        .post('/api/certificados')
+        .set('Authorization', `Bearer ${user.token}`)
+        .attach('file', testPdfBuffer('t.pdf'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1')
+        .field('fecha_obtencion', '2020-05-10');
+
+      expect(certRes.status).toBe(201);
+
+      await request(app.getHttpServer())
+        .patch(`/api/certificados/${certRes.body.id}/aprobar-asociacion`)
+        .set('Authorization', `Bearer ${adminAssoc.token}`)
+        .expect(200);
+
+      await request(app.getHttpServer())
+        .patch(`/api/certificados/${certRes.body.id}/aprobar-general`)
+        .set('Authorization', `Bearer ${adminGen.token}`)
+        .expect(200);
+
+      const updatedUser = await prisma.usuario.findUnique({
+        where: { id: user.user.id },
+      });
+      expect(updatedUser?.grad_kendo).toBe('DAN_1');
+      expect(updatedUser?.f_grad_kendo?.toISOString().slice(0, 10)).toBe(
+        '2020-05-10',
+      );
+    });
+
+    it('debería rechazar fecha de obtención futura', async () => {
+      const { token } = await createTestUser(prisma, jwt);
+      const res = await request(app.getHttpServer())
+        .post('/api/certificados')
+        .set('Authorization', `Bearer ${token}`)
+        .attach('file', testPdfBuffer('t.pdf'), 't.pdf')
+        .field('disciplina', 'KENDO')
+        .field('grad_solicitada', 'DAN_1')
+        .field('fecha_obtencion', '2999-01-01');
+      expect(res.status).toBe(400);
+    });
+
     it('debería rechazar si no está APROBADO_ASOCIACION', async () => {
       const user = await createTestUser(prisma, jwt);
       const adminGen = await createAdminGeneral(prisma, jwt);

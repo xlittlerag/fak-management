@@ -1101,10 +1101,9 @@ export class EventosService {
       grad_min: string | null;
       grad_max: string | null;
     };
-    const disciplina = torneo.disciplina;
 
     const catsDef = torneo.categorias;
-    if (catsDef && Array.isArray(catsDef)) {
+    if (catsDef && Array.isArray(catsDef) && catsDef.length > 0) {
       for (const catName of categoriasArray) {
         const cat = (catsDef as CategoriaDef[]).find(
           (c) => c.nombre === catName,
@@ -1116,26 +1115,52 @@ export class EventosService {
         }
         this.validarCategoria(cat, usuario);
       }
+      // TC-13: el rango a nivel evento (si está configurado) aplica como
+      // requisito adicional al de cada categoría, no se ignora.
+      this.validarRangoEvento(torneo, usuario);
       return;
     }
 
-    if (disciplina && categoriasArray.length > 0) {
-      const gradKey =
-        `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
-      const userGrad = usuario[gradKey] as string;
-      const gradMin = torneo.grad_min;
-      const gradMax = torneo.grad_max;
+    if (categoriasArray.length > 0) {
+      this.validarRangoEvento(torneo, usuario);
+    }
+  }
 
-      if (gradMin && rankGrad(userGrad) < rankGrad(gradMin)) {
-        throw new ForbiddenException(
-          `Su graduación actual no cumple con el requisito mínimo (${gradMin})`,
-        );
-      }
-      if (gradMax && rankGrad(userGrad) > rankGrad(gradMax)) {
-        throw new ForbiddenException(
-          `Su graduación actual supera el máximo permitido (${gradMax})`,
-        );
-      }
+  /**
+   * Requisito de graduación a nivel evento (Grad. mínima/máxima del torneo).
+   * No hace nada si el evento no configuró rango.
+   */
+  private validarRangoEvento(
+    torneo: {
+      disciplina: string;
+      grad_min: string | null;
+      grad_max: string | null;
+    },
+    usuario: {
+      sexo: string;
+      fecha_nacimiento: Date;
+      grad_kendo?: string | null;
+      grad_iaido?: string | null;
+      grad_jodo?: string | null;
+    },
+  ) {
+    const gradMin = torneo.grad_min;
+    const gradMax = torneo.grad_max;
+    if (!gradMin && !gradMax) return;
+
+    const disciplina = torneo.disciplina || 'KENDO';
+    const gradKey = `grad_${disciplina.toLowerCase()}` as keyof typeof usuario;
+    const userGrad = usuario[gradKey] as string;
+
+    if (gradMin && rankGrad(userGrad) < rankGrad(gradMin)) {
+      throw new ForbiddenException(
+        `Su graduación actual no cumple con el requisito mínimo del evento (${gradMin})`,
+      );
+    }
+    if (gradMax && rankGrad(userGrad) > rankGrad(gradMax)) {
+      throw new ForbiddenException(
+        `Su graduación actual supera el máximo permitido por el evento (${gradMax})`,
+      );
     }
   }
 

@@ -16,6 +16,7 @@ import {
 } from './dto/update-aprobacion.dto';
 import { UpdatePerfilDto } from './dto/update-perfil.dto';
 import { UpdateGraduacionDto } from './dto/update-graduacion.dto';
+import { validarFechaNacimiento } from '../utils/validar-fecha';
 
 const GraduacionInputMap: Record<string, Graduacion> = {
   SIN_GRADUACION: 'SIN_GRADUACION',
@@ -107,7 +108,8 @@ export class UsuariosService {
       data.password = await this.passwords.hash(data.password);
     }
     if (dto.fecha_nacimiento) {
-      data.fecha_nacimiento = new Date(dto.fecha_nacimiento);
+      // TC-04: rechazar fechas imposibles también al editar el perfil.
+      data.fecha_nacimiento = validarFechaNacimiento(dto.fecha_nacimiento);
     }
 
     try {
