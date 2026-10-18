@@ -1,17 +1,29 @@
-import { LocationProvider, Router, Route, useLocation } from 'preact-iso';
+import { LocationProvider, Router, Route, useLocation, lazy } from 'preact-iso';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { useEffect } from 'preact/hooks';
-import Login from './routes/Login';
-import AdminLogin from './routes/AdminLogin';
-import Register from './routes/Register';
-import Dashboard from './routes/Dashboard';
-import Eventos from './routes/Eventos';
-import EventoDetalle from './routes/EventoDetalle';
-import PagoExito from './routes/PagoExito';
-import PagoPendiente from './routes/PagoPendiente';
-import PagoError from './routes/PagoError';
-import ResetPassword from './routes/ResetPassword';
-import NotFound from './routes/_404';
+import { Spinner } from './components/Spinner';
+
+// Rutas cargadas on-demand: cada página viaja en su propio chunk en lugar de
+// incluirse todas en el bundle inicial.
+const Login = lazy(() => import('./routes/Login'));
+const AdminLogin = lazy(() => import('./routes/AdminLogin'));
+const Register = lazy(() => import('./routes/Register'));
+const Dashboard = lazy(() => import('./routes/Dashboard'));
+const Eventos = lazy(() => import('./routes/Eventos'));
+const EventoDetalle = lazy(() => import('./routes/EventoDetalle'));
+const PagoExito = lazy(() => import('./routes/PagoExito'));
+const PagoPendiente = lazy(() => import('./routes/PagoPendiente'));
+const PagoError = lazy(() => import('./routes/PagoError'));
+const ResetPassword = lazy(() => import('./routes/ResetPassword'));
+const NotFound = lazy(() => import('./routes/_404'));
+
+function RouteFallback() {
+  return (
+    <div class="flex min-h-screen items-center justify-center bg-paper">
+      <Spinner text="Cargando…" />
+    </div>
+  );
+}
 
 function AppContent() {
   const { checkAuth } = useAuth();
@@ -50,3 +62,5 @@ export function App() {
     </AuthProvider>
   );
 }
+
+export { RouteFallback };

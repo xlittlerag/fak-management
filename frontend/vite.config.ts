@@ -20,4 +20,15 @@ export default defineConfig({
         ]
       : []),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Separa dependencias de node_modules en un chunk vendor con mejor
+        // cacheabilidad (cambian con menos frecuencia que el código propio).
+        manualChunks(id) {
+          if (id.includes('node_modules')) return 'vendor';
+        },
+      },
+    },
+  },
 });

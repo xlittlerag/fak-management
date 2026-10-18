@@ -1,33 +1,39 @@
 import { useState, useEffect } from 'preact/hooks';
-import { useLocation } from 'preact-iso';
+import { useLocation, lazy } from 'preact-iso';
+import { Suspense } from 'preact/compat';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import type { EventoResumen } from '../types';
-import Asociaciones from './Asociaciones';
-import Usuarios from './Usuarios';
-import Perfil from './Perfil';
-import EventosAdmin from './EventosAdmin';
-import InscripcionesAdmin from './InscripcionesAdmin';
-import MisInscripciones from './MisInscripciones';
-import EventosDashboard from './EventosDashboard';
-import Certificados from './Certificados';
-import CertificadosPendientesAdmin from './CertificadosPendientesAdmin';
-import DiplomasAdmin from './DiplomasAdmin';
-import AuditoriaAdmin from './AuditoriaAdmin';
-import AdminConfig from './AdminConfig';
-import Reimpresiones from './Reimpresiones';
-import MisDiplomas from './MisDiplomas';
-import Afiliacion from './Afiliacion';
-import AfiliacionesAdmin from './AfiliacionesAdmin';
-import BajasAdmin from './BajasAdmin';
-import Mesas from './Mesas';
-import Admin2FA from './Admin2FA';
 import { Wordmark } from '../components/ui/Wordmark';
 import { Panel } from '../components/ui/Panel';
 import { Button } from '../components/ui/Button';
 import { Badge } from '../components/ui/Badge';
 import { Alert } from '../components/ui/Alert';
+
+// Páginas del dashboard cargadas on-demand: cada sección es un chunk aparte,
+// así el usuario sólo descarga lo que visita.
+const Asociaciones = lazy(() => import('./Asociaciones'));
+const Usuarios = lazy(() => import('./Usuarios'));
+const Perfil = lazy(() => import('./Perfil'));
+const EventosAdmin = lazy(() => import('./EventosAdmin'));
+const InscripcionesAdmin = lazy(() => import('./InscripcionesAdmin'));
+const MisInscripciones = lazy(() => import('./MisInscripciones'));
+const EventosDashboard = lazy(() => import('./EventosDashboard'));
+const Certificados = lazy(() => import('./Certificados'));
+const CertificadosPendientesAdmin = lazy(
+  () => import('./CertificadosPendientesAdmin'),
+);
+const DiplomasAdmin = lazy(() => import('./DiplomasAdmin'));
+const AuditoriaAdmin = lazy(() => import('./AuditoriaAdmin'));
+const AdminConfig = lazy(() => import('./AdminConfig'));
+const Reimpresiones = lazy(() => import('./Reimpresiones'));
+const MisDiplomas = lazy(() => import('./MisDiplomas'));
+const Afiliacion = lazy(() => import('./Afiliacion'));
+const AfiliacionesAdmin = lazy(() => import('./AfiliacionesAdmin'));
+const BajasAdmin = lazy(() => import('./BajasAdmin'));
+const Mesas = lazy(() => import('./Mesas'));
+const Admin2FA = lazy(() => import('./Admin2FA'));
 
 interface CuotaData {
   monto_actual: number | null;
@@ -382,28 +388,30 @@ export default function Dashboard() {
         </header>
 
         <div class="p-4 sm:p-8">
-          {path === '/dashboard' && <DashboardHome />}
-          {path === '/dashboard/perfil' && <Perfil />}
-          {path === '/dashboard/afiliacion' && <Afiliacion />}
-          {path === '/dashboard/afiliaciones' && <AfiliacionesAdmin />}
-          {path === '/dashboard/bajas' && <BajasAdmin />}
-          {path === '/dashboard/usuarios' && <Usuarios />}
-          {path === '/dashboard/eventos' && <EventosDashboard />}
-          {path === '/dashboard/mis-inscripciones' && <MisInscripciones />}
-          {path === '/dashboard/inscripciones' && <InscripcionesAdmin />}
-          {path === '/dashboard/admin/config' && <AdminConfig />}
-          {path === '/dashboard/eventos-admin' && <EventosAdmin />}
-          {path === '/dashboard/certificados' && <Certificados />}
-          {path === '/dashboard/certificados-pendientes' && (
-            <CertificadosPendientesAdmin />
-          )}
-          {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
-          {path === '/dashboard/reimpresiones' && <Reimpresiones />}
-          {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
-          {path === '/dashboard/asociaciones' && <Asociaciones />}
-          {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
-          {path === '/dashboard/seguridad' && <Admin2FA />}
-          {path === '/dashboard/mesas' && <Mesas />}
+          <Suspense fallback={<p class="text-steel">Cargando…</p>}>
+            {path === '/dashboard' && <DashboardHome />}
+            {path === '/dashboard/perfil' && <Perfil />}
+            {path === '/dashboard/afiliacion' && <Afiliacion />}
+            {path === '/dashboard/afiliaciones' && <AfiliacionesAdmin />}
+            {path === '/dashboard/bajas' && <BajasAdmin />}
+            {path === '/dashboard/usuarios' && <Usuarios />}
+            {path === '/dashboard/eventos' && <EventosDashboard />}
+            {path === '/dashboard/mis-inscripciones' && <MisInscripciones />}
+            {path === '/dashboard/inscripciones' && <InscripcionesAdmin />}
+            {path === '/dashboard/admin/config' && <AdminConfig />}
+            {path === '/dashboard/eventos-admin' && <EventosAdmin />}
+            {path === '/dashboard/certificados' && <Certificados />}
+            {path === '/dashboard/certificados-pendientes' && (
+              <CertificadosPendientesAdmin />
+            )}
+            {path === '/dashboard/diplomas-admin' && <DiplomasAdmin />}
+            {path === '/dashboard/reimpresiones' && <Reimpresiones />}
+            {path === '/dashboard/mis-diplomas' && <MisDiplomas />}
+            {path === '/dashboard/asociaciones' && <Asociaciones />}
+            {path === '/dashboard/auditoria' && <AuditoriaAdmin />}
+            {path === '/dashboard/seguridad' && <Admin2FA />}
+            {path === '/dashboard/mesas' && <Mesas />}
+          </Suspense>
         </div>
       </main>
     </div>
