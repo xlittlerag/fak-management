@@ -145,8 +145,8 @@ Adecuado para el volumen actual de la Federación Argentina de Kendo.
 | **Hostinger**    | VPS KVM 1     | 2 vCPU, 4 GB RAM, 50 GB SSD | ~$9              | Sin data center en Sudamérica. Precio promocional.   |
 
 > **Recomendación:** DigitalOcean Droplet de $12/mes en São Paulo (saque un
-> snapshot semanal como backup adicional). Instalar aplicación Node.js con PM2
-> + nginx como proxy reverso y servidor de estáticos.
+> snapshot semanal como backup adicional). Instalar la aplicación Node.js con
+> PM2 y nginx como proxy reverso y servidor de estáticos.
 
 ---
 
@@ -156,13 +156,13 @@ Con SQLite no se necesita base de datos administrada. Todo corre en un solo
 VPS. Si en el futuro se requiere PostgreSQL por escala, se puede migrar sin
 cambios en la aplicación.
 
-| Recurso                           | Servicio                                         | Especificación              | Costo estimado (USD/mes) |
-| --------------------------------- | ------------------------------------------------- | --------------------------- | ------------------------ |
-| Servidor de aplicación + frontend | VPS                                              | 2 vCPU, 2 GB RAM, 40 GB SSD | ~12                      |
-| Base de datos                     | SQLite (incluido, sin servidor separado)          | —                           | $0                       |
-| SSL                               | Let's Encrypt (gratuito)                         | —                           | $0                       |
-| Backups                           | Copia del archivo `dev.db` + snapshots del VPS   | —                           | incluido                 |
-| **Total estimado**                |                                                  |                             | **~12 USD/mes**          |
+| Recurso                           | Servicio                                       | Especificación              | Costo estimado (USD/mes) |
+| --------------------------------- | ---------------------------------------------- | --------------------------- | ------------------------ |
+| Servidor de aplicación + frontend | VPS                                            | 2 vCPU, 2 GB RAM, 40 GB SSD | ~12                      |
+| Base de datos                     | SQLite (incluido, sin servidor separado)       | —                           | $0                       |
+| SSL                               | Let's Encrypt (gratuito)                       | —                           | $0                       |
+| Backups                           | Copia del archivo `dev.db` + snapshots del VPS | —                           | incluido                 |
+| **Total estimado**                |                                                |                             | **~12 USD/mes**          |
 
 ---
 
@@ -345,7 +345,7 @@ podman restart kendo-app
 - [ ] Podman instalado
 - [ ] `JWT_SECRET` generado (`openssl rand -hex 64`)
 - [ ] `TOTP_ENCRYPTION_KEY` generado (`openssl rand -hex 32`) y guardado junto al resto de secretos — si se pierde o cambia, los secretos 2FA guardados quedan ilegibles y hay que resetear el 2FA por SQL (ver `docs/iteraciones/16-2fa-admin.md`)
-- [ ] `DATABASE_URL` configurada (usar `file:devdb`, ver § Nota sobre Prisma 7.8)
+- [ ] `DATABASE_URL` configurada (usar `file:devdb`, ver § Nota sobre Prisma 7.x SQLite URL)
 - [ ] `MERCADO_PAGO_ACCESS_TOKEN` configurado
 - [ ] `VITE_MERCADO_PAGO_PUBLIC_KEY` configurado como build-arg
 - [ ] Contenedor construido y corriendo con `--restart always`
@@ -359,9 +359,11 @@ podman restart kendo-app
 - [ ] Prueba de restauración de backup exitosa
 - [ ] Firewall configurado (solo puertos 22, 80, 443)
 
-### Nota sobre Prisma 7.8 SQLite URL
+### Nota sobre Prisma 7.x SQLite URL
 
-Prisma 7.8 rechaza los caracteres `.` y `/` en el path de conexión SQLite. Por
-eso `DATABASE_URL` debe usar un nombre simple: `file:devdb` en vez de
-`file:./dev.db`. El runtime de la aplicación acepta ambos formatos, pero
-`prisma db push` requiere el formato sin puntos ni barras.
+Prisma 7.x rechaza los caracteres `.` y `/` en el path de conexión SQLite
+cuando se usa `prisma.config.ts`. Por eso `DATABASE_URL` debe usar un nombre
+simple: `file:devdb` en vez de `file:./dev.db`. El runtime de la aplicación
+acepta ambos formatos, pero `prisma db push` requiere el formato sin puntos ni
+barras (ver
+[`iteraciones/09-infraestructura-ci.md`](./iteraciones/09-infraestructura-ci.md)).
