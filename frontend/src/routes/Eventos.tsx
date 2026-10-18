@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
-import api from '../services/api';
+import { apiGet } from '../services/api';
 import { Wordmark } from '../components/ui/Wordmark';
 import { Badge } from '../components/ui/Badge';
 import { EmptyState } from '../components/ui/EmptyState';
@@ -21,9 +21,8 @@ export default function Eventos() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api
-      .get('/eventos')
-      .then((res) => setEventos(res.data))
+    apiGet<Evento[]>('/eventos')
+      .then(setEventos)
       .catch(() => setError('Error al cargar eventos'))
       .finally(() => setLoading(false));
   }, []);

@@ -4,6 +4,7 @@ import { ValidationPipe, BadRequestException } from '@nestjs/common';
 import { Logger } from 'nestjs-pino';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
+import compression from 'compression';
 import { corsOrigins } from './utils/cors-origins';
 import { validationMessages } from './utils/validation-messages';
 import { GlobalExceptionFilter } from './common/http-exception.filter';
@@ -27,6 +28,8 @@ async function bootstrap() {
     }),
   );
   app.use(cookieParser());
+  // Compresión gzip de respuestas (JSON de la API y assets del frontend).
+  app.use(compression());
   // Cabeceras de seguridad. Sin CORP (el frontend dev corre en otro origen)
   // y con CSP que permite el SDK de Mercado Pago; los uploads se sirven
   // como adjunto así que no necesitan ejecutarse en el origen.

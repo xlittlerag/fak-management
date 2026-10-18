@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { Spinner } from '../components/Spinner';
 import { useLocation } from 'preact-iso';
-import api from '../services/api';
+import api, { apiGet } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { FileUpload } from '../components/FileUpload';
 import { getErrorMessage } from '../lib/error';
@@ -80,25 +80,25 @@ export default function EventoDetalle() {
 
   useEffect(() => {
     Promise.all([
-      api.get(`/eventos/${eventoId}`),
-      user ? api.get('/mis-inscripciones') : Promise.resolve({ data: [] }),
-      api.get('/precios-examen'),
+      api.get(`/eventos/${eventoId}`).then((r) => r.data),
+      user
+        ? apiGet<InscripcionResumen[]>('/mis-inscripciones')
+        : Promise.resolve([] as InscripcionResumen[]),
+      apiGet<
+        Array<{
+          graduacion: string;
+          costo_inscripcion: number;
+          costo_registro: number;
+        }>
+      >('/precios-examen'),
     ])
-      .then(([evRes, insRes, pxRes]) => {
-        setEvento(evRes.data);
-        const found = insRes.data.find(
-          (i: InscripcionResumen) => i.evento_id === eventoId,
-        );
+      .then(([eventoData, inscripciones, precios]) => {
+        setEvento(eventoData);
+        const found = inscripciones.find((i) => i.evento_id === eventoId);
         if (found) setInscripcion(found);
         const pxMap: Record<string, { inscripcion: number; registro: number }> =
           {};
-        (
-          pxRes.data as Array<{
-            graduacion: string;
-            costo_inscripcion: number;
-            costo_registro: number;
-          }>
-        ).forEach((p) => {
+        precios.forEach((p) => {
           pxMap[p.graduacion] = {
             inscripcion: p.costo_inscripcion,
             registro: p.costo_registro,

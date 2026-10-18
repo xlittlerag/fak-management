@@ -2,7 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { useLocation, lazy } from 'preact-iso';
 import { Suspense } from 'preact/compat';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import api, { apiGet } from '../services/api';
 import { getErrorMessage } from '../lib/error';
 import type { EventoResumen } from '../types';
 import { Wordmark } from '../components/ui/Wordmark';
@@ -432,21 +432,14 @@ function DashboardHome() {
   } | null>(null);
 
   useEffect(() => {
-    const ac = new AbortController();
-    api
-      .get('/eventos', { signal: ac.signal })
-      .then((res) =>
+    apiGet<EventoResumen[]>('/eventos')
+      .then((data) =>
         setProximos(
-          res.data
-            .filter((e: EventoResumen) => new Date(e.fecha_inicio) > new Date())
-            .slice(0, 5),
+          data.filter((e) => new Date(e.fecha_inicio) > new Date()).slice(0, 5),
         ),
       )
       .catch(() => {})
-      .finally(() => {
-        if (!ac.signal.aborted) setLoadingProximos(false);
-      });
-    return () => ac.abort();
+      .finally(() => setLoadingProximos(false));
   }, []);
 
   useEffect(() => {
