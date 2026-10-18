@@ -80,6 +80,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 18** — CI/CD y empaquetado: job lint, imagen GHCR (`latest`, `sha-*`, `v*`), scan Trivy, artefactos Playwright, `compose.yml` con healthcheck, labels OCI, `deploy.env.example`, versión 1.0.0 + CHANGELOG — see `docs/iteraciones/18-cicd-empaquetado.md`
 - **Iteración 19** — Correcciones de QA (planilla Test C Kendo): validación de fecha de nacimiento y teléfono, fecha de obtención en certificados, fix +1 día en fechas de evento, rango a nivel evento como requisito adicional; TC-01/02/05/08/09/10 documentados como comportamiento esperado — see `docs/iteraciones/19-correcciones-qa.md`
 - **Iteración 20** — Rediseño de frontend (ai-zome & shiaijo): identidad "Kendo Argentina" (tokens `@theme`, tipografías Zen, monograma ensō+shinai+hinomaru), primitivas `components/ui/`, shells `AuthLayout`/`StatusPage`, shell de dashboard y migración de tokens de todas las rutas; reemplazo de "FAK"/"Kendo Manager" en UI y docs vivas — see `docs/iteraciones/20-rediseno-frontend.md`
+- **Iteración 21** — Rendimiento: lazy loading de rutas (`app.tsx`, `Dashboard.tsx`), chunk `vendor`, `apiGet` con cache TTL+dedupe, `compression` gzip, `useMemo`/`useCallback` en `AuthContext`, fuentes Zen self-hosted (WOFF2 subset latin) y SDK de Mercado Pago on-demand, índices Prisma + `take` defensivo + PRAGMAs WAL, harness de Core Web Vitals (`PERF=1`, `frontend/perf-budget.json`) — see `docs/iteraciones/21-performance.md`
 
 ## Pending / Next
 
