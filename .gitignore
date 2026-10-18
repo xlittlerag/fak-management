@@ -4,6 +4,7 @@
 *.db-shm
 node_modules/
 dist/
+*.tsbuildinfo
 uploads/
 
 .env
