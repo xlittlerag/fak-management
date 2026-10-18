@@ -8,7 +8,8 @@ import { defineConfig, devices } from '@playwright/test';
  * En CI se usa el Chromium empaquetado (instalado con --with-deps).
  */
 function systemChromium(): string | undefined {
-  if (process.env.PLAYWRIGHT_CHROMIUM_PATH) return process.env.PLAYWRIGHT_CHROMIUM_PATH;
+  if (process.env.PLAYWRIGHT_CHROMIUM_PATH)
+    return process.env.PLAYWRIGHT_CHROMIUM_PATH;
   for (const p of [
     '/home/francis/.nix-profile/bin/chromium',
     '/usr/bin/chromium',
@@ -26,6 +27,10 @@ function systemChromium(): string | undefined {
 
 const executablePath = systemChromium();
 
+// Permite medir performance contra un servidor ya levantado (p. ej. el build
+// de producción servido por el backend en :3000) en lugar de los dev servers.
+const perfBaseUrl = process.env.PERF_BASE_URL;
+
 /**
  * Suite E2E de navegador (reemplaza el QA manual).
  * - Chromium únicamente.
@@ -41,9 +46,11 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 2 : 0,
-  reporter: process.env.CI ? [['line'], ['html', { open: 'never' }]] : [['list'], ['html', { open: 'never' }]],
+  reporter: process.env.CI
+    ? [['line'], ['html', { open: 'never' }]]
+    : [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: perfBaseUrl ?? 'http://localhost:5173',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure',
@@ -57,32 +64,33 @@ export default defineConfig({
       },
     },
   ],
-  webServer: [
-    {
-      command: 'pnpm start:dev',
-      cwd: '..',
-      port: 3000,
-      timeout: 180 * 1000,
-      reuseExistingServer: !process.env.CI,
-      env: {
-        DATABASE_URL: 'file:./e2e-test.db',
-        E2E_DATABASE_URL: 'file:./e2e-test.db',
-        JWT_SECRET:
-          'e2e-test-secret-0123456789abcdef0123456789abcdef',
-        MERCADO_PAGO_SIMULATED: 'true',
-        MERCADO_PAGO_ACCESS_TOKEN: 'test',
-        CORS_ORIGIN: 'http://localhost:5173',
-        PORT: '3000',
-        // La suite genera mucho tráfico desde una sola IP; se relaja el
-        // rate limit solo en el backend E2E (ver app.module.ts).
-        THROTTLE_LIMIT: '1000',
-      },
-    },
-    {
-      command: 'pnpm dev --port 5173 --strictPort',
-      port: 5173,
-      timeout: 120 * 1000,
-      reuseExistingServer: !process.env.CI,
-    },
-  ],
+  webServer: perfBaseUrl
+    ? undefined
+    : [
+        {
+          command: 'pnpm start:dev',
+          cwd: '..',
+          port: 3000,
+          timeout: 180 * 1000,
+          reuseExistingServer: !process.env.CI,
+          env: {
+            DATABASE_URL: 'file:./e2e-test.db',
+            E2E_DATABASE_URL: 'file:./e2e-test.db',
+            JWT_SECRET: 'e2e-test-secret-0123456789abcdef0123456789abcdef',
+            MERCADO_PAGO_SIMULATED: 'true',
+            MERCADO_PAGO_ACCESS_TOKEN: 'test',
+            CORS_ORIGIN: 'http://localhost:5173',
+            PORT: '3000',
+            // La suite genera mucho tráfico desde una sola IP; se relaja el
+            // rate limit solo en el backend E2E (ver app.module.ts).
+            THROTTLE_LIMIT: '1000',
+          },
+        },
+        {
+          command: 'pnpm dev --port 5173 --strictPort',
+          port: 5173,
+          timeout: 120 * 1000,
+          reuseExistingServer: !process.env.CI,
+        },
+      ],
 });

@@ -1,0 +1,5 @@
+{
+  "login": { "maxRequests": 22, "maxTransferKB": 180, "maxLcp": 2500 },
+  "dashboard-basico": { "maxRequests": 32, "maxTransferKB": 260, "maxLcp": 2500 },
+  "dashboard-admin": { "maxRequests": 40, "maxTransferKB": 300, "maxLcp": 2500 }
+}
