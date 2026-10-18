@@ -77,6 +77,10 @@ model Usuario {
   solicitudes_afiliacion SolicitudAfiliacion[]
   asociacion           Asociacion            @relation(fields: [asociacion_id], references: [id])
   dojo                 Dojo                  @relation(fields: [dojo_id], references: [id])
+
+  @@index([estado_reg])
+  @@index([dojo_id])
+  @@index([asociacion_id, rol, estado_reg])
 }
 
 model CertificadoExterno {
@@ -91,6 +95,10 @@ model CertificadoExterno {
   fecha_obtencion DateTime?
   created_at      DateTime        @default(now())
   usuario         Usuario         @relation(fields: [usuario_id], references: [id])
+
+  @@index([usuario_id])
+  @@index([estado])
+  @@index([usuario_id, estado])
 }
 
 model Evento {
@@ -110,6 +118,9 @@ model Evento {
   mesas              MesaExaminadora[]
   seminario          Seminario?
   torneo             Torneo?
+
+  @@index([publicado, fecha_inicio])
+  @@index([creador_id])
 }
 
 model Torneo {
@@ -163,6 +174,10 @@ model InscripcionEvento {
   diplomas_nacionales     DiplomaNacional[]
   resultados              ResultadoExamen[]
   registros               RegistroExamen[]
+
+  @@index([evento_id])
+  @@index([usuario_id])
+  @@index([evento_id, estado_aprob])
 }
 
 model MesaExaminadora {
@@ -217,6 +232,8 @@ model HistorialGraduacion {
   fecha_obtencion DateTime
   otorgado_por    String
   usuario         Usuario    @relation(fields: [usuario_id], references: [id])
+
+  @@index([usuario_id])
 }
 
 model PrecioExamen {
@@ -257,6 +274,7 @@ model DiplomaNacional {
   reimpresiones   ReimpresionDiploma[]
 
   @@unique([inscripcion_id, disciplina])
+  @@index([usuario_id])
   @@map("diplomanacional")
 }
 
@@ -271,6 +289,8 @@ model ReimpresionDiploma {
   usuario          Usuario         @relation(fields: [usuario_id], references: [id])
   diploma          DiplomaNacional @relation(fields: [diploma_id], references: [id])
 
+  @@index([usuario_id])
+  @@index([diploma_id])
   @@map("reimpresiondiploma")
 }
 

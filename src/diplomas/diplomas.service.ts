@@ -264,6 +264,7 @@ export class DiplomasService {
         },
       },
       orderBy: { created_at: 'desc' },
+      take: 500,
     });
   }
 

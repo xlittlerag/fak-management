@@ -69,6 +69,32 @@ function rankGrad(g: string): number {
   return GraduacionRank[g] ?? -1;
 }
 
+// Columnas mínimas que consume formatInscripcion: evita traer la fila completa
+// de usuario/evento en los listados de inscripciones (over-fetch).
+const includeInscripcion = {
+  evento: {
+    select: { id: true, tipo: true, fecha_inicio: true, fecha_fin: true },
+  },
+  usuario: {
+    select: {
+      id: true,
+      nombre: true,
+      apellido: true,
+      email: true,
+      dni: true,
+      asociacion_id: true,
+    },
+  },
+} as const;
+
+type InscripcionConRelaciones = Prisma.InscripcionEventoGetPayload<{
+  include: typeof includeInscripcion;
+}>;
+
+// Cota defensiva para listados sin paginación explícita: protege ante
+// crecimientos patológicos sin alterar el comportamiento esperado.
+const MAX_LISTA = 500;
+
 interface CategoriaDef {
   nombre: string;
   genero?: string;
@@ -153,6 +179,7 @@ export class EventosService {
       where,
       include: this.includeSub,
       orderBy: { fecha_inicio: 'asc' },
+      take: MAX_LISTA,
     });
     return eventos.map((e) => this.formatEvento(e));
   }
@@ -169,6 +196,7 @@ export class EventosService {
       where,
       include: this.includeSub,
       orderBy: { fecha_inicio: 'asc' },
+      take: MAX_LISTA,
     });
     return eventos.map((e) => this.formatEvento(e));
   }
@@ -379,7 +407,7 @@ export class EventosService {
         necesidades_especiales: dto?.necesidades_especiales ?? false,
         descripcion_necesidades: dto?.descripcion_necesidades ?? null,
       },
-      include: { evento: true, usuario: true },
+      include: includeInscripcion,
     });
 
     return this.formatInscripcion(inscripcion);
@@ -398,8 +426,9 @@ export class EventosService {
 
     const inscripciones = await this.prisma.inscripcionEvento.findMany({
       where,
-      include: { usuario: true, evento: true },
+      include: includeInscripcion,
       orderBy: { id: 'asc' },
+      take: MAX_LISTA,
     });
 
     return inscripciones.map((i) => this.formatInscripcion(i));
@@ -408,7 +437,7 @@ export class EventosService {
   async findMisInscripciones(usuarioId: number) {
     const inscripciones = await this.prisma.inscripcionEvento.findMany({
       where: { usuario_id: usuarioId },
-      include: { evento: true, usuario: true },
+      include: includeInscripcion,
       orderBy: { id: 'desc' },
     });
 
@@ -422,7 +451,7 @@ export class EventosService {
   ) {
     const inscripcion = await this.prisma.inscripcionEvento.findUnique({
       where: { id: inscripcionId },
-      include: { usuario: true, evento: true },
+      include: includeInscripcion,
     });
 
     if (!inscripcion) throw new NotFoundException('Inscripción no encontrada');
@@ -1285,11 +1314,7 @@ export class EventosService {
     };
   }
 
-  private formatInscripcion(
-    inscripcion: Prisma.InscripcionEventoGetPayload<{
-      include: { evento: true; usuario: true };
-    }>,
-  ) {
+  private formatInscripcion(inscripcion: InscripcionConRelaciones) {
     return {
       id: inscripcion.id,
       usuario_id: inscripcion.usuario_id,

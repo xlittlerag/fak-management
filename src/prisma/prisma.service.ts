@@ -67,6 +67,9 @@ export class PrismaService
   constructor() {
     const adapter = new PrismaBetterSqlite3({
       url: process.env.DATABASE_URL || 'file:./dev.db',
+      // Espera hasta 5s antes de fallar con SQLITE_BUSY en escrituras
+      // concurrentes (auditoría + request): evita errores bajo carga.
+      timeout: 5000,
     });
 
     super({
@@ -85,6 +88,17 @@ export class PrismaService
 
   async onModuleInit() {
     await this.$connect();
+    // WAL: lecturas concurrentes no bloquean la escritura (y viceversa).
+    // synchronous=NORMAL es seguro con WAL y reduce los fsync por commit.
+    // Son settings persistentes del archivo SQLite; se aplican una vez.
+    try {
+      await this.$queryRawUnsafe('PRAGMA journal_mode = WAL;');
+      await this.$queryRawUnsafe('PRAGMA synchronous = NORMAL;');
+    } catch (err) {
+      this.logger.warn(
+        `No se pudieron aplicar PRAGMAs de SQLite: ${err instanceof Error ? err.message : String(err)}`,
+      );
+    }
     this.applyExtension();
   }
 

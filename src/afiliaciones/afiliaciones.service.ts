@@ -338,6 +338,7 @@ export class AfiliacionesService {
       where: { estado_reg: EstadoRegistro.DESAFILIADO },
       include: { asociacion: { select: { id: true, nombre: true } } },
       orderBy: { apellido: 'asc' },
+      take: 500,
     });
   }
 

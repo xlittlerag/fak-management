@@ -70,6 +70,7 @@ export class CertificadosService {
         },
       },
       orderBy: { created_at: 'desc' },
+      take: 500,
     });
   }
 
