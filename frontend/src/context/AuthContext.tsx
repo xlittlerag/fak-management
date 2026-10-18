@@ -1,5 +1,11 @@
 import { createContext } from 'preact';
-import { useContext, useState, useEffect } from 'preact/hooks';
+import {
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'preact/hooks';
 import api from '../services/api';
 
 interface User {
@@ -23,15 +29,19 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export const AuthProvider = ({ children }: { children: preact.ComponentChildren }) => {
+export const AuthProvider = ({
+  children,
+}: {
+  children: preact.ComponentChildren;
+}) => {
   // Sesión únicamente en cookie httpOnly: el JWT nunca llega al JS, ni a
   // localStorage ni a memoria. El usuario se obtiene de /auth/session.
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const checkAuth = () => user !== null;
+  const checkAuth = useCallback(() => user !== null, [user]);
 
-  const refresh = async (): Promise<User | null> => {
+  const refresh = useCallback(async (): Promise<User | null> => {
     try {
       const res = await api.get<User>('/auth/session');
       setUser(res.data);
@@ -40,7 +50,7 @@ export const AuthProvider = ({ children }: { children: preact.ComponentChildren 
       setUser(null);
       return null;
     }
-  };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -60,21 +70,27 @@ export const AuthProvider = ({ children }: { children: preact.ComponentChildren 
       cancelled = true;
       window.removeEventListener('auth:unauthorized', onUnauthorized);
     };
-  }, []);
+  }, [refresh]);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     // Invalida la cookie httpOnly en el servidor; el estado se limpia de
     // todos modos aunque la llamada falle.
-    api.post('/auth/logout').catch(() => undefined).finally(() => {
-      setUser(null);
-    });
-  };
+    api
+      .post('/auth/logout')
+      .catch(() => undefined)
+      .finally(() => {
+        setUser(null);
+      });
+  }, []);
 
-  return (
-    <AuthContext.Provider value={{ user, refresh, logout, loading, checkAuth }}>
-      {children}
-    </AuthContext.Provider>
+  // Valor estable: evita re-renderizar a todos los consumidores cuando el
+  // provider se re-renderiza sin que cambie la sesión.
+  const value = useMemo(
+    () => ({ user, refresh, logout, loading, checkAuth }),
+    [user, refresh, logout, loading, checkAuth],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
