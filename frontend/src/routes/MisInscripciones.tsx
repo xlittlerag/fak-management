@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { Spinner } from '../components/Spinner';
 import api from '../services/api';
+import { loadMercadoPago } from '../lib/mercadopago';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { getErrorMessage } from '../lib/error';
 import { FileUpload } from '../components/FileUpload';
@@ -62,6 +63,7 @@ export default function MisInscripciones() {
         setSimulatedPayment({ externalReference, inscripcionId });
         return;
       }
+      await loadMercadoPago();
       const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
       mp.checkout({
         preference: { id: preferenceId },

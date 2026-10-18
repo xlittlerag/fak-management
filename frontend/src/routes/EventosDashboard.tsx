@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import api, { apiGet } from '../services/api';
+import { loadMercadoPago } from '../lib/mercadopago';
 import { Spinner } from '../components/Spinner';
 import { getErrorMessage } from '../lib/error';
 import {
@@ -161,6 +162,7 @@ export default function EventosDashboard() {
         setPayingId(null);
         return;
       }
+      await loadMercadoPago();
       const mp = new window.MercadoPago(
         import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
       );

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { Spinner } from '../components/Spinner';
 import { useLocation } from 'preact-iso';
 import api, { apiGet } from '../services/api';
+import { loadMercadoPago } from '../lib/mercadopago';
 import { useAuth } from '../context/AuthContext';
 import { FileUpload } from '../components/FileUpload';
 import { getErrorMessage } from '../lib/error';
@@ -162,6 +163,7 @@ export default function EventoDetalle() {
         setSimulatedPayment({ externalReference });
         return;
       }
+      await loadMercadoPago();
       const mp = new window.MercadoPago(
         import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
       );

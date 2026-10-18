@@ -1,6 +1,47 @@
 @import 'tailwindcss';
 
 /*
+ * Fuentes self-hosted (subset latin): elimina la dependencia de
+ * fonts.googleapis.com del path crítico de render. Sólo se descarga el
+ * weight efectivamente usado por la página.
+ */
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/zen-kaku-gothic-new-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/zen-kaku-gothic-new-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Zen Kaku Gothic New';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/zen-kaku-gothic-new-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Zen Old Mincho';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/zen-old-mincho-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Zen Old Mincho';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/zen-old-mincho-700.woff2') format('woff2');
+}
+
+/*
  * Kendo Argentina — sistema de diseño "ai-zome & shiaijo".
  * Índigo ai-zome como material, carmesí hinomaru como único acento,
  * tipografía display Zen Old Mincho + UI Zen Kaku Gothic New.

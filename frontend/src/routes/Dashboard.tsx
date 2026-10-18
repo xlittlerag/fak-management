@@ -3,6 +3,7 @@ import { useLocation, lazy } from 'preact-iso';
 import { Suspense } from 'preact/compat';
 import { useAuth } from '../context/AuthContext';
 import api, { apiGet } from '../services/api';
+import { loadMercadoPago } from '../lib/mercadopago';
 import { getErrorMessage } from '../lib/error';
 import type { EventoResumen } from '../types';
 import { Wordmark } from '../components/ui/Wordmark';
@@ -465,6 +466,7 @@ function DashboardHome() {
         setSimulatedPayment({ externalReference });
         return;
       }
+      await loadMercadoPago();
       const mp = new window.MercadoPago(
         import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
       );

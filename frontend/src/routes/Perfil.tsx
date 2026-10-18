@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { useLocation } from 'preact-iso';
 import api from '../services/api';
+import { loadMercadoPago } from '../lib/mercadopago';
 import { useAuth } from '../context/AuthContext';
 import { PROVINCIAS, GRADUACIONES, SEXOS } from '../constants';
 import { Spinner } from '../components/Spinner';
@@ -377,6 +378,7 @@ export default function Perfil() {
                       setReimpLoading(false);
                       return;
                     }
+                await loadMercadoPago();
                     const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
                     mp.checkout({
                       preference: { id: preferenceId },
