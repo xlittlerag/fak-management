@@ -1,0 +1,92 @@
+# git-cliff — genera CHANGELOG.md desde los commits convencionales.
+# Uso: pnpm changelog   (ver AGENTS.md → Releases)
+# Docs: https://git-cliff.org/docs/configuration
+
+[changelog]
+# Encabezado fijo; se conserva una sola vez en CHANGELOG.md.
+header = """
+# Changelog
+
+Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
+Cada iteración se documenta en `docs/iteraciones/NN-nombre.md` y cada release se
+genera desde los commits con `git-cliff` (ver `docs/iteraciones/18-cicd-empaquetado.md`).
+
+"""
+# Plantilla de cada versión: título + grupos por tipo de commit.
+body = """
+{% if version %}\
+    ## [{{ version | trim_start_matches(pat="v") }}] - {{ timestamp | date(format="%Y-%m-%d") }}
+{% else %}\
+    ## [Unreleased]
+{% endif %}\
+{% for group, commits in commits | group_by(attribute="group") %}
+    ### {{ group | striptags | trim }}
+    {% for commit in commits %}
+        - {{ commit.message | upper_first }}{% if commit.scope %} (`{{ commit.scope }}`){% endif %}\
+    {% endfor %}
+{% endfor %}\n
+"""
+# Historial previo a la automatización: se conserva al pie, sin recomputar.
+footer = """
+## [1.0.0] - 2026-09-29
+
+Primera versión estable: plataforma de gestión de socios de la Federación Argentina de Kendo
+(asociaciones, dojos, eventos, pagos, diplomas, auditoría) con 2FA de admin,
+endurecimiento P0–P3 y pipeline de CI/CD con imagen publicada en GHCR.
+
+### Agregado
+
+- Autenticación JWT en cookie httpOnly con login por DNI (1).
+- Frontend Preact + Tailwind: dashboard, perfil, registro (2).
+- Pago de cuota federativa con Mercado Pago + admin de cuota (3).
+- Eventos (torneo/examen/seminario), inscripciones y permisos (4).
+- Diplomas nacionales, certificaciones externas, reimpresiones (5).
+- Auditoría automática de cambios (6).
+- Borrado de eventos con validación de inscripciones (7).
+- Notificaciones por email vía SMTP (8).
+- Infraestructura: Containerfile, entrypoint con admin automático, CI, backups con rclone (9).
+- Modo simulado de Mercado Pago para tests (10).
+- Desafiliación/afiliación con aprobaciones (11).
+- Mesas examinadoras con carga de resultados (12).
+- Secuencialidad de resultados y graduación por diploma (13).
+- E2E de navegador con Playwright en CI (14).
+- Hashing argon2id vía `PasswordService` (15).
+- 2FA TOTP opt-in del admin con códigos de respaldo (16).
+- Endurecimiento P0–P3: throttle, política 12–128, redacción en logs, uploads validados, helmet, firma de webhook, secretos fail-closed, backups cifrados (17).
+- CI/CD: lint, imagen GHCR, scan Trivy, `compose.yml`, releases versionadas (18).
+
+### Seguridad
+
+- Ver iteración 17 (`docs/iteraciones/17-endurecimiento.md`). Acciones manuales
+pendientes documentadas ahí (rotación de secretos, passphrase de backup).
+"""
+trim = true
+
+[git]
+conventional_commits = true
+# Los commits no convencionales (histórico previo) se omiten.
+filter_unconventional = true
+# Analiza solo la primera línea de cada commit.
+split_commits = false
+protect_breaking_commits = false
+filter_commits = false
+topo_order = false
+sort_commits = "oldest"
+tag_pattern = "v[0-9]*"
+# El tag base sirve de límite pero no se renderiza: su contenido vive en footer.
+skip_tags = "^v1\\.0\\.0$"
+
+commit_parsers = [
+  { message = "^feat", group = "Agregado" },
+  { message = "^fix", group = "Corregido" },
+  { message = "^perf", group = "Rendimiento" },
+  { message = "^refactor", group = "Refactor" },
+  { message = "^docs", group = "Documentación" },
+  { message = "^ci", group = "CI/CD" },
+  { message = "^test", group = "Tests" },
+  { message = "^style", group = "Estilo" },
+  { message = "^chore\\(deps\\)", group = "Dependencias" },
+  { message = "^chore\\(release\\)", skip = true },
+  { message = "^chore", group = "Varios" },
+  { message = "^revert", group = "Revertido" },
+]

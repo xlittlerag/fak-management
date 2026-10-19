@@ -19,12 +19,14 @@ por compose y releases versionadas (`1.0.0`).
 - **`deploy.env.example`**: todas las variables con comandos de generación; `deploy.env` ignorado en git.
 
 ## Releases y versionado
-- Versión sincronizada `1.0.0` en `package.json` y `frontend/package.json`.
-- `CHANGELOG.md` (Keep a Changelog) retroactivo 1–17 + `Unreleased`.
+- Versión sincronizada `1.0.0` en `package.json` y `frontend/package.json` (a partir
+  de la iteración 22 se bumpea a `1.1.0`).
+- `CHANGELOG.md` (Keep a Changelog) retroactivo 1–17; desde la iteración 22 el
+  `[Unreleased]` y las versiones las genera `git-cliff` (ver
+  `22-changelog-automatizado.md`).
 - Flow de release:
-  1. Bump de versión en ambos `package.json` + entrada en `CHANGELOG.md` (commit `chore(release)`).
-  2. `git tag vX.Y.Z && git push origin vX.Y.Z` → CI publica `vX.Y.Z`, mueve `latest` y corre el scan.
-  3. Release de GitHub manual con las notas del changelog.
+  1. Bump de versión en ambos `package.json` + `pnpm changelog X.Y.Z` (commit `chore(release)`).
+  2. `git tag vX.Y.Z && git push origin vX.Y.Z` → CI publica `vX.Y.Z`, mueve `latest`, corre el scan y crea el GitHub Release con las notas del CHANGELOG.
 
 ## Verificación
 - `tsc`/eslint locales en verde; suite E2E 243 tests en verde antes de esta iteración (sin cambios de código de app).

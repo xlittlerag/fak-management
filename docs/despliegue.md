@@ -38,6 +38,9 @@ rclone y checklist) está en
 
 ## Releases
 
-Las imágenes se publican en `ghcr.io` con tags `latest`, `sha-*` y `vX.Y.Z` al
-empujar un tag. Ver [`../CHANGELOG.md`](../CHANGELOG.md) y
-[`iteraciones/18-cicd-empaquetado.md`](./iteraciones/18-cicd-empaquetado.md).
+Las imágenes se publican en `ghcr.io` con tags `latest`, `sha-<sha completo>` y
+`vX.Y.Z` al empujar un tag; CI corre el scan de Trivy y crea el GitHub Release
+con las notas del CHANGELOG. El CHANGELOG se genera desde los commits
+convencionales (`pnpm changelog`). Ver [`../CHANGELOG.md`](../CHANGELOG.md),
+[`iteraciones/18-cicd-empaquetado.md`](./iteraciones/18-cicd-empaquetado.md) y
+[`iteraciones/22-changelog-automatizado.md`](./iteraciones/22-changelog-automatizado.md).

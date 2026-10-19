@@ -159,3 +159,27 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: '1'
+
+  release:
+    runs-on: ubuntu-latest
+    # El scan hace de compuerta: si no pasa, no se publica la versión.
+    needs: [scan]
+    if: startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      # Las notas se toman de la sección ya generada en CHANGELOG.md (fuente única).
+      - name: Extraer notas del CHANGELOG
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" 'index($0, "## [" v "]") == 1 { found=1; next } found && /^## \[/ { exit } found { print }' CHANGELOG.md > NOTES.md
+          test -s NOTES.md
+
+      - name: Crear GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file NOTES.md

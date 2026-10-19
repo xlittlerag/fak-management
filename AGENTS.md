@@ -55,7 +55,7 @@ pnpm run seed                 # seed database with test data
 
 - **Commits:** `tipo(área): descripción` in Spanish, lowercase (`feat`, `fix`, `docs`, `chore`, `ci`); one commit per task; never commit secrets (`.env`, `deploy.env` are gitignored)
 - **Docs:** each iteration gets `docs/iteraciones/NN-nombre.md` + one line in Completed Iterations below
-- **Releases:** bump `package.json` + `frontend/package.json` in sync, add `CHANGELOG.md` entry (`chore(release)` commit), then `git tag vX.Y.Z && git push origin vX.Y.Z` — CI publishes `ghcr.io` image tags (`latest`, `sha-*`, `vX.Y.Z`) and runs the Trivy scan; see `docs/iteraciones/18-cicd-empaquetado.md`
+- **Releases:** bump `package.json` + `frontend/package.json` in sync, correr `pnpm changelog X.Y.Z` (git-cliff cierra el `[Unreleased]` como `X.Y.Z`; ver `docs/iteraciones/22-changelog-automatizado.md`), commit `chore(release): X.Y.Z`, luego `git tag vX.Y.Z && git push origin vX.Y.Z` — CI publica la imagen (`latest`, `sha-*`, `vX.Y.Z`), corre el Trivy scan y crea el GitHub Release con las notas del CHANGELOG; ver `docs/iteraciones/18-cicd-empaquetado.md`
 
 ## Completed Iterations
 
@@ -81,6 +81,7 @@ pnpm run seed                 # seed database with test data
 - **Iteración 19** — Correcciones de QA (planilla Test C Kendo): validación de fecha de nacimiento y teléfono, fecha de obtención en certificados, fix +1 día en fechas de evento, rango a nivel evento como requisito adicional; TC-01/02/05/08/09/10 documentados como comportamiento esperado — see `docs/iteraciones/19-correcciones-qa.md`
 - **Iteración 20** — Rediseño de frontend (ai-zome & shiaijo): identidad "Kendo Argentina" (tokens `@theme`, tipografías Zen, monograma ensō+shinai+hinomaru), primitivas `components/ui/`, shells `AuthLayout`/`StatusPage`, shell de dashboard y migración de tokens de todas las rutas; reemplazo de "FAK"/"Kendo Manager" en UI y docs vivas — see `docs/iteraciones/20-rediseno-frontend.md`
 - **Iteración 21** — Rendimiento: lazy loading de rutas (`app.tsx`, `Dashboard.tsx`), chunk `vendor`, `apiGet` con cache TTL+dedupe, `compression` gzip, `useMemo`/`useCallback` en `AuthContext`, fuentes Zen self-hosted (WOFF2 subset latin) y SDK de Mercado Pago on-demand, índices Prisma + `take` defensivo + PRAGMAs WAL, harness de Core Web Vitals (`PERF=1`, `frontend/perf-budget.json`) — see `docs/iteraciones/21-performance.md`
+- **Iteración 22** — CHANGELOG automatizado y release v1.1.0: `git-cliff` (`cliff.toml`) genera `CHANGELOG.md` desde commits convencionales (`pnpm changelog [X.Y.Z]`, tag base local `v1.0.0` + `footer` curado), job `release` en CI que publica el GitHub Release con las notas del CHANGELOG tras pasar el scan — see `docs/iteraciones/22-changelog-automatizado.md`
 
 ## Pending / Next
 
