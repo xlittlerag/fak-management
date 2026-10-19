@@ -15,7 +15,7 @@ por compose y releases versionadas (`1.0.0`).
 
 ## Empaquetado
 - **`compose.yml`**: servicio `app` (build local por defecto), `env_file: deploy.env` (requerido), `restart: unless-stopped`, puertos solo en loopback, volúmenes nombrados, healthcheck con `node` contra `GET /api/eventos` (público). Flujo GHCR: `APP_IMAGE=ghcr.io/xlittlerag/fak-management IMAGE_TAG=vX.Y.Z pull + up -d`.
-- **`Containerfile`**: labels OCI (`title/version/revision/source`) vía `ARG VERSION/GIT_SHA` (los inyecta CI).
+- **`Containerfile`**: labels OCI (`title/version/revision/source`) vía `ARG VERSION/GIT_SHA` (los inyecta CI). Desde la iteración 23 el runtime elimina `npm`/`npx`/corepack y actualiza el SO (`apt-get upgrade`) para el scan de Trivy; ver `23-remediacion-cves.md`.
 - **`deploy.env.example`**: todas las variables con comandos de generación; `deploy.env` ignorado en git.
 
 ## Releases y versionado

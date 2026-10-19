@@ -9,9 +9,13 @@ ENV PATH="$PNPM_HOME/bin:$PATH"
 RUN corepack enable
 WORKDIR /app
 
+# Los paquetes del SO se actualizan a sus versiones parcheadas (la imagen base
+# puede traer CVEs ya resueltos en bookworm-security).
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt/lists \
-    apt-get update && apt-get install -y --no-install-recommends openssl rclone sqlite3
+    apt-get update && apt-get install -y --no-install-recommends openssl rclone sqlite3 \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Etapa Build -------------------------------------------------
 FROM base AS build
@@ -43,6 +47,16 @@ COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
 COPY --from=build /app/prisma ./prisma
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile --ignore-scripts
+
+# Runtime mínimo: se eliminan npm/npx y corepack/pnpm (no se usan en ejecución) para
+# no arrastrar sus dependencias internas con CVEs; el entrypoint invoca prisma/tsx
+# por path. Ver docs/iteraciones/23-remediacion-cves.md.
+RUN rm -rf /usr/local/lib/node_modules/npm \
+           /usr/local/lib/node_modules/corepack \
+           /root/.cache/node /pnpm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx \
+             /usr/local/bin/pnpm /usr/local/bin/pnpx \
+             /usr/local/bin/yarn /usr/local/bin/yarnpkg /usr/local/bin/corepack
 
 COPY --from=build /app/dist /app/dist
 COPY --from=build /app/frontend/dist ./frontend/dist
