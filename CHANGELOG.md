@@ -1,23 +1,54 @@
 # Changelog
 
 Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
-Cada iteración se documenta en `docs/iteraciones/NN-nombre.md`.
+Cada iteración se documenta en `docs/iteraciones/NN-nombre.md` y cada release se
+genera desde los commits con `git-cliff` (ver `docs/iteraciones/18-cicd-empaquetado.md`).
 
-## [Unreleased]
+## [1.1.0] - 2026-10-19
 
-### Cambiado
+### Agregado
 
-- Rediseño completo del frontend con identidad "Kendo Argentina" (ai-zome & shiaijo): tokens de diseño, tipografías Zen, monograma propio, primitivas de UI y shells de autenticación/estado; rutas migradas a tokens (20).
-- Se elimina "FAK"/"Kendo Manager" de la interfaz, los emails y las docs vivas.
+- Rediseño ai-zome & shiaijo y marca Kendo Argentina (iteración 20) (`ui`)
+
+### CI/CD
+
+- Etiquetar imagen con sha completo para el scan de Trivy
+- Generar CHANGELOG con git-cliff y publicar release en CI
 
 ### Corregido
 
-- Autenticación: el throttle lee `THROTTLE_LIMIT`/`THROTTLE_TTL`, evitando falsos 429 en la suite E2E.
-- Registro y perfil: se rechazan fechas de nacimiento imposibles (futuras o hace más de 120 años) y teléfonos con letras (TC-04, TC-06).
-- Certificados externos: se puede informar la fecha real de obtención del grado y se usa al aprobar (TC-07; requiere `npx prisma db push`).
-- Formulario de evento: las fechas ya no muestran +1 día al editar (conversión a fecha local) (TC-11, TC-12).
-- Torneos: el rango de graduación a nivel evento se exige además del de cada categoría (TC-13).
-- Login: el mensaje de blanqueo se limpia al iniciar una nueva acción y se muestra el mensaje del servidor (TC-02, TC-03).
+- Correcciones de la planilla Test C Kendo (iteración 19) (`qa`)
+- Declarar multer como dependencia directa (`backend`)
+
+### Dependencias
+
+- Actualizar dependencias patch/minor (back y front) (`deps`)
+- Migrar NestJS a la v12 (`deps`)
+- Actualizar dotenv, nodemailer y TypeScript 6 (`deps`)
+- Migrar Preact a la v11 (`deps`)
+- Actualizar eslint y globals del frontend (`deps`)
+
+### Documentación
+
+- CHANGELOG Keep-a-Changelog con 1.0.0 retroactivo
+- Iteración 18 (CI/CD y empaquetado) + sección Workflow en AGENTS.md
+- Migrar instrucciones de deploy de podman run a compose
+- Fijar owner xlittlerag/fak-management en rutas GHCR
+- Documentar iteración 21 de rendimiento (`performance`)
+- Simplificar README y mover detalle a docs/
+
+### Rendimiento
+
+- Harness de Core Web Vitals y presupuesto de rendimiento (`perf`)
+- Índices, selects acotados, take y PRAGMAs SQLite (`backend`)
+- Lazy loading de rutas y chunk vendor (`frontend`)
+- Cache de GETs, dedupe y compresión gzip (`frontend`)
+- Estabilizar el valor de AuthContext (`frontend`)
+- Fuentes self-hosted y SDK de Mercado Pago on-demand (`frontend`)
+
+### Varios
+
+- Ignorar artefactos de compilación tsbuildinfo
 
 ## [1.0.0] - 2026-09-29
 
@@ -49,4 +80,4 @@ endurecimiento P0–P3 y pipeline de CI/CD con imagen publicada en GHCR.
 ### Seguridad
 
 - Ver iteración 17 (`docs/iteraciones/17-endurecimiento.md`). Acciones manuales
-  pendientes documentadas ahí (rotación de secretos, passphrase de backup).
+pendientes documentadas ahí (rotación de secretos, passphrase de backup).
