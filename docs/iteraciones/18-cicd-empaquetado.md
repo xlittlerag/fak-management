@@ -7,8 +7,8 @@ por compose y releases versionadas (`1.0.0`).
 ## CI (`.github/workflows/ci.yml`)
 - **`lint`**: `eslint` backend sin `--fix` (en CI verifica, no modifica) + `tsc -b` del frontend. Corre en paralelo con `test`.
 - **`test`** y **`browser-e2e`**: sin cambios de lógica; el segundo sube `playwright-report/` + `test-results/` como artefacto ante fallos (retención 7 días).
-- **`imagen`** (`needs: [lint, test]`): build del `Containerfile`, push a `ghcr.io/xlittlerag/fak-management` con `GITHUB_TOKEN` (`packages: write` solo en este job). Tags: `latest` (solo main), `sha-<sha>`, `v*` (en tags). En PRs construye sin publicar. `GITHUB_TOKEN` lo provee GitHub: nada que configurar.
-- **`scan`** (`needs: [imagen]`, no PRs): Trivy sobre `:sha-<sha>`, `HIGH,CRITICAL` con `ignore-unfixed` y `exit-code: 1`.
+- **`imagen`** (`needs: [lint, test]`): build del `Containerfile`, push a `ghcr.io/xlittlerag/fak-management` con `GITHUB_TOKEN` (`packages: write` solo en este job). Tags: `latest` (solo main), `sha-<sha completo>` (`type=sha,prefix=sha-,format=long`), `v*` (en tags). En PRs construye sin publicar. `GITHUB_TOKEN` lo provee GitHub: nada que configurar.
+- **`scan`** (`needs: [imagen]`, no PRs): Trivy sobre `:sha-<sha completo>` (`sha-${{ github.sha }}`, 40 hex, coherente con `format=long`), `HIGH,CRITICAL` con `ignore-unfixed` y `exit-code: 1`.
 - **`concurrency`**: cancela runs anteriores de la misma rama (no de tags).
 - **Triggers**: `push` a main, `tags: v*`, PRs a main. Todas las actions pineadas por SHA con comentario de versión.
 - Límite conocido: el scan no corre en PRs (no hay imagen publicada); el build sí valida que la imagen compila.
