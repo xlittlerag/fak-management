@@ -31,6 +31,10 @@ export async function createTestApp(): Promise<{
         timeToBlockExpire: 0,
       }),
     })
+    // Los tests nunca deben enviar emails reales, aunque el .env local
+    // tenga SMTP configurado.
+    .overrideProvider('MAIL_TRANSPORT')
+    .useValue(null)
     .compile();
 
   const app = moduleFixture.createNestApplication();

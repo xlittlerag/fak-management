@@ -12,6 +12,7 @@ pnpm run start:dev            # NestJS dev server
 pnpm run build                # compile TypeScript
 pnpm run test:e2e             # Jest E2E tests with supertest
 pnpm run seed                 # seed database with test data
+pnpm test:email               # envía un email de prueba por SMTP (requiere SMTP_* en .env)
 ```
 
 ## Automatización (opencode)

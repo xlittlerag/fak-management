@@ -68,7 +68,9 @@ export class NotificacionesService {
     }
     try {
       await this.transporter.sendMail({
-        from: this.config.get<string>('SMTP_FROM'),
+        from:
+          this.config.get<string>('SMTP_FROM') ||
+          this.config.get<string>('SMTP_USER'),
         to: options.to,
         subject: options.subject,
         html: options.html,
