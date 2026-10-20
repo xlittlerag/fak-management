@@ -103,6 +103,32 @@ describe('Admin 2FA (e2e)', () => {
     expect(session.body.rol).toBe('ADMIN_GENERAL');
   });
 
+  it('un código incorrecto al confirmar el setup no cierra la sesión', async () => {
+    await createAdminGeneral(prisma, jwt);
+    const agent = request.agent(app.getHttpServer());
+    await agent
+      .post('/api/auth/admin-login')
+      .send({ password: 'Admin123!' })
+      .expect(200);
+    const setup = await agent.post('/api/auth/admin-2fa/setup').expect(201);
+
+    await agent
+      .post('/api/auth/admin-2fa/confirmar')
+      .send({ codigo: '000000' })
+      .expect(400);
+
+    // El error de validación no invalida la cookie de sesión.
+    await agent.get('/api/auth/session').expect(200);
+
+    // La activación sigue en curso y puede confirmarse con el código correcto.
+    await habilitar2fa(agent, setup.body.secreto_manual);
+    const estado = await agent.get('/api/auth/admin-2fa/estado').expect(200);
+    expect(estado.body).toMatchObject({
+      habilitado: true,
+      respaldos_restantes: 10,
+    });
+  });
+
   it('rechaza código incorrecto y token pendiente inválido', async () => {
     await createAdminGeneral(prisma, jwt);
     const agent = request.agent(app.getHttpServer());
@@ -182,7 +208,9 @@ describe('Admin 2FA (e2e)', () => {
     await agent
       .post('/api/auth/admin-2fa/deshabilitar')
       .send({ password: 'contraseña-errónea' })
-      .expect(401);
+      .expect(400);
+    // Un error de validación no invalida la sesión.
+    await agent.get('/api/auth/session').expect(200);
     await agent
       .post('/api/auth/admin-2fa/deshabilitar')
       .send({ password: 'Admin123!' })

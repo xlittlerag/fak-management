@@ -2,6 +2,7 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
+  BadRequestException,
   ForbiddenException,
   NotFoundException,
   ServiceUnavailableException,
@@ -402,7 +403,7 @@ export class AuthService {
 
     const secreto = this.twoFactor.descifrar(admin.totp_secreto);
     if (!this.twoFactor.verificar(secreto, (codigo || '').trim())) {
-      throw new UnauthorizedException(
+      throw new BadRequestException(
         'El código ingresado es incorrecto. Verifique su aplicación autenticadora.',
       );
     }
@@ -428,7 +429,7 @@ export class AuthService {
     });
     if (!admin) throw new NotFoundException('Administrador no encontrado.');
     if (!(await this.passwords.verify(admin.password, password))) {
-      throw new UnauthorizedException('La contraseña ingresada es incorrecta.');
+      throw new BadRequestException('La contraseña ingresada es incorrecta.');
     }
     await this.prisma.adminGeneral.update({
       where: { id: admin.id },

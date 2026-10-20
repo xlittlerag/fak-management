@@ -110,7 +110,7 @@ describe('Perfil (e2e)', () => {
           password_actual: 'Equivocada123!',
           telefono: '1188888888',
         })
-        .expect(401);
+        .expect(400);
     });
 
     it('should update dojo_id if provided', async () => {

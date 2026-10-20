@@ -3,7 +3,7 @@ import {
   ForbiddenException,
   NotFoundException,
   ConflictException,
-  UnauthorizedException,
+  BadRequestException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { FeeConfigService } from '../pagos/fee-config.service';
@@ -101,7 +101,7 @@ export class UsuariosService {
         typeof password_actual !== 'string' ||
         !(await this.passwords.verify(actual.password, password_actual))
       ) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
           'La contraseña actual ingresada es incorrecta.',
         );
       }
