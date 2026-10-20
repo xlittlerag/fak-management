@@ -13,7 +13,7 @@ services:
   app:
     build:
       context: .
-      file: Containerfile
+      dockerfile: Containerfile
       args:
         VITE_MERCADO_PAGO_PUBLIC_KEY: ${VITE_MERCADO_PAGO_PUBLIC_KEY:-test}
     # Nombre local por defecto; en deploy apuntar a GHCR vía APP_IMAGE.
@@ -21,7 +21,7 @@ services:
     container_name: kendo-app
     restart: unless-stopped
     ports:
-      - "127.0.0.1:3000:3000"
+      - '127.0.0.1:3000:3000'
     env_file:
       - path: ./deploy.env
         required: true
