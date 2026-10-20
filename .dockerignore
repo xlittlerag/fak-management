@@ -10,6 +10,15 @@ frontend/dist
 test
 coverage
 .DS_Store
+# Tooling local de agentes/IDE: no forma parte del build (~63 MB).
+.opencode
+.github
+docs
+frontend/e2e
+flake.nix
+flake.lock
+opencode.json
+*.log
 # Datos locales: nunca en capas de imagen (PII, hashes, subidos).
 *.db
 *.db-journal

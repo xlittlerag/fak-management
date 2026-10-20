@@ -94,6 +94,7 @@ Chequeos por costo, de más barato a más caro:
 - **Iteración 21** — Rendimiento: lazy loading de rutas (`app.tsx`, `Dashboard.tsx`), chunk `vendor`, `apiGet` con cache TTL+dedupe, `compression` gzip, `useMemo`/`useCallback` en `AuthContext`, fuentes Zen self-hosted (WOFF2 subset latin) y SDK de Mercado Pago on-demand, índices Prisma + `take` defensivo + PRAGMAs WAL, harness de Core Web Vitals (`PERF=1`, `frontend/perf-budget.json`) — see `docs/iteraciones/21-performance.md`
 - **Iteración 22** — CHANGELOG automatizado y release v1.1.0: `git-cliff` (`cliff.toml`) genera `CHANGELOG.md` desde commits convencionales (`pnpm changelog [X.Y.Z]`, tag base local `v1.0.0` + `footer` curado), job `release` en CI que publica el GitHub Release con las notas del CHANGELOG tras pasar el scan — see `docs/iteraciones/22-changelog-automatizado.md`
 - **Iteración 23** — Remediación de CVEs del scan (release v1.1.1): `overrides` en `pnpm-workspace.yaml`, `packageManager` pnpm 11.11.0, `apt-get upgrade` en la imagen, runtime sin `npm`/`npx`/corepack/pnpm (entrypoint invoca `prisma`/`tsx` por path), Trivy 0 HIGH/CRITICAL — see `docs/iteraciones/23-remediacion-cves.md`
+- **Iteración 24** — Optimización del build de imagen: etapa `prod-deps` (closure de producción aislada, sin poda), `corepack` fuera del runtime, `chown` solo de `data`/`uploads`, `.dockerignore` sin `.opencode`/`docs`/`frontend/e2e`, cache GHA (`mode=max`) en CI; imagen 2.09 GB → 718 MB — see `docs/iteraciones/24-optimizacion-build.md`
 
 ## Pending / Next
 

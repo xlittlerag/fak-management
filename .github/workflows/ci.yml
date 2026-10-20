@@ -131,6 +131,9 @@ jobs:
         with:
           context: .
           file: Containerfile
+          # Reutiliza capas entre ejecuciones (incluye todas las etapas).
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           # En PRs se construye sin publicar (el token de forks no escribe).
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
