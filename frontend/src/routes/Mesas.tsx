@@ -77,25 +77,28 @@ export default function Mesas() {
   const [confirmDelete, setConfirmDelete] = useState<Mesa | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const fetchData = useCallback(async (signal?: AbortSignal) => {
-    if (!eventoId) return;
-    try {
-      const [eventoRes, mesasRes, resultadosRes] = await Promise.all([
-        api.get(`/eventos/${eventoId}`, { signal }),
-        api.get(`/admin/eventos/${eventoId}/mesas`, { signal }),
-        api.get(`/admin/examenes/${eventoId}/resultados`, { signal }),
-      ]);
-      if (signal?.aborted) return;
-      setEvento(eventoRes.data);
-      setMesas(mesasRes.data);
-      setResultados(resultadosRes.data);
-    } catch {
-      if (signal?.aborted) return;
-      setError('Error al cargar los datos del examen');
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [eventoId]);
+  const fetchData = useCallback(
+    async (signal?: AbortSignal) => {
+      if (!eventoId) return;
+      try {
+        const [eventoRes, mesasRes, resultadosRes] = await Promise.all([
+          api.get(`/eventos/${eventoId}`, { signal }),
+          api.get(`/admin/eventos/${eventoId}/mesas`, { signal }),
+          api.get(`/admin/examenes/${eventoId}/resultados`, { signal }),
+        ]);
+        if (signal?.aborted) return;
+        setEvento(eventoRes.data);
+        setMesas(mesasRes.data);
+        setResultados(resultadosRes.data);
+      } catch {
+        if (signal?.aborted) return;
+        setError('Error al cargar los datos del examen');
+      } finally {
+        if (!signal?.aborted) setLoading(false);
+      }
+    },
+    [eventoId],
+  );
 
   useEffect(() => {
     if (!eventoId) {
@@ -160,9 +163,13 @@ export default function Mesas() {
       setFormOpen(false);
       fetchData();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+      const axiosErr = err as {
+        response?: { data?: { message?: string | string[] } };
+      };
       const m = axiosErr.response?.data?.message;
-      setError(Array.isArray(m) ? m.join(' - ') : m || 'Error al guardar la mesa');
+      setError(
+        Array.isArray(m) ? m.join(' - ') : m || 'Error al guardar la mesa',
+      );
     } finally {
       setSaving(false);
     }
@@ -191,7 +198,9 @@ export default function Mesas() {
         rankGrad(graduacion) <= rankGrad(m.grad_max),
     );
 
-  const [mesaSeleccionada, setMesaSeleccionada] = useState<Record<string, number>>({});
+  const [mesaSeleccionada, setMesaSeleccionada] = useState<
+    Record<string, number>
+  >({});
 
   const mesaKey = (inscripcionId: number, disciplina: string) =>
     `${inscripcionId}-${disciplina}`;
@@ -213,12 +222,10 @@ export default function Mesas() {
       (aprobada_hasta
         ? instancias.findIndex((i) => i.instancia === aprobada_hasta) >=
           firstNonApproved
-        : false) ||
-      !!desaprobada;
+        : false) || !!desaprobada;
 
     const key = mesaKey(inscripcionId, disciplina);
-    const mesa_id =
-      compatibles.length > 1 ? mesaSeleccionada[key] : undefined;
+    const mesa_id = compatibles.length > 1 ? mesaSeleccionada[key] : undefined;
     if (willCreateRows && compatibles.length > 1 && !mesa_id) {
       setError('Seleccione la mesa antes de actualizar los resultados');
       return;
@@ -234,36 +241,55 @@ export default function Mesas() {
       setMsg('Resultados actualizados correctamente');
       fetchData();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+      const axiosErr = err as {
+        response?: { data?: { message?: string | string[] } };
+      };
       const m = axiosErr.response?.data?.message;
       setError(
-        Array.isArray(m) ? m.join(' - ') : m || 'Error al actualizar los resultados',
+        Array.isArray(m)
+          ? m.join(' - ')
+          : m || 'Error al actualizar los resultados',
       );
     }
   };
 
-  const handleRegistrarPago = async (inscripcionId: number, disciplina: string) => {
+  const handleRegistrarPago = async (
+    inscripcionId: number,
+    disciplina: string,
+  ) => {
     setError('');
     setMsg('');
     try {
-      await api.post(`/admin/inscripciones/${inscripcionId}/registro-pagado`, { disciplina });
+      await api.post(`/admin/inscripciones/${inscripcionId}/registro-pagado`, {
+        disciplina,
+      });
       setMsg('Registro de pago confirmado');
       fetchData();
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string | string[] } } };
+      const axiosErr = err as {
+        response?: { data?: { message?: string | string[] } };
+      };
       const m = axiosErr.response?.data?.message;
-      setError(Array.isArray(m) ? m.join(' - ') : m || 'Error al registrar el pago');
+      setError(
+        Array.isArray(m) ? m.join(' - ') : m || 'Error al registrar el pago',
+      );
     }
   };
 
-  if (loading) return <div class="p-8"><Spinner text="Cargando examen..." /></div>;
+  if (loading)
+    return (
+      <div class="p-8">
+        <Spinner text="Cargando examen..." />
+      </div>
+    );
 
   if (!eventoId) {
     return (
       <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-8 text-center">
         <h4 class="font-semibold text-ink mb-2">Mesas examinadoras</h4>
         <p class="text-steel text-sm mb-4">
-          Seleccione un examen desde Gestión de Eventos para administrar sus mesas.
+          Seleccione un examen desde Gestión de Eventos para administrar sus
+          mesas.
         </p>
         <button
           onClick={() => route('/dashboard/eventos-admin')}
@@ -277,16 +303,18 @@ export default function Mesas() {
 
   return (
     <div class="space-y-6">
-      <div class="flex justify-between items-center">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 class="text-lg font-semibold text-ink">Mesas examinadoras</h3>
+          <h3 class="text-fluid-lg font-semibold text-ink">
+            Mesas examinadoras
+          </h3>
           {evento && (
             <p class="text-sm text-steel">
               {new Date(evento.fecha_inicio).toLocaleDateString('es-AR')}
             </p>
           )}
         </div>
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
           <button
             onClick={() => route('/dashboard/eventos-admin')}
             class="px-4 py-2 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
@@ -302,15 +330,25 @@ export default function Mesas() {
         </div>
       </div>
 
-      {error && <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>}
-      {msg && <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>}
+      {error && (
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">
+          {error}
+        </div>
+      )}
+      {msg && (
+        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">
+          {msg}
+        </div>
+      )}
 
       <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
         <div class="px-6 py-4 border-b border-steel-soft">
           <h4 class="font-semibold text-ink">Mesas</h4>
         </div>
         {mesas.length === 0 ? (
-          <p class="px-6 py-8 text-center text-steel text-sm">No hay mesas creadas para este examen.</p>
+          <p class="px-6 py-8 text-center text-steel text-sm">
+            No hay mesas creadas para este examen.
+          </p>
         ) : (
           <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse text-xs">
@@ -325,14 +363,28 @@ export default function Mesas() {
               <tbody class="divide-y divide-steel-soft/60">
                 {mesas.map((mesa) => (
                   <tr key={mesa.id} class="hover:bg-ai-soft/50">
-                    <td class="px-4 py-2 font-medium">{DISC_LABEL[mesa.disciplina] || mesa.disciplina}</td>
-                    <td class="px-4 py-2 text-steel">{mesa.examinadores.join(', ')}</td>
+                    <td class="px-4 py-2 font-medium">
+                      {DISC_LABEL[mesa.disciplina] || mesa.disciplina}
+                    </td>
+                    <td class="px-4 py-2 text-steel">
+                      {mesa.examinadores.join(', ')}
+                    </td>
                     <td class="px-4 py-2 text-steel">
                       {GRAD_LABEL[mesa.grad_min]} - {GRAD_LABEL[mesa.grad_max]}
                     </td>
                     <td class="px-4 py-2 text-right space-x-2">
-                      <button onClick={() => openEdit(mesa)} class="text-ai hover:underline">Editar</button>
-                      <button onClick={() => setConfirmDelete(mesa)} class="text-hinomaru hover:underline">Eliminar</button>
+                      <button
+                        onClick={() => openEdit(mesa)}
+                        class="text-ai hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => setConfirmDelete(mesa)}
+                        class="text-hinomaru hover:underline"
+                      >
+                        Eliminar
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -348,22 +400,24 @@ export default function Mesas() {
         </div>
         <div class="px-6 py-3 border-b border-steel-soft bg-ai-soft/60">
           <p class="text-xs text-steel">
-            <span class="font-semibold">¿Cómo se cargan los resultados?</span> Las
-            instancias se aprueban en orden: Práctico → Kata → Escrito. Haga clic en la
-            instancia hasta la que el candidato aprobó (las anteriores se rellenan solas)
-            o use «Desaprobado» en la primera que no aprobó. Todo es re-editable. La
-            graduación se hace efectiva cuando la federación carga el diploma desde
-            Diplomas.
+            <span class="font-semibold">¿Cómo se cargan los resultados?</span>{' '}
+            Las instancias se aprueban en orden: Práctico → Kata → Escrito. Haga
+            clic en la instancia hasta la que el candidato aprobó (las
+            anteriores se rellenan solas) o use «Desaprobado» en la primera que
+            no aprobó. Todo es re-editable. La graduación se hace efectiva
+            cuando la federación carga el diploma desde Diplomas.
           </p>
         </div>
         {resultados.length === 0 ? (
           <div class="px-6 py-8 text-center">
             <p class="text-steel text-sm mb-4">
-              Los candidatos aparecen cuando su inscripción al examen está aprobada.
-              Apruebe las inscripciones desde Gestión de Eventos.
+              Los candidatos aparecen cuando su inscripción al examen está
+              aprobada. Apruebe las inscripciones desde Gestión de Eventos.
             </p>
             <button
-              onClick={() => route(`/dashboard/inscripciones?eventoId=${eventoId}`)}
+              onClick={() =>
+                route(`/dashboard/inscripciones?eventoId=${eventoId}`)
+              }
               class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
             >
               Ver inscripciones
@@ -397,7 +451,10 @@ export default function Mesas() {
                     ([disciplina, instancias]) => {
                       const graduacion = instancias[0].graduacion;
                       const registro = instancias[0];
-                      const compatibles = mesasCompatibles(disciplina, graduacion);
+                      const compatibles = mesasCompatibles(
+                        disciplina,
+                        graduacion,
+                      );
                       const firstNonApproved = instancias.findIndex(
                         (i) => i.aprobado !== true,
                       );
@@ -408,7 +465,8 @@ export default function Mesas() {
                       const mesaActual =
                         firstNonApproved >= 0
                           ? instancias[firstNonApproved].mesa_id
-                          : instancias[instancias.length - 1]?.mesa_id ?? null;
+                          : (instancias[instancias.length - 1]?.mesa_id ??
+                            null);
                       const mesaSelKey = mesaKey(
                         candidato.inscripcion_id,
                         disciplina,
@@ -436,8 +494,7 @@ export default function Mesas() {
                                 let cls =
                                   'border border-steel-soft text-steel bg-surface';
                                 if (inst.aprobado === true) {
-                                  cls =
-                                    'bg-success text-white border-success';
+                                  cls = 'bg-success text-white border-success';
                                 } else if (inst.aprobado === false) {
                                   cls =
                                     'bg-hinomaru text-white border-hinomaru';
@@ -461,10 +518,13 @@ export default function Mesas() {
                                       title={`Hacer click para aprobar hasta ${INSTANCIA_LABEL[inst.instancia]}`}
                                       class={`px-2 py-1 rounded-md text-[10px] font-bold border transition-colors ${cls}`}
                                     >
-                                      {INSTANCIA_LABEL[inst.instancia] || inst.instancia}
+                                      {INSTANCIA_LABEL[inst.instancia] ||
+                                        inst.instancia}
                                     </button>
                                     {i < instancias.length - 1 && (
-                                      <span class="text-steel-soft text-xs">→</span>
+                                      <span class="text-steel-soft text-xs">
+                                        →
+                                      </span>
                                     )}
                                   </div>
                                 );
@@ -490,7 +550,9 @@ export default function Mesas() {
                               >
                                 <option value="">Seleccionar mesa</option>
                                 {compatibles.map((m) => (
-                                  <option key={m.id} value={m.id}>#{m.id}</option>
+                                  <option key={m.id} value={m.id}>
+                                    #{m.id}
+                                  </option>
                                 ))}
                               </select>
                             ) : (
@@ -531,7 +593,8 @@ export default function Mesas() {
                                     disciplina,
                                     graduacion,
                                     firstNonApproved > 0
-                                      ? instancias[firstNonApproved - 1].instancia
+                                      ? instancias[firstNonApproved - 1]
+                                          .instancia
                                       : null,
                                     fallo
                                       ? null
@@ -540,9 +603,7 @@ export default function Mesas() {
                                   )
                                 }
                                 class={`hover:underline ${
-                                  fallo
-                                    ? 'text-steel'
-                                    : 'text-hinomaru'
+                                  fallo ? 'text-steel' : 'text-hinomaru'
                                 }`}
                               >
                                 {fallo ? 'Quitar desaprobado' : 'Desaprobado'}
@@ -561,64 +622,123 @@ export default function Mesas() {
       </div>
 
       {formOpen && (
-        <Modal isOpen={formOpen} onClose={() => setFormOpen(false)} title={form.id ? 'Editar Mesa' : 'Nueva Mesa'}>
+        <Modal
+          isOpen={formOpen}
+          onClose={() => setFormOpen(false)}
+          title={form.id ? 'Editar Mesa' : 'Nueva Mesa'}
+        >
           <div class="space-y-4">
             <div>
-              <label htmlFor="mesa-disciplina" class="block text-sm font-medium text-ink mb-1">Disciplina</label>
+              <label
+                htmlFor="mesa-disciplina"
+                class="block text-sm font-medium text-ink mb-1"
+              >
+                Disciplina
+              </label>
               <select
                 id="mesa-disciplina"
                 value={form.disciplina}
                 disabled={!!form.id}
-                onChange={(e: Event) => setForm({ ...form, disciplina: (e.target as HTMLSelectElement).value })}
+                onChange={(e: Event) =>
+                  setForm({
+                    ...form,
+                    disciplina: (e.target as HTMLSelectElement).value,
+                  })
+                }
                 class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20 disabled:bg-paper"
               >
-                {(evento?.examen?.disciplinas || ['KENDO', 'IAIDO', 'JODO']).map((d: string) => (
-                  <option key={d} value={d}>{DISC_LABEL[d] || d}</option>
+                {(
+                  evento?.examen?.disciplinas || ['KENDO', 'IAIDO', 'JODO']
+                ).map((d: string) => (
+                  <option key={d} value={d}>
+                    {DISC_LABEL[d] || d}
+                  </option>
                 ))}
               </select>
             </div>
             <div>
-              <label htmlFor="mesa-examinadores" class="block text-sm font-medium text-ink mb-1">Examinadores (separados por coma)</label>
+              <label
+                htmlFor="mesa-examinadores"
+                class="block text-sm font-medium text-ink mb-1"
+              >
+                Examinadores (separados por coma)
+              </label>
               <input
                 id="mesa-examinadores"
                 type="text"
                 value={form.examinadores}
-                onInput={(e: Event) => setForm({ ...form, examinadores: (e.target as HTMLInputElement).value })}
+                onInput={(e: Event) =>
+                  setForm({
+                    ...form,
+                    examinadores: (e.target as HTMLInputElement).value,
+                  })
+                }
                 placeholder="Juan Pérez, Ana López"
                 class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
               />
             </div>
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="mesa-grad-min" class="block text-sm font-medium text-ink mb-1">Graduación mínima</label>
+                <label
+                  htmlFor="mesa-grad-min"
+                  class="block text-sm font-medium text-ink mb-1"
+                >
+                  Graduación mínima
+                </label>
                 <select
                   id="mesa-grad-min"
                   value={form.grad_min}
-                  onChange={(e: Event) => setForm({ ...form, grad_min: (e.target as HTMLSelectElement).value })}
+                  onChange={(e: Event) =>
+                    setForm({
+                      ...form,
+                      grad_min: (e.target as HTMLSelectElement).value,
+                    })
+                  }
                   class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
                 >
-                  {GRADOS.map((g) => <option key={g} value={g}>{GRAD_LABEL[g]}</option>)}
+                  {GRADOS.map((g) => (
+                    <option key={g} value={g}>
+                      {GRAD_LABEL[g]}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
-                <label htmlFor="mesa-grad-max" class="block text-sm font-medium text-ink mb-1">Graduación máxima</label>
+                <label
+                  htmlFor="mesa-grad-max"
+                  class="block text-sm font-medium text-ink mb-1"
+                >
+                  Graduación máxima
+                </label>
                 <select
                   id="mesa-grad-max"
                   value={form.grad_max}
-                  onChange={(e: Event) => setForm({ ...form, grad_max: (e.target as HTMLSelectElement).value })}
+                  onChange={(e: Event) =>
+                    setForm({
+                      ...form,
+                      grad_max: (e.target as HTMLSelectElement).value,
+                    })
+                  }
                   class="w-full border border-steel-soft rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
                 >
-                  {GRADOS.map((g) => <option key={g} value={g}>{GRAD_LABEL[g]}</option>)}
+                  {GRADOS.map((g) => (
+                    <option key={g} value={g}>
+                      {GRAD_LABEL[g]}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
             <div class="flex gap-3 pt-2">
-              <button onClick={() => setFormOpen(false)}
+              <button
+                onClick={() => setFormOpen(false)}
                 class="w-full bg-paper text-ink py-2 rounded-md font-medium hover:bg-ai-soft transition-colors"
               >
                 Cancelar
               </button>
-              <button onClick={handleSaveMesa} disabled={saving}
+              <button
+                onClick={handleSaveMesa}
+                disabled={saving}
                 class="w-full bg-ai text-white py-2 rounded-md font-medium hover:bg-ai-strong transition-colors disabled:opacity-50"
               >
                 {saving ? 'Guardando...' : 'Guardar'}

@@ -39,7 +39,13 @@ export default function AuditoriaAdmin() {
   const [filtroAccion, setFiltroAccion] = useState('');
   const [filtroDesde, setFiltroDesde] = useState('');
   const [filtroHasta, setFiltroHasta] = useState('');
-  const [query, setQuery] = useState({ pagina: 1, entidad: '', accion: '', desde: '', hasta: '' });
+  const [query, setQuery] = useState({
+    pagina: 1,
+    entidad: '',
+    accion: '',
+    desde: '',
+    hasta: '',
+  });
 
   const isNonAdmin = !authLoading && user?.rol !== 'ADMIN_GENERAL';
 
@@ -61,7 +67,9 @@ export default function AuditoriaAdmin() {
         if (query.accion) params.set('accion', query.accion);
         if (query.desde) params.set('desde', query.desde);
         if (query.hasta) params.set('hasta', query.hasta);
-        const res = await api.get(`/admin/auditoria?${params}`, { signal: ac.signal });
+        const res = await api.get(`/admin/auditoria?${params}`, {
+          signal: ac.signal,
+        });
         setData(res.data);
       } catch (err) {
         const code = (err as { code?: string })?.code;
@@ -80,14 +88,18 @@ export default function AuditoriaAdmin() {
   }
 
   const handleFilter = () => {
-    setQuery({ pagina: 1, entidad: filtroEntidad, accion: filtroAccion, desde: filtroDesde, hasta: filtroHasta });
+    setQuery({
+      pagina: 1,
+      entidad: filtroEntidad,
+      accion: filtroAccion,
+      desde: filtroDesde,
+      hasta: filtroHasta,
+    });
   };
 
-  const formatDate = (d: string) =>
-    new Date(d).toLocaleString('es-AR');
+  const formatDate = (d: string) => new Date(d).toLocaleString('es-AR');
 
-  const formatJSON = (obj: unknown) =>
-    JSON.stringify(obj, null, 2);
+  const formatJSON = (obj: unknown) => JSON.stringify(obj, null, 2);
 
   if (loading && !data) {
     return <Spinner text="Cargando auditoría..." />;
@@ -96,22 +108,45 @@ export default function AuditoriaAdmin() {
   return (
     <div class="space-y-4">
       {error && (
-        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">
+          {error}
+        </div>
       )}
 
       <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-4">
-        <div class="flex flex-wrap gap-4 items-end">
-          <div>
-            <label htmlFor="auditoria-entidad" class="block text-xs font-medium text-steel mb-1">Entidad</label>
-            <input id="auditoria-entidad" value={filtroEntidad}
-              onInput={(e: Event) => setFiltroEntidad((e.target as HTMLInputElement).value)}
-              class="px-3 py-1.5 border border-steel-soft rounded text-sm w-36" placeholder="ej: Usuario" />
+        <div class="flex flex-wrap items-end gap-3">
+          <div class="w-full sm:w-auto">
+            <label
+              htmlFor="auditoria-entidad"
+              class="block text-xs font-medium text-steel mb-1"
+            >
+              Entidad
+            </label>
+            <input
+              id="auditoria-entidad"
+              value={filtroEntidad}
+              onInput={(e: Event) =>
+                setFiltroEntidad((e.target as HTMLInputElement).value)
+              }
+              class="w-full border border-steel-soft rounded px-3 py-1.5 text-sm sm:w-36"
+              placeholder="ej: Usuario"
+            />
           </div>
-          <div>
-            <label htmlFor="auditoria-accion" class="block text-xs font-medium text-steel mb-1">Acción</label>
-            <select id="auditoria-accion" value={filtroAccion}
-              onChange={(e: Event) => setFiltroAccion((e.target as HTMLSelectElement).value)}
-              class="px-3 py-1.5 border border-steel-soft rounded text-sm">
+          <div class="w-full sm:w-auto">
+            <label
+              htmlFor="auditoria-accion"
+              class="block text-xs font-medium text-steel mb-1"
+            >
+              Acción
+            </label>
+            <select
+              id="auditoria-accion"
+              value={filtroAccion}
+              onChange={(e: Event) =>
+                setFiltroAccion((e.target as HTMLSelectElement).value)
+              }
+              class="w-full border border-steel-soft rounded px-3 py-1.5 text-sm sm:w-auto"
+            >
               <option value="">Todas</option>
               <option value="CREATE">CREATE</option>
               <option value="UPDATE">UPDATE</option>
@@ -119,20 +154,44 @@ export default function AuditoriaAdmin() {
               <option value="UPSERT">UPSERT</option>
             </select>
           </div>
-          <div>
-            <label htmlFor="auditoria-desde" class="block text-xs font-medium text-steel mb-1">Desde</label>
-            <input id="auditoria-desde" type="date" value={filtroDesde}
-              onInput={(e: Event) => setFiltroDesde((e.target as HTMLInputElement).value)}
-              class="px-3 py-1.5 border border-steel-soft rounded text-sm" />
+          <div class="w-full sm:w-auto">
+            <label
+              htmlFor="auditoria-desde"
+              class="block text-xs font-medium text-steel mb-1"
+            >
+              Desde
+            </label>
+            <input
+              id="auditoria-desde"
+              type="date"
+              value={filtroDesde}
+              onInput={(e: Event) =>
+                setFiltroDesde((e.target as HTMLInputElement).value)
+              }
+              class="w-full border border-steel-soft rounded px-3 py-1.5 text-sm sm:w-auto"
+            />
           </div>
-          <div>
-            <label htmlFor="auditoria-hasta" class="block text-xs font-medium text-steel mb-1">Hasta</label>
-            <input id="auditoria-hasta" type="date" value={filtroHasta}
-              onInput={(e: Event) => setFiltroHasta((e.target as HTMLInputElement).value)}
-              class="px-3 py-1.5 border border-steel-soft rounded text-sm" />
+          <div class="w-full sm:w-auto">
+            <label
+              htmlFor="auditoria-hasta"
+              class="block text-xs font-medium text-steel mb-1"
+            >
+              Hasta
+            </label>
+            <input
+              id="auditoria-hasta"
+              type="date"
+              value={filtroHasta}
+              onInput={(e: Event) =>
+                setFiltroHasta((e.target as HTMLInputElement).value)
+              }
+              class="w-full border border-steel-soft rounded px-3 py-1.5 text-sm sm:w-auto"
+            />
           </div>
-          <button onClick={handleFilter}
-            class="px-4 py-1.5 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors">
+          <button
+            onClick={handleFilter}
+            class="w-full rounded bg-ai px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-ai-strong sm:w-auto"
+          >
             Filtrar
           </button>
         </div>
@@ -153,34 +212,49 @@ export default function AuditoriaAdmin() {
               </tr>
             </thead>
             <tbody class="divide-y divide-steel-soft/60">
-              {data?.datos.map(entry => (
+              {data?.datos.map((entry) => (
                 <tr key={entry.id} class="hover:bg-ai-soft/50">
                   <td class="px-4 py-2 font-mono">{entry.id}</td>
                   <td class="px-4 py-2">
-                    <span class={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
-                      entry.accion === 'CREATE' ? 'bg-success-soft text-success' :
-                      entry.accion === 'UPDATE' ? 'bg-ai-soft text-ai' :
-                      entry.accion === 'DELETE' ? 'bg-hinomaru-soft text-hinomaru' :
-                      'bg-paper text-ink'
-                    }`}>
+                    <span
+                      class={`inline-block px-2 py-0.5 rounded text-xs font-medium ${
+                        entry.accion === 'CREATE'
+                          ? 'bg-success-soft text-success'
+                          : entry.accion === 'UPDATE'
+                            ? 'bg-ai-soft text-ai'
+                            : entry.accion === 'DELETE'
+                              ? 'bg-hinomaru-soft text-hinomaru'
+                              : 'bg-paper text-ink'
+                      }`}
+                    >
                       {entry.accion}
                     </span>
                   </td>
                   <td class="px-4 py-2">
-                    <span class="text-ink">{entry.entidad_nombre ?? `#${entry.entidad_id}`}</span>
-                    <span class="ml-1 text-[10px] text-steel">({entry.entidad})</span>
+                    <span class="text-ink">
+                      {entry.entidad_nombre ?? `#${entry.entidad_id}`}
+                    </span>
+                    <span class="ml-1 text-[10px] text-steel">
+                      ({entry.entidad})
+                    </span>
                   </td>
                   <td class="px-4 py-2">
                     <span class="text-ink">{entry.usuario_nombre ?? '—'}</span>
                     {entry.usuario_id && (
-                      <span class="ml-1 text-[10px] text-steel">#{entry.usuario_id}</span>
+                      <span class="ml-1 text-[10px] text-steel">
+                        #{entry.usuario_id}
+                      </span>
                     )}
                   </td>
                   <td class="px-4 py-2 font-mono">{entry.ip ?? '—'}</td>
-                  <td class="px-4 py-2 text-steel">{formatDate(entry.created_at)}</td>
+                  <td class="px-4 py-2 text-steel">
+                    {formatDate(entry.created_at)}
+                  </td>
                   <td class="px-4 py-2 text-right">
-                    <button onClick={() => setSelected(entry)}
-                      class="text-ai hover:underline text-xs">
+                    <button
+                      onClick={() => setSelected(entry)}
+                      class="text-ai hover:underline text-xs"
+                    >
                       Ver
                     </button>
                   </td>
@@ -200,45 +274,102 @@ export default function AuditoriaAdmin() {
 
       {data && data.total_paginas > 1 && (
         <div class="flex items-center justify-between text-sm text-steel">
-          <span>Página {data.pagina} de {data.total_paginas} ({data.total} registros)</span>
+          <span>
+            Página {data.pagina} de {data.total_paginas} ({data.total}{' '}
+            registros)
+          </span>
           <div class="flex gap-2">
-            <button disabled={data.pagina <= 1} onClick={() => setQuery(q => ({ ...q, pagina: q.pagina - 1 }))}
-              class="px-3 py-1 border border-steel-soft rounded hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              disabled={data.pagina <= 1}
+              onClick={() => setQuery((q) => ({ ...q, pagina: q.pagina - 1 }))}
+              class="px-3 py-1 border border-steel-soft rounded hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Anterior
             </button>
-            <button disabled={data.pagina >= data.total_paginas} onClick={() => setQuery(q => ({ ...q, pagina: q.pagina + 1 }))}
-              class="px-3 py-1 border border-steel-soft rounded hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed">
+            <button
+              disabled={data.pagina >= data.total_paginas}
+              onClick={() => setQuery((q) => ({ ...q, pagina: q.pagina + 1 }))}
+              class="px-3 py-1 border border-steel-soft rounded hover:bg-ai-soft/50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
               Siguiente
             </button>
           </div>
         </div>
       )}
 
-      <Modal isOpen={!!selected} onClose={() => setSelected(null)}
-        title={selected ? `Auditoría #${selected.id}` : ''}>
+      <Modal
+        isOpen={!!selected}
+        onClose={() => setSelected(null)}
+        title={selected ? `Auditoría #${selected.id}` : ''}
+      >
         {selected && (
           <div class="space-y-4 text-sm">
-            <div class="grid grid-cols-2 gap-3">
-              <div><span class="text-steel">Acción:</span> <span class="font-medium">{selected.accion}</span></div>
-              <div><span class="text-steel">Entidad:</span> <span class="font-medium">{selected.entidad}</span></div>
-              <div><span class="text-steel">Descripción:</span> <span class="font-medium">{selected.entidad_nombre ?? `#${selected.entidad_id}`}</span></div>
-              <div><span class="text-steel">Entidad ID:</span> <span class="font-mono text-[10px]">{selected.entidad_id}</span></div>
-              <div><span class="text-steel">Usuario:</span> <span class="font-medium">{selected.usuario_nombre ?? '—'}</span></div>
-              <div><span class="text-steel">Usuario ID:</span> <span class="font-mono text-[10px]">{selected.usuario_id ?? '—'}</span></div>
-              <div><span class="text-steel">IP:</span> <span class="font-medium">{selected.ip ?? '—'}</span></div>
-              <div class="col-span-2"><span class="text-steel">User Agent:</span> <span class="font-medium text-xs">{selected.user_agent ?? '—'}</span></div>
-              <div class="col-span-2"><span class="text-steel">Fecha:</span> <span class="font-medium">{formatDate(selected.created_at)}</span></div>
+            <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <span class="text-steel">Acción:</span>{' '}
+                <span class="font-medium">{selected.accion}</span>
+              </div>
+              <div>
+                <span class="text-steel">Entidad:</span>{' '}
+                <span class="font-medium">{selected.entidad}</span>
+              </div>
+              <div>
+                <span class="text-steel">Descripción:</span>{' '}
+                <span class="font-medium">
+                  {selected.entidad_nombre ?? `#${selected.entidad_id}`}
+                </span>
+              </div>
+              <div>
+                <span class="text-steel">Entidad ID:</span>{' '}
+                <span class="font-mono text-[10px]">{selected.entidad_id}</span>
+              </div>
+              <div>
+                <span class="text-steel">Usuario:</span>{' '}
+                <span class="font-medium">
+                  {selected.usuario_nombre ?? '—'}
+                </span>
+              </div>
+              <div>
+                <span class="text-steel">Usuario ID:</span>{' '}
+                <span class="font-mono text-[10px]">
+                  {selected.usuario_id ?? '—'}
+                </span>
+              </div>
+              <div>
+                <span class="text-steel">IP:</span>{' '}
+                <span class="font-medium">{selected.ip ?? '—'}</span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-steel">User Agent:</span>{' '}
+                <span class="font-medium text-xs">
+                  {selected.user_agent ?? '—'}
+                </span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-steel">Fecha:</span>{' '}
+                <span class="font-medium">
+                  {formatDate(selected.created_at)}
+                </span>
+              </div>
             </div>
             {selected.datos_previos && (
               <div>
-                <h4 class="text-sm font-semibold text-ink mb-1">Datos previos</h4>
-                <pre class="bg-paper p-3 rounded text-xs font-mono overflow-x-auto max-h-48 whitespace-pre-wrap">{formatJSON(selected.datos_previos)}</pre>
+                <h4 class="text-sm font-semibold text-ink mb-1">
+                  Datos previos
+                </h4>
+                <pre class="bg-paper p-3 rounded text-xs font-mono overflow-x-auto max-h-48 whitespace-pre-wrap">
+                  {formatJSON(selected.datos_previos)}
+                </pre>
               </div>
             )}
             {selected.datos_nuevos && (
               <div>
-                <h4 class="text-sm font-semibold text-ink mb-1">Datos nuevos</h4>
-                <pre class="bg-paper p-3 rounded text-xs font-mono overflow-x-auto max-h-48 whitespace-pre-wrap">{formatJSON(selected.datos_nuevos)}</pre>
+                <h4 class="text-sm font-semibold text-ink mb-1">
+                  Datos nuevos
+                </h4>
+                <pre class="bg-paper p-3 rounded text-xs font-mono overflow-x-auto max-h-48 whitespace-pre-wrap">
+                  {formatJSON(selected.datos_nuevos)}
+                </pre>
               </div>
             )}
           </div>

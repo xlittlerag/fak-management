@@ -26,9 +26,13 @@ export default function Asociaciones() {
   const [newDojoNombre, setNewDojoNombre] = useState('');
   const [editingDojoId, setEditingDojoId] = useState<number | null>(null);
   const [editingDojoNombre, setEditingDojoNombre] = useState('');
-  const [confirmDeleteDojo, setConfirmDeleteDojo] = useState<number | null>(null);
+  const [confirmDeleteDojo, setConfirmDeleteDojo] = useState<number | null>(
+    null,
+  );
 
-  const [editing, setEditing] = useState<Asociacion | null | undefined>(undefined);
+  const [editing, setEditing] = useState<Asociacion | null | undefined>(
+    undefined,
+  );
   const [formNombre, setFormNombre] = useState('');
   const [saving, setSaving] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
@@ -36,10 +40,12 @@ export default function Asociaciones() {
   const fetchAsociaciones = async () => {
     try {
       const res = await api.get('/asociaciones');
-      const assocData = await Promise.all(res.data.map(async (a: Asociacion) => {
-        const dojosRes = await api.get(`/dojos/asociacion/${a.id}`);
-        return { ...a, dojos: dojosRes.data };
-      }));
+      const assocData = await Promise.all(
+        res.data.map(async (a: Asociacion) => {
+          const dojosRes = await api.get(`/dojos/asociacion/${a.id}`);
+          return { ...a, dojos: dojosRes.data };
+        }),
+      );
       setAsociaciones(assocData);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -101,7 +107,9 @@ export default function Asociaciones() {
         await api.post('/asociaciones', { nombre: formNombre.trim() });
         setMsg('Asociación creada correctamente');
       } else if (editing) {
-        await api.patch(`/asociaciones/${editing.id}`, { nombre: formNombre.trim() });
+        await api.patch(`/asociaciones/${editing.id}`, {
+          nombre: formNombre.trim(),
+        });
         setMsg('Asociación actualizada correctamente');
       }
       setEditing(undefined);
@@ -133,13 +141,15 @@ export default function Asociaciones() {
   return (
     <div class="space-y-6">
       {msg && (
-        <div class={`px-4 py-3 rounded text-sm border ${
-          msg === 'Asociación creada correctamente'
-          || msg === 'Asociación actualizada correctamente'
-          || msg === 'Asociación eliminada correctamente'
-            ? 'bg-success-soft border-success/20 text-success'
-            : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
-        }`}>
+        <div
+          class={`px-4 py-3 rounded text-sm border ${
+            msg === 'Asociación creada correctamente' ||
+            msg === 'Asociación actualizada correctamente' ||
+            msg === 'Asociación eliminada correctamente'
+              ? 'bg-success-soft border-success/20 text-success'
+              : 'bg-hinomaru-soft border-hinomaru/20 text-hinomaru'
+          }`}
+        >
           {msg}
         </div>
       )}
@@ -147,7 +157,7 @@ export default function Asociaciones() {
       <div class="flex justify-end">
         <button
           onClick={openCreate}
-          class="px-4 py-2 bg-ai text-white rounded text-sm font-medium hover:bg-ai-strong transition-colors"
+          class="w-full rounded bg-ai px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-ai-strong sm:w-auto"
         >
           Crear Asociación
         </button>
@@ -155,122 +165,183 @@ export default function Asociaciones() {
 
       <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
         {asociaciones.length === 0 ? (
-          <div class="px-6 py-8 text-center text-steel">No hay asociaciones registradas.</div>
+          <div class="px-6 py-8 text-center text-steel">
+            No hay asociaciones registradas.
+          </div>
         ) : (
-          <table class="w-full text-left border-collapse">
-            <thead class="bg-paper border-b border-steel-soft text-steel text-sm font-semibold">
-              <tr>
-                <th class="px-6 py-4">Nombre Asociación</th>
-                <th class="px-6 py-4">Dojos</th>
-                <th class="px-6 py-4 text-right">Acciones</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-steel-soft/60">
-              {asociaciones.map(a => (
-                <Fragment key={a.id}>
-                  <tr class="hover:bg-ai-soft/50 transition-colors">
-                    <td class="px-6 py-4 font-medium text-ink">{a.nombre}</td>
-                    <td class="px-6 py-4 text-sm text-steel">{a.dojos?.length || 0} dojos</td>
-                    <td class="px-6 py-4 text-right space-x-2">
-                      <button
-                        onClick={() => openEdit(a)}
-                        class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => setConfirmDeleteId(a.id)}
-                        class="px-3 py-1 bg-hinomaru-soft hover:bg-hinomaru/10 text-hinomaru rounded-full text-xs font-medium transition-colors"
-                      >
-                        Eliminar
-                      </button>
-                      <button
-                        onClick={() => setExpanded(expanded === a.id ? null : a.id)}
-                        class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
-                      >
-                        {expanded === a.id ? 'Ocultar Dojos' : 'Gestionar Dojos'}
-                      </button>
-                    </td>
-                  </tr>
-                  {expanded === a.id && (
-                    <tr class="bg-paper/50">
-                      <td colSpan={3} class="px-6 py-4">
-                        <div class="space-y-4">
-                          <div class="bg-surface p-4 rounded-lg border border-steel-soft shadow-sm">
-                              <h5 class="text-xs font-bold text-steel uppercase mb-3">Dojos vinculados</h5>
-                              <ul class="space-y-2">
-                              {a.dojos?.map(d => (
-                                  <li key={d.id} class="flex items-center justify-between text-sm text-ink bg-paper p-2 rounded border border-steel-soft">
-                                  {editingDojoId === d.id ? (
-                                      <input
-                                      id={`editar-dojo-${d.id}`}
-                                      aria-label="Nombre del dojo"
-                                      value={editingDojoNombre}
-                                      onInput={(e: Event) => setEditingDojoNombre((e.target as HTMLInputElement).value)}
-                                      class="text-sm px-2 py-1 border border-steel-soft rounded flex-1 mr-2"
-                                      />
-                                  ) : <span class="font-medium">{d.nombre}</span>}
-
-                                  <div class="flex gap-2">
-                                      {editingDojoId === d.id ? (
-                                      <button onClick={() => handleUpdateDojo(d.id)} class="text-ai hover:underline text-xs font-bold px-2 py-1 bg-ai-soft rounded">Guardar</button>
-                                      ) : (
-                                      <button onClick={() => {setEditingDojoId(d.id); setEditingDojoNombre(d.nombre);}} class="text-steel hover:underline text-xs px-2 py-1 bg-paper rounded">Editar</button>
-                                      )}
-                                      <button onClick={() => setConfirmDeleteDojo(d.id)} class="text-hinomaru hover:underline text-xs px-2 py-1 bg-hinomaru-soft rounded">Eliminar</button>
-                                  </div>
-                                  </li>
-                              ))}
-                              </ul>
-                          </div>
-
-                          <div class="flex gap-2 items-center bg-surface p-3 rounded-lg border border-steel-soft">
-                            <input
-                              id={`nuevo-dojo-${a.id}`}
-                              aria-label="Nombre del nuevo dojo"
-                              placeholder="Nombre del nuevo dojo..."
-                              value={newDojoNombre}
-                              onInput={(e: Event) => setNewDojoNombre((e.target as HTMLInputElement).value)}
-                              class="text-sm px-3 py-1.5 border border-steel-soft rounded flex-1"
-                            />
-                            <button
-                              onClick={() => handleCreateDojo(a.id)}
-                              class="px-4 py-1.5 bg-ai text-white rounded text-xs font-bold hover:bg-ai-strong"
-                            >
-                              Añadir Dojo
-                            </button>
-                          </div>
-                        </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+              <thead class="bg-paper border-b border-steel-soft text-steel text-sm font-semibold">
+                <tr>
+                  <th class="px-6 py-4">Nombre Asociación</th>
+                  <th class="px-6 py-4">Dojos</th>
+                  <th class="px-6 py-4 text-right">Acciones</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-steel-soft/60">
+                {asociaciones.map((a) => (
+                  <Fragment key={a.id}>
+                    <tr class="hover:bg-ai-soft/50 transition-colors">
+                      <td class="px-6 py-4 font-medium text-ink">{a.nombre}</td>
+                      <td class="px-6 py-4 text-sm text-steel">
+                        {a.dojos?.length || 0} dojos
+                      </td>
+                      <td class="px-6 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => openEdit(a)}
+                          class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteId(a.id)}
+                          class="px-3 py-1 bg-hinomaru-soft hover:bg-hinomaru/10 text-hinomaru rounded-full text-xs font-medium transition-colors"
+                        >
+                          Eliminar
+                        </button>
+                        <button
+                          onClick={() =>
+                            setExpanded(expanded === a.id ? null : a.id)
+                          }
+                          class="px-3 py-1 bg-paper hover:bg-ai-soft text-ink rounded-full text-xs font-medium transition-colors"
+                        >
+                          {expanded === a.id
+                            ? 'Ocultar Dojos'
+                            : 'Gestionar Dojos'}
+                        </button>
                       </td>
                     </tr>
-                  )}
-                </Fragment>
-              ))}
-            </tbody>
-          </table>
+                    {expanded === a.id && (
+                      <tr class="bg-paper/50">
+                        <td colSpan={3} class="px-6 py-4">
+                          <div class="space-y-4">
+                            <div class="bg-surface p-4 rounded-lg border border-steel-soft shadow-sm">
+                              <h5 class="text-xs font-bold text-steel uppercase mb-3">
+                                Dojos vinculados
+                              </h5>
+                              <ul class="space-y-2">
+                                {a.dojos?.map((d) => (
+                                  <li
+                                    key={d.id}
+                                    class="flex items-center justify-between text-sm text-ink bg-paper p-2 rounded border border-steel-soft"
+                                  >
+                                    {editingDojoId === d.id ? (
+                                      <input
+                                        id={`editar-dojo-${d.id}`}
+                                        aria-label="Nombre del dojo"
+                                        value={editingDojoNombre}
+                                        onInput={(e: Event) =>
+                                          setEditingDojoNombre(
+                                            (e.target as HTMLInputElement)
+                                              .value,
+                                          )
+                                        }
+                                        class="text-sm px-2 py-1 border border-steel-soft rounded flex-1 mr-2"
+                                      />
+                                    ) : (
+                                      <span class="font-medium">
+                                        {d.nombre}
+                                      </span>
+                                    )}
+
+                                    <div class="flex gap-2">
+                                      {editingDojoId === d.id ? (
+                                        <button
+                                          onClick={() => handleUpdateDojo(d.id)}
+                                          class="text-ai hover:underline text-xs font-bold px-2 py-1 bg-ai-soft rounded"
+                                        >
+                                          Guardar
+                                        </button>
+                                      ) : (
+                                        <button
+                                          onClick={() => {
+                                            setEditingDojoId(d.id);
+                                            setEditingDojoNombre(d.nombre);
+                                          }}
+                                          class="text-steel hover:underline text-xs px-2 py-1 bg-paper rounded"
+                                        >
+                                          Editar
+                                        </button>
+                                      )}
+                                      <button
+                                        onClick={() =>
+                                          setConfirmDeleteDojo(d.id)
+                                        }
+                                        class="text-hinomaru hover:underline text-xs px-2 py-1 bg-hinomaru-soft rounded"
+                                      >
+                                        Eliminar
+                                      </button>
+                                    </div>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            <div class="flex gap-2 items-center bg-surface p-3 rounded-lg border border-steel-soft">
+                              <input
+                                id={`nuevo-dojo-${a.id}`}
+                                aria-label="Nombre del nuevo dojo"
+                                placeholder="Nombre del nuevo dojo..."
+                                value={newDojoNombre}
+                                onInput={(e: Event) =>
+                                  setNewDojoNombre(
+                                    (e.target as HTMLInputElement).value,
+                                  )
+                                }
+                                class="text-sm px-3 py-1.5 border border-steel-soft rounded flex-1"
+                              />
+                              <button
+                                onClick={() => handleCreateDojo(a.id)}
+                                class="px-4 py-1.5 bg-ai text-white rounded text-xs font-bold hover:bg-ai-strong"
+                              >
+                                Añadir Dojo
+                              </button>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </div>
 
       <Modal
         isOpen={editing !== undefined}
-        onClose={() => { setEditing(undefined); setMsg(''); }}
+        onClose={() => {
+          setEditing(undefined);
+          setMsg('');
+        }}
         title={editing === null ? 'Crear Asociación' : 'Editar Asociación'}
         subtitle={editing ? editing.nombre : undefined}
       >
         <div class="space-y-4">
           <div>
-            <label htmlFor="asociacion-nombre" class="block text-sm font-medium text-ink mb-1">Nombre</label>
+            <label
+              htmlFor="asociacion-nombre"
+              class="block text-sm font-medium text-ink mb-1"
+            >
+              Nombre
+            </label>
             <input
               id="asociacion-nombre"
               value={formNombre}
-              onInput={(e: Event) => setFormNombre((e.target as HTMLInputElement).value)}
+              onInput={(e: Event) =>
+                setFormNombre((e.target as HTMLInputElement).value)
+              }
               class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
               placeholder="Nombre de la asociación"
             />
           </div>
           <div class="flex justify-end gap-2">
             <button
-              onClick={() => { setEditing(undefined); setMsg(''); }}
+              onClick={() => {
+                setEditing(undefined);
+                setMsg('');
+              }}
               class="px-4 py-2 bg-surface border border-steel-soft text-ink rounded text-sm font-medium hover:bg-ai-soft/50 transition-colors"
             >
               Cancelar

@@ -256,7 +256,7 @@ export default function Dashboard() {
   }
 
   const navLinkClass = (active: boolean) =>
-    `relative flex items-center rounded-md px-3 py-2 text-sm transition-colors ${
+    `relative flex min-h-11 items-center rounded-md px-3 py-2 text-sm transition-colors ${
       active
         ? 'bg-white/10 font-medium text-white'
         : 'text-white/70 hover:bg-white/5 hover:text-white'
@@ -280,7 +280,7 @@ export default function Dashboard() {
   );
 
   return (
-    <div class="flex h-screen bg-paper">
+    <div class="flex h-dvh overflow-hidden bg-paper">
       {sidebarOpen && (
         <button
           type="button"
@@ -292,7 +292,7 @@ export default function Dashboard() {
 
       {/* Sidebar */}
       <aside
-        class={`max-lg:fixed lg:static inset-y-0 left-0 z-30 w-64 bg-ink text-white/80 flex flex-col transition-transform duration-200 lg:translate-x-0 ${
+        class={`max-lg:fixed lg:static inset-y-0 left-0 z-30 flex w-64 max-w-[85vw] flex-col bg-ink text-white/80 transition-transform duration-200 lg:translate-x-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -302,7 +302,7 @@ export default function Dashboard() {
             <button
               onClick={() => setSidebarOpen(false)}
               aria-label="Cerrar menú"
-              class="text-white/50 hover:text-white lg:hidden"
+              class="touch-target -mt-1 -mr-2 shrink-0 rounded-md text-white/50 hover:text-white lg:hidden"
             >
               <svg
                 aria-hidden="true"
@@ -360,13 +360,13 @@ export default function Dashboard() {
       </aside>
 
       {/* Main Content */}
-      <main class="min-w-0 flex-1 overflow-y-auto bg-paper">
-        <header class="flex items-center justify-between gap-4 border-b border-steel-soft bg-surface px-4 py-3.5 sm:px-8">
-          <div class="flex items-center gap-3">
+      <main class="min-h-0 min-w-0 flex-1 overflow-y-auto bg-paper">
+        <header class="flex items-center justify-between gap-2 border-b border-steel-soft bg-surface px-3 py-3 sm:gap-4 sm:px-8">
+          <div class="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
               aria-label="Abrir menú"
-              class="text-steel hover:text-ink lg:hidden"
+              class="touch-target -ml-2 shrink-0 rounded-md text-steel hover:text-ink lg:hidden"
             >
               <svg
                 aria-hidden="true"
@@ -383,12 +383,16 @@ export default function Dashboard() {
                 />
               </svg>
             </button>
-            <h2 class="font-display text-lg text-ink">{pageTitle(path)}</h2>
+            <h2 class="truncate font-display text-fluid-lg text-ink">
+              {pageTitle(path)}
+            </h2>
           </div>
-          <div class="truncate text-sm text-steel">{user.email}</div>
+          <div class="hidden max-w-[45%] truncate text-sm text-steel sm:block">
+            {user.email}
+          </div>
         </header>
 
-        <div class="p-4 sm:p-8">
+        <div class="p-4 sm:p-6 lg:p-8">
           <Suspense fallback={<p class="text-steel">Cargando…</p>}>
             {path === '/dashboard' && <DashboardHome />}
             {path === '/dashboard/perfil' && <Perfil />}

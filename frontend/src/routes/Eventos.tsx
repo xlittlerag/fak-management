@@ -28,15 +28,15 @@ export default function Eventos() {
   }, []);
 
   return (
-    <div class="min-h-screen bg-paper">
+    <div class="min-h-dvh bg-paper">
       <header class="border-b border-steel-soft bg-surface">
-        <div class="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-8">
-          <a href="/">
+        <div class="mx-auto flex max-w-4xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
+          <a href="/" class="min-w-0">
             <Wordmark />
           </a>
           <a
             href="/login"
-            class="text-sm font-medium text-ai underline hover:text-ai-strong"
+            class="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-ai underline hover:text-ai-strong"
           >
             Iniciar sesión
           </a>
@@ -44,7 +44,7 @@ export default function Eventos() {
       </header>
 
       <main class="mx-auto max-w-4xl space-y-6 p-4 sm:p-8">
-        <h1 class="font-display text-2xl text-ink">Próximos Eventos</h1>
+        <h1 class="font-display text-fluid-2xl text-ink">Próximos Eventos</h1>
 
         {loading ? (
           <Spinner text="Cargando eventos..." />
@@ -57,7 +57,7 @@ export default function Eventos() {
             <EmptyState title="No hay eventos próximos." />
           </div>
         ) : (
-          <div class="grid gap-4">
+          <div class="grid gap-4 sm:grid-cols-2">
             {eventos
               .filter((e) => new Date(e.fecha_inicio) > new Date())
               .map((evento) => {
@@ -69,9 +69,9 @@ export default function Eventos() {
                   <a
                     key={evento.id}
                     href={`/eventos/${evento.id}`}
-                    class="block rounded-lg border border-steel-soft bg-surface p-6 shadow-panel transition-shadow hover:shadow-float"
+                    class="block rounded-lg border border-steel-soft bg-surface p-5 shadow-panel transition-shadow hover:shadow-float sm:p-6"
                   >
-                    <div class="flex items-start justify-between gap-4">
+                    <div class="flex flex-wrap items-start justify-between gap-3">
                       <div class="min-w-0">
                         <h3 class="font-display text-lg text-ink">
                           {evento.tipo}

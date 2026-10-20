@@ -20,22 +20,24 @@ export function Pagination({
   if (totalPages !== undefined && totalPages <= 1) return null;
 
   return (
-    <div class="flex items-center justify-between text-sm">
-      <Button
-        variant="secondary"
-        size="sm"
-        onClick={() => onPageChange(page - 1)}
-        disabled={page === 0}
-      >
-        Página anterior
-      </Button>
-      <span class="tnum text-steel">
+    <div class="flex flex-wrap items-center justify-between gap-3 text-sm">
+      <span class="tnum order-first w-full text-center text-steel sm:order-none sm:w-auto">
         Página {page + 1}
         {totalPages !== undefined && <span> de {totalPages}</span>}
       </span>
       <Button
         variant="secondary"
         size="sm"
+        class="flex-1 sm:flex-none"
+        onClick={() => onPageChange(page - 1)}
+        disabled={page === 0}
+      >
+        Página anterior
+      </Button>
+      <Button
+        variant="secondary"
+        size="sm"
+        class="flex-1 sm:flex-none"
         onClick={() => onPageChange(page + 1)}
         disabled={noMore}
       >

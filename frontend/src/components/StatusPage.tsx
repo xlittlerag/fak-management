@@ -37,11 +37,11 @@ export function StatusPage({
 }: StatusPageProps) {
   const t = tones[tone];
   return (
-    <div class="flex min-h-screen flex-col items-center justify-center bg-paper p-4">
-      <div class="mb-8">
+    <div class="flex min-h-dvh flex-col items-center justify-center bg-paper p-4 py-8">
+      <div class="mb-6 sm:mb-8">
         <Wordmark />
       </div>
-      <div class="w-full max-w-md rounded-xl border border-steel-soft bg-surface p-10 text-center shadow-panel">
+      <div class="w-full max-w-md rounded-xl border border-steel-soft bg-surface p-6 text-center shadow-panel sm:p-10">
         <div
           class={`mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full ${t.badge}`}
         >
@@ -59,8 +59,8 @@ export function StatusPage({
             />
           </svg>
         </div>
-        <h1 class="font-display text-2xl text-ink">{title}</h1>
-        <p class="mt-2 mb-6 text-steel">{description}</p>
+        <h1 class="font-display text-fluid-2xl text-ink">{title}</h1>
+        <p class="mt-2 mb-6 text-base text-steel">{description}</p>
         {action}
       </div>
     </div>

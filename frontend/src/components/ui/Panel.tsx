@@ -50,19 +50,23 @@ export function Panel({
     >
       {frame && <FrameTicks />}
       {(title || actions) && (
-        <header class="flex items-start justify-between gap-4 border-b border-steel-soft/70 px-5 py-3.5">
-          <div class="min-w-0">
-            {title && <h2 class="font-display text-base text-ink">{title}</h2>}
+        <header class="flex flex-wrap items-start justify-between gap-2 border-b border-steel-soft/70 px-4 py-3.5 sm:gap-4 sm:px-5">
+          <div class="min-w-0 flex-1">
+            {title && (
+              <h2 class="font-display text-fluid-lg text-ink">{title}</h2>
+            )}
             {description && (
               <p class="mt-0.5 text-sm text-steel">{description}</p>
             )}
           </div>
           {actions && (
-            <div class="flex shrink-0 items-center gap-2">{actions}</div>
+            <div class="flex w-full shrink-0 flex-wrap items-center gap-2 sm:w-auto">
+              {actions}
+            </div>
           )}
         </header>
       )}
-      <div class={bodyClass ?? 'p-5'}>{children}</div>
+      <div class={bodyClass ?? 'p-4 sm:p-5'}>{children}</div>
     </section>
   );
 }

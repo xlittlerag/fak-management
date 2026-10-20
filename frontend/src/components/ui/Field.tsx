@@ -1,7 +1,7 @@
 import type { ComponentChildren, JSX } from 'preact';
 
 export const controlClass =
-  'w-full rounded-md border border-steel-soft bg-surface px-3 py-2 text-sm text-ink placeholder:text-steel/70 transition-colors focus:border-ai focus:outline-none focus:ring-2 focus:ring-ai/20 disabled:cursor-not-allowed disabled:opacity-60';
+  'w-full min-h-11 rounded-md border border-steel-soft bg-surface px-3 py-2 text-base text-ink placeholder:text-steel/70 transition-colors focus:border-ai focus:outline-none focus:ring-2 focus:ring-ai/20 disabled:cursor-not-allowed disabled:opacity-60 sm:text-sm';
 
 interface FieldProps {
   label?: string;

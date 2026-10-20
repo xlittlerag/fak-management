@@ -69,7 +69,9 @@ export default function Admin2FA() {
       setQr('');
       setSecretoManual('');
       setCodigo('');
-      setExito('El segundo factor ha sido habilitado correctamente. Guarde sus códigos de respaldo en un lugar seguro.');
+      setExito(
+        'El segundo factor ha sido habilitado correctamente. Guarde sus códigos de respaldo en un lugar seguro.',
+      );
       await cargar();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -99,7 +101,9 @@ export default function Admin2FA() {
     try {
       const res = await api.post('/auth/admin-2fa/respaldo/regenerar');
       setRespaldos(res.data.codigos_respaldo);
-      setExito('Se generaron nuevos códigos de respaldo. Los anteriores han quedado invalidados; guarde los nuevos en un lugar seguro.');
+      setExito(
+        'Se generaron nuevos códigos de respaldo. Los anteriores han quedado invalidados; guarde los nuevos en un lugar seguro.',
+      );
       await cargar();
     } catch (err) {
       setError(getErrorMessage(err));
@@ -111,27 +115,39 @@ export default function Admin2FA() {
   }
 
   return (
-    <div class="max-w-2xl space-y-6">
-      <div class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
-        <h3 class="text-lg font-semibold text-ink mb-2">Autenticación en dos pasos</h3>
+    <div class="max-w-2xl space-y-4 sm:space-y-6">
+      <div class="rounded-lg border border-steel-soft bg-surface p-4 shadow-sm sm:p-6">
+        <h3 class="mb-2 text-fluid-lg font-semibold text-ink">
+          Autenticación en dos pasos
+        </h3>
         <p class="text-sm text-steel mb-4">
-          Protege el acceso de administrador general exigiendo, además de la contraseña, un código temporal de una aplicación autenticadora (Google Authenticator, Authy, 1Password, etc.).
+          Protege el acceso de administrador general exigiendo, además de la
+          contraseña, un código temporal de una aplicación autenticadora (Google
+          Authenticator, Authy, 1Password, etc.).
         </p>
 
         {error && (
-          <div class="mb-4 p-3 bg-hinomaru-soft text-hinomaru border border-hinomaru/20 rounded text-sm">{error}</div>
+          <div class="mb-4 p-3 bg-hinomaru-soft text-hinomaru border border-hinomaru/20 rounded text-sm">
+            {error}
+          </div>
         )}
         {exito && (
-          <div class="mb-4 p-3 bg-success-soft text-success border border-success/20 rounded text-sm">{exito}</div>
+          <div class="mb-4 p-3 bg-success-soft text-success border border-success/20 rounded text-sm">
+            {exito}
+          </div>
         )}
 
         {estado && (
-          <p class="mb-4">
-            <span class={`inline-block px-2 py-1 rounded text-xs font-semibold ${estado.habilitado ? 'bg-success-soft text-success' : 'bg-paper text-steel'}`}>
+          <p class="mb-4 flex flex-wrap items-center gap-2">
+            <span
+              class={`inline-block px-2 py-1 rounded text-xs font-semibold ${estado.habilitado ? 'bg-success-soft text-success' : 'bg-paper text-steel'}`}
+            >
               {estado.habilitado ? 'Habilitado' : 'Deshabilitado'}
             </span>
             {estado.habilitado && (
-              <span class="ml-2 text-sm text-steel">Códigos de respaldo restantes: {estado.respaldos_restantes}</span>
+              <span class="text-sm text-steel">
+                Códigos de respaldo restantes: {estado.respaldos_restantes}
+              </span>
             )}
           </p>
         )}
@@ -140,7 +156,7 @@ export default function Admin2FA() {
           <button
             onClick={iniciarActivacion}
             disabled={activando}
-            class="px-4 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 transition-colors"
+            class="w-full rounded bg-ai px-4 py-2 font-medium text-white transition-colors hover:bg-ai-strong disabled:opacity-50 sm:w-auto"
           >
             {activando ? 'Generando...' : 'Activar segundo factor'}
           </button>
@@ -150,24 +166,38 @@ export default function Admin2FA() {
           <div class="space-y-4">
             <ol class="text-sm text-steel list-decimal list-inside space-y-1">
               <li>Escanee el código QR con su aplicación autenticadora.</li>
-              <li>Ingrese abajo el código de 6 dígitos que muestra la aplicación.</li>
+              <li>
+                Ingrese abajo el código de 6 dígitos que muestra la aplicación.
+              </li>
             </ol>
-            <img src={qr} alt="Código QR para la aplicación autenticadora" class="w-48 h-48 border border-steel-soft rounded" />
-            <p class="text-xs text-steel break-all">Si no puede escanear, ingrese manualmente: <code class="bg-paper px-1 rounded">{secretoManual}</code></p>
-            <form onSubmit={confirmarActivacion} class="flex gap-2">
+            <img
+              src={qr}
+              alt="Código QR para la aplicación autenticadora"
+              class="h-auto w-48 max-w-full rounded border border-steel-soft"
+            />
+            <p class="text-xs text-steel break-all">
+              Si no puede escanear, ingrese manualmente:{' '}
+              <code class="bg-paper px-1 rounded">{secretoManual}</code>
+            </p>
+            <form
+              onSubmit={confirmarActivacion}
+              class="flex flex-col gap-2 sm:flex-row"
+            >
               <input
                 type="text"
                 inputMode="numeric"
                 autoComplete="one-time-code"
                 value={codigo}
-                onInput={(e: Event) => setCodigo((e.target as HTMLInputElement).value)}
+                onInput={(e: Event) =>
+                  setCodigo((e.target as HTMLInputElement).value)
+                }
                 placeholder="123456"
-                class="px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20 tracking-widest text-center"
+                class="w-full rounded border border-steel-soft px-3 py-2 text-center tracking-widest focus:outline-none focus:ring-1 focus:ring-ai/20 sm:w-auto"
               />
               <button
                 type="submit"
                 disabled={activando}
-                class="px-4 py-2 bg-ai text-white rounded font-medium hover:bg-ai-strong disabled:opacity-50 transition-colors"
+                class="w-full rounded bg-ai px-4 py-2 font-medium text-white transition-colors hover:bg-ai-strong disabled:opacity-50 sm:w-auto"
               >
                 {activando ? 'Verificando...' : 'Confirmar y habilitar'}
               </button>
@@ -193,22 +223,38 @@ export default function Admin2FA() {
         )}
 
         {estado?.habilitado && pidiendoDeshabilitar && (
-          <form onSubmit={deshabilitar} class="space-y-3 border border-hinomaru/20 bg-hinomaru-soft rounded p-4">
-            <p class="text-sm text-hinomaru">El acceso de administrador quedará protegido solo por contraseña. Ingrese su contraseña para confirmar.</p>
+          <form
+            onSubmit={deshabilitar}
+            class="space-y-3 border border-hinomaru/20 bg-hinomaru-soft rounded p-4"
+          >
+            <p class="text-sm text-hinomaru">
+              El acceso de administrador quedará protegido solo por contraseña.
+              Ingrese su contraseña para confirmar.
+            </p>
             <div>
-              <label htmlFor="2fa-disable-password" class="block text-sm font-medium text-ink mb-1">Contraseña de administrador</label>
+              <label
+                htmlFor="2fa-disable-password"
+                class="block text-sm font-medium text-ink mb-1"
+              >
+                Contraseña de administrador
+              </label>
               <input
                 id="2fa-disable-password"
                 type="password"
                 value={password}
-                onInput={(e: Event) => setPassword((e.target as HTMLInputElement).value)}
+                onInput={(e: Event) =>
+                  setPassword((e.target as HTMLInputElement).value)
+                }
                 class="w-full px-3 py-2 border border-steel-soft rounded focus:outline-none focus:ring-1 focus:ring-ai/20"
               />
             </div>
             <div class="flex gap-2">
               <button
                 type="button"
-                onClick={() => { setPidiendoDeshabilitar(false); setPassword(''); }}
+                onClick={() => {
+                  setPidiendoDeshabilitar(false);
+                  setPassword('');
+                }}
                 class="px-4 py-2 bg-paper text-ink rounded font-medium hover:bg-ai-soft transition-colors"
               >
                 Cancelar
@@ -225,15 +271,26 @@ export default function Admin2FA() {
       </div>
 
       {respaldos.length > 0 && (
-        <div class="bg-warning-soft border border-warning/20 rounded-lg p-6">
-          <h4 class="text-sm font-semibold text-warning mb-2">Códigos de respaldo (se muestran una sola vez)</h4>
-          <p class="text-sm text-warning mb-3">Cada código sirve una sola vez, para cuando no tenga acceso a su aplicación autenticadora.</p>
+        <div class="rounded-lg border border-warning/20 bg-warning-soft p-4 sm:p-6">
+          <h4 class="mb-2 text-sm font-semibold text-warning">
+            Códigos de respaldo (se muestran una sola vez)
+          </h4>
+          <p class="text-sm text-warning mb-3">
+            Cada código sirve una sola vez, para cuando no tenga acceso a su
+            aplicación autenticadora.
+          </p>
           <ul class="grid grid-cols-2 gap-2 font-mono text-sm text-warning">
-            {respaldos.map((c) => <li key={c} class="bg-surface border border-warning/20 rounded px-2 py-1 text-center">{c}</li>)}
+            {respaldos.map((c) => (
+              <li
+                key={c}
+                class="bg-surface border border-warning/20 rounded px-2 py-1 text-center"
+              >
+                {c}
+              </li>
+            ))}
           </ul>
         </div>
       )}
-
     </div>
   );
 }

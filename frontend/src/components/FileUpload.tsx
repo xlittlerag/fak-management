@@ -61,8 +61,8 @@ export function FileUpload({
   };
 
   const inputClass = compact
-    ? 'text-xs text-steel file:mr-2 file:py-1 file:px-2 file:rounded file:border-0 file:text-[10px] file:font-semibold file:bg-ai-soft file:text-ai'
-    : 'block w-full text-sm text-steel file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-ai-soft file:text-ai hover:file:bg-ai/20';
+    ? 'min-w-0 max-w-full text-xs text-steel file:mr-2 file:min-h-11 file:rounded file:border-0 file:px-3 file:py-2 file:text-xs file:font-semibold file:bg-ai-soft file:text-ai'
+    : 'block w-full min-w-0 max-w-full text-sm text-steel file:mr-4 file:min-h-11 file:rounded-md file:border-0 file:px-4 file:py-2 file:text-sm file:font-semibold file:bg-ai-soft file:text-ai hover:file:bg-ai/20';
 
   return (
     <div>
@@ -73,7 +73,7 @@ export function FileUpload({
         {label}
         {!required && <span class="font-normal text-steel"> (opcional)</span>}
       </label>
-      <div class="flex items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <input
           id={inputId}
           type="file"
@@ -86,7 +86,7 @@ export function FileUpload({
           <button
             type="button"
             onClick={handleClear}
-            class="text-xs font-medium text-hinomaru hover:text-hinomaru/80"
+            class="inline-flex min-h-11 items-center text-xs font-medium text-hinomaru hover:text-hinomaru/80"
           >
             Quitar
           </button>

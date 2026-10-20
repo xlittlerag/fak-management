@@ -230,15 +230,15 @@ export default function EventoDetalle() {
     user && !inscripcion && new Date(evento.fecha_inicio) > new Date();
 
   return (
-    <div class="min-h-screen bg-paper">
+    <div class="min-h-dvh bg-paper">
       <header class="border-b border-steel-soft bg-surface">
-        <div class="mx-auto flex max-w-2xl items-center justify-between px-4 py-4 sm:px-8">
-          <a href="/eventos">
+        <div class="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3 sm:px-8">
+          <a href="/eventos" class="min-w-0">
             <Wordmark />
           </a>
           <a
             href="/login"
-            class="text-sm font-medium text-ai underline hover:text-ai-strong"
+            class="inline-flex min-h-11 shrink-0 items-center text-sm font-medium text-ai underline hover:text-ai-strong"
           >
             Iniciar sesión
           </a>
@@ -248,15 +248,17 @@ export default function EventoDetalle() {
       <div class="mx-auto max-w-2xl space-y-6 p-4 sm:p-8">
         <a
           href="/eventos"
-          class="text-sm font-medium text-ai hover:text-ai-strong"
+          class="inline-flex min-h-11 items-center text-sm font-medium text-ai hover:text-ai-strong"
         >
           &larr; Volver a eventos
         </a>
 
-        <Panel bodyClass="space-y-4 p-6">
-          <div class="flex items-start justify-between gap-4">
+        <Panel bodyClass="space-y-4 p-5 sm:p-6">
+          <div class="flex flex-wrap items-start justify-between gap-3">
             <div class="min-w-0">
-              <h1 class="font-display text-2xl text-ink">{evento.tipo}</h1>
+              <h1 class="font-display text-fluid-2xl text-ink">
+                {evento.tipo}
+              </h1>
               <p class="mt-1 text-sm text-steel">ID: {evento.id}</p>
             </div>
             <Badge tone="info" class="shrink-0">
@@ -264,7 +266,7 @@ export default function EventoDetalle() {
             </Badge>
           </div>
 
-          <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
             <div>
               <p class="text-steel">Inicio</p>
               <p class="font-medium text-ink">

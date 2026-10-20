@@ -33,7 +33,10 @@ export default function MisInscripciones() {
   const [savingEdit, setSavingEdit] = useState(false);
   const [msg, setMsg] = useState('');
   const [confirmBaja, setConfirmBaja] = useState<number | null>(null);
-  const [simulatedPayment, setSimulatedPayment] = useState<{ externalReference: string; inscripcionId: number } | null>(null);
+  const [simulatedPayment, setSimulatedPayment] = useState<{
+    externalReference: string;
+    inscripcionId: number;
+  } | null>(null);
 
   const fetchInscripciones = async () => {
     try {
@@ -64,7 +67,9 @@ export default function MisInscripciones() {
         return;
       }
       await loadMercadoPago();
-      const mp = new window.MercadoPago(import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY);
+      const mp = new window.MercadoPago(
+        import.meta.env.VITE_MERCADO_PAGO_PUBLIC_KEY,
+      );
       mp.checkout({
         preference: { id: preferenceId },
         render: { container: `#mp-checkout-${inscripcionId}`, label: 'Pagar' },
@@ -80,7 +85,9 @@ export default function MisInscripciones() {
     if (!simulatedPayment) return;
     setMsg('');
     try {
-      await api.post('/pagos/simulate', { externalReference: simulatedPayment.externalReference });
+      await api.post('/pagos/simulate', {
+        externalReference: simulatedPayment.externalReference,
+      });
       fetchInscripciones();
       setSimulatedPayment(null);
     } catch (err) {
@@ -149,7 +156,9 @@ export default function MisInscripciones() {
   return (
     <div class="space-y-4">
       {msg && (
-        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>
+        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">
+          {msg}
+        </div>
       )}
 
       {inscripciones.length === 0 ? (
@@ -158,30 +167,56 @@ export default function MisInscripciones() {
         </div>
       ) : (
         <div class="grid gap-4">
-          {inscripciones.map(ins => (
-            <div key={ins.id} class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6">
-              <div class="flex justify-between items-start">
-                <div>
-                  <h3 class="font-semibold text-ink">{ins.evento?.tipo || 'Evento'}</h3>
+          {inscripciones.map((ins) => (
+            <div
+              key={ins.id}
+              class="rounded-lg border border-steel-soft bg-surface p-5 shadow-sm sm:p-6"
+            >
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div class="min-w-0">
+                  <h3 class="font-semibold text-ink">
+                    {ins.evento?.tipo || 'Evento'}
+                  </h3>
                   <p class="text-sm text-steel">
-                    {ins.evento?.fecha_inicio ? new Date(ins.evento.fecha_inicio).toLocaleDateString('es-AR') : ''}
+                    {ins.evento?.fecha_inicio
+                      ? new Date(ins.evento.fecha_inicio).toLocaleDateString(
+                          'es-AR',
+                        )
+                      : ''}
                   </p>
-                  {ins.evento?.tipo === 'EXAMEN' && ins.disciplinas && ins.disciplinas.length > 0 && (
-                    <p class="text-sm text-steel">Disciplinas: {ins.disciplinas.join(', ')}</p>
-                  )}
-                  <p class="text-sm text-steel mt-1">{ins.evento?.tipo === 'EXAMEN' ? 'Graduaciones' : 'Categoría'}: {(ins.categorias || []).join(', ') || 'General'}</p>
+                  {ins.evento?.tipo === 'EXAMEN' &&
+                    ins.disciplinas &&
+                    ins.disciplinas.length > 0 && (
+                      <p class="text-sm text-steel">
+                        Disciplinas: {ins.disciplinas.join(', ')}
+                      </p>
+                    )}
+                  <p class="text-sm text-steel mt-1">
+                    {ins.evento?.tipo === 'EXAMEN'
+                      ? 'Graduaciones'
+                      : 'Categoría'}
+                    : {(ins.categorias || []).join(', ') || 'General'}
+                  </p>
                 </div>
-                <div class="text-right">
-                  <span class={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                    ins.estado_aprob === 'APROBADO' ? 'bg-success-soft text-success' :
-                    ins.estado_aprob === 'RECHAZADO' ? 'bg-hinomaru-soft text-hinomaru' :
-                    'bg-warning-soft text-warning'
-                  }`}>
+                <div class="flex flex-wrap gap-2 sm:justify-end">
+                  <span
+                    class={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                      ins.estado_aprob === 'APROBADO'
+                        ? 'bg-success-soft text-success'
+                        : ins.estado_aprob === 'RECHAZADO'
+                          ? 'bg-hinomaru-soft text-hinomaru'
+                          : 'bg-warning-soft text-warning'
+                    }`}
+                  >
                     {estadoLabel(ins.estado_aprob)}
                   </span>
-                  <span class={`ml-2 inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                    ins.pagado ? 'bg-success-soft text-success' : 'bg-paper text-steel'
-                  }`}>
+                  <span
+                    class={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
+                      ins.pagado
+                        ? 'bg-success-soft text-success'
+                        : 'bg-paper text-steel'
+                    }`}
+                  >
                     {ins.pagado ? 'Pagado' : 'No pagado'}
                   </span>
                 </div>
@@ -190,23 +225,54 @@ export default function MisInscripciones() {
               {editingId === ins.id ? (
                 <div class="mt-4 space-y-3 border-t border-steel-soft pt-4">
                   <div>
-                    <label htmlFor="misedit-cats" class="block text-xs font-bold text-steel uppercase tracking-wider mb-1">Categorías / Graduaciones</label>
-                    <input id="misedit-cats" type="text" value={editCats.join(', ')}
-                      onInput={(e: Event) => setEditCats((e.target as HTMLInputElement).value.split(',').map(s => s.trim()))}
-                      class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2" />
+                    <label
+                      htmlFor="misedit-cats"
+                      class="block text-xs font-bold text-steel uppercase tracking-wider mb-1"
+                    >
+                      Categorías / Graduaciones
+                    </label>
+                    <input
+                      id="misedit-cats"
+                      type="text"
+                      value={editCats.join(', ')}
+                      onInput={(e: Event) =>
+                        setEditCats(
+                          (e.target as HTMLInputElement).value
+                            .split(',')
+                            .map((s) => s.trim()),
+                        )
+                      }
+                      class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2"
+                    />
                   </div>
                   <div class="flex items-center gap-2">
-                    <input type="checkbox" checked={editNecesidades}
-                      onChange={(e: Event) => setEditNecesidades((e.target as HTMLInputElement).checked)}
-                      class="w-4 h-4" />
-                    <span class="text-xs font-bold text-steel uppercase tracking-wider">Necesidades especiales</span>
+                    <input
+                      type="checkbox"
+                      checked={editNecesidades}
+                      onChange={(e: Event) =>
+                        setEditNecesidades(
+                          (e.target as HTMLInputElement).checked,
+                        )
+                      }
+                      class="w-4 h-4"
+                    />
+                    <span class="text-xs font-bold text-steel uppercase tracking-wider">
+                      Necesidades especiales
+                    </span>
                   </div>
                   {editNecesidades && (
                     <>
-                      <textarea value={editDescNecesidades}
-                        onInput={(e: Event) => setEditDescNecesidades((e.target as HTMLTextAreaElement).value)}
-                        class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2" rows={2}
-                        placeholder="Describa la necesidad especial" />
+                      <textarea
+                        value={editDescNecesidades}
+                        onInput={(e: Event) =>
+                          setEditDescNecesidades(
+                            (e.target as HTMLTextAreaElement).value,
+                          )
+                        }
+                        class="w-full text-sm border-steel-soft rounded-md shadow-sm p-2"
+                        rows={2}
+                        placeholder="Describa la necesidad especial"
+                      />
                       <FileUpload
                         label="Certificado médico"
                         currentFile={editFile}
@@ -215,10 +281,17 @@ export default function MisInscripciones() {
                     </>
                   )}
                   <div class="flex gap-2">
-                    <button onClick={() => setEditingId(null)}
-                      class="px-4 py-1.5 bg-paper text-ink rounded text-sm hover:bg-ai-soft">Cancelar</button>
-                    <button onClick={() => handleSaveEdit(ins.id)} disabled={savingEdit}
-                      class="px-4 py-1.5 bg-ai text-white rounded text-sm hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed">
+                    <button
+                      onClick={() => setEditingId(null)}
+                      class="px-4 py-1.5 bg-paper text-ink rounded text-sm hover:bg-ai-soft"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={() => handleSaveEdit(ins.id)}
+                      disabled={savingEdit}
+                      class="px-4 py-1.5 bg-ai text-white rounded text-sm hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
                       {savingEdit ? 'Guardando...' : 'Guardar'}
                     </button>
                   </div>
@@ -226,38 +299,52 @@ export default function MisInscripciones() {
               ) : (
                 <div class="mt-3 flex gap-2">
                   {ins.estado_aprob !== 'RECHAZADO' && (
-                    <button onClick={() => startEdit(ins)}
-                      class="text-xs text-ai hover:underline">Editar</button>
+                    <button
+                      onClick={() => startEdit(ins)}
+                      class="text-xs text-ai hover:underline"
+                    >
+                      Editar
+                    </button>
                   )}
                   {ins.estado_aprob !== 'RECHAZADO' && (
-                    <button onClick={() => setConfirmBaja(ins.id)}
-                      class="text-xs text-hinomaru hover:underline">Darse de baja</button>
+                    <button
+                      onClick={() => setConfirmBaja(ins.id)}
+                      class="text-xs text-hinomaru hover:underline"
+                    >
+                      Darse de baja
+                    </button>
                   )}
                 </div>
               )}
 
-              {ins.estado_aprob === 'APROBADO' && !ins.pagado && editingId !== ins.id && (
-                <div class="mt-4" id={`mp-checkout-${ins.id}`}>
-                  {simulatedPayment?.inscripcionId === ins.id ? (
-                    <button
-                      onClick={handleSimulatePayment}
-                      class="w-full bg-success text-white py-2 rounded font-medium hover:bg-success/90 transition-colors text-sm"
-                    >
-                      Pagar en modo prueba (simulado)
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handlePagar(ins.id)}
-                      disabled={payingId === ins.id}
-                      class="w-full bg-ai text-white py-2 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
-                    >
-                      {payingId === ins.id ? 'Procesando...' : 'Pagar inscripción'}
-                    </button>
-                  )}
-                </div>
-              )}
+              {ins.estado_aprob === 'APROBADO' &&
+                !ins.pagado &&
+                editingId !== ins.id && (
+                  <div class="mt-4" id={`mp-checkout-${ins.id}`}>
+                    {simulatedPayment?.inscripcionId === ins.id ? (
+                      <button
+                        onClick={handleSimulatePayment}
+                        class="w-full bg-success text-white py-2 rounded font-medium hover:bg-success/90 transition-colors text-sm"
+                      >
+                        Pagar en modo prueba (simulado)
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handlePagar(ins.id)}
+                        disabled={payingId === ins.id}
+                        class="w-full bg-ai text-white py-2 rounded font-medium hover:bg-ai-strong disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm"
+                      >
+                        {payingId === ins.id
+                          ? 'Procesando...'
+                          : 'Pagar inscripción'}
+                      </button>
+                    )}
+                  </div>
+                )}
               {ins.estado_aprob === 'RECHAZADO' && (
-                <p class="mt-2 text-sm text-hinomaru">Su inscripción fue rechazada.</p>
+                <p class="mt-2 text-sm text-hinomaru">
+                  Su inscripción fue rechazada.
+                </p>
               )}
             </div>
           ))}

@@ -26,42 +26,51 @@ export default function InscripcionesAdmin() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
-  const [confirmPagoManual, setConfirmPagoManual] = useState<number | null>(null);
+  const [confirmPagoManual, setConfirmPagoManual] = useState<number | null>(
+    null,
+  );
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const PAGE_SIZE = 30;
 
-  const fetchInscripciones = useCallback(async (signal?: AbortSignal) => {
-    try {
-      if (eventoId) {
-        const res = await api.get(`/eventos/${eventoId}/inscripciones`, { signal });
-        if (signal?.aborted) return;
-        setInscripciones(res.data);
-      } else {
-        const eventosRes = await api.get('/eventos', { signal });
-        const eventos = eventosRes.data as Array<{ id: number }>;
-        const results = await Promise.allSettled(
-          eventos.map((ev) => api.get(`/eventos/${ev.id}/inscripciones`, { signal })),
-        );
-        if (signal?.aborted) return;
-        const allInscripciones: Inscripcion[] = [];
-        for (const r of results) {
-          // Las rechazadas (p. ej. eventos sin acceso) se omiten
-          if (r.status === 'fulfilled' && Array.isArray(r.value.data)) {
-            allInscripciones.push(...r.value.data);
+  const fetchInscripciones = useCallback(
+    async (signal?: AbortSignal) => {
+      try {
+        if (eventoId) {
+          const res = await api.get(`/eventos/${eventoId}/inscripciones`, {
+            signal,
+          });
+          if (signal?.aborted) return;
+          setInscripciones(res.data);
+        } else {
+          const eventosRes = await api.get('/eventos', { signal });
+          const eventos = eventosRes.data as Array<{ id: number }>;
+          const results = await Promise.allSettled(
+            eventos.map((ev) =>
+              api.get(`/eventos/${ev.id}/inscripciones`, { signal }),
+            ),
+          );
+          if (signal?.aborted) return;
+          const allInscripciones: Inscripcion[] = [];
+          for (const r of results) {
+            // Las rechazadas (p. ej. eventos sin acceso) se omiten
+            if (r.status === 'fulfilled' && Array.isArray(r.value.data)) {
+              allInscripciones.push(...r.value.data);
+            }
           }
-        }
 
-        allInscripciones.sort((a, b) => a.id - b.id);
-        setInscripciones(allInscripciones);
+          allInscripciones.sort((a, b) => a.id - b.id);
+          setInscripciones(allInscripciones);
+        }
+      } catch {
+        if (signal?.aborted) return;
+        setError('Error al cargar inscripciones');
+      } finally {
+        if (!signal?.aborted) setLoading(false);
       }
-    } catch {
-      if (signal?.aborted) return;
-      setError('Error al cargar inscripciones');
-    } finally {
-      if (!signal?.aborted) setLoading(false);
-    }
-  }, [eventoId]);
+    },
+    [eventoId],
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,7 +83,7 @@ export default function InscripcionesAdmin() {
   const handleAction = async (id: number, accion: 'APROBAR' | 'RECHAZAR') => {
     try {
       await api.patch(`/inscripciones/${id}/aprobar`, { accion });
-      setInscripciones(prev => prev.filter(i => i.id !== id));
+      setInscripciones((prev) => prev.filter((i) => i.id !== id));
     } catch {
       setError('Error al procesar la acción');
     }
@@ -90,40 +99,64 @@ export default function InscripcionesAdmin() {
     }
   };
 
-  if (loading) return <div class="p-8"><Spinner text="Cargando inscripciones..." /></div>;
+  if (loading)
+    return (
+      <div class="p-8">
+        <Spinner text="Cargando inscripciones..." />
+      </div>
+    );
   if (error) return <div class="p-8 text-hinomaru">{error}</div>;
 
   const query = search.toLowerCase();
-  const pendientes = inscripciones.filter(i => i.estado_aprob === 'PENDIENTE' && (
-    !query || i.usuario?.nombre?.toLowerCase().includes(query) || i.usuario?.dni?.toLowerCase().includes(query)
-  ));
+  const pendientes = inscripciones.filter(
+    (i) =>
+      i.estado_aprob === 'PENDIENTE' &&
+      (!query ||
+        i.usuario?.nombre?.toLowerCase().includes(query) ||
+        i.usuario?.dni?.toLowerCase().includes(query)),
+  );
   const totalPages = Math.ceil(pendientes.length / PAGE_SIZE);
-  const pagedPendientes = pendientes.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const pagedPendientes = pendientes.slice(
+    page * PAGE_SIZE,
+    (page + 1) * PAGE_SIZE,
+  );
 
   return (
     <div class="space-y-4">
-      <div class="flex items-center gap-4">
-        <label htmlFor="inscripciones-busqueda" class="sr-only">Buscar por nombre o DNI</label>
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+        <label htmlFor="inscripciones-busqueda" class="sr-only">
+          Buscar por nombre o DNI
+        </label>
         <input
           id="inscripciones-busqueda"
           type="text"
           value={search}
-          onInput={(e: Event) => { setSearch((e.target as HTMLInputElement).value); setPage(0); }}
+          onInput={(e: Event) => {
+            setSearch((e.target as HTMLInputElement).value);
+            setPage(0);
+          }}
           placeholder="Buscar por nombre o DNI..."
-          class="w-full max-w-md px-4 py-2 border border-steel-soft rounded text-sm focus:outline-none focus:ring-2 focus:ring-ai/20"
+          class="w-full max-w-md rounded border border-steel-soft px-4 py-2 text-base focus:outline-none focus:ring-2 focus:ring-ai/20 sm:text-sm"
         />
         {eventoId && (
-          <button onClick={() => route('/dashboard/eventos-admin')} class="text-sm text-ai hover:underline whitespace-nowrap">
+          <button
+            onClick={() => route('/dashboard/eventos-admin')}
+            class="inline-flex min-h-11 items-center text-sm font-medium text-ai hover:underline"
+          >
             ← Volver a Eventos
           </button>
         )}
       </div>
 
       {error && (
-        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">{error}</div>
+        <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">
+          {error}
+        </div>
       )}
       {msg && (
-        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">{msg}</div>
+        <div class="bg-ai-soft border border-ai/20 text-ai px-4 py-3 rounded text-sm">
+          {msg}
+        </div>
       )}
 
       <div class="bg-surface rounded-lg shadow-sm border border-steel-soft overflow-hidden">
@@ -145,22 +178,39 @@ export default function InscripcionesAdmin() {
                   </td>
                 </tr>
               ) : (
-                pagedPendientes.map(ins => (
-                  <tr key={ins.id} class="hover:bg-ai-soft/50 transition-colors">
+                pagedPendientes.map((ins) => (
+                  <tr
+                    key={ins.id}
+                    class="hover:bg-ai-soft/50 transition-colors"
+                  >
                     <td class="px-6 py-4">
-                      <div class="font-medium text-ink">{ins.usuario?.nombre || 'Usuario #' + ins.usuario_id}</div>
-                      <div class="text-xs text-steel font-mono">{ins.usuario?.dni || ''}</div>
+                      <div class="font-medium text-ink">
+                        {ins.usuario?.nombre || 'Usuario #' + ins.usuario_id}
+                      </div>
+                      <div class="text-xs text-steel font-mono">
+                        {ins.usuario?.dni || ''}
+                      </div>
                     </td>
                     <td class="px-6 py-4 text-sm">
-                      <div>{ins.evento?.tipo || 'Evento #' + ins.evento_id}</div>
+                      <div>
+                        {ins.evento?.tipo || 'Evento #' + ins.evento_id}
+                      </div>
                       <div class="text-xs text-steel">
-                        {ins.evento?.fecha_inicio ? new Date(ins.evento.fecha_inicio).toLocaleDateString('es-AR') : ''}
+                        {ins.evento?.fecha_inicio
+                          ? new Date(
+                              ins.evento.fecha_inicio,
+                            ).toLocaleDateString('es-AR')
+                          : ''}
                       </div>
                     </td>
                     <td class="px-6 py-4 text-sm text-steel">
-                      {ins.evento?.tipo === 'EXAMEN' && ins.disciplinas && ins.disciplinas.length > 0 && (
-                        <div class="text-xs text-steel mb-1">Disc: {ins.disciplinas.join(', ')}</div>
-                      )}
+                      {ins.evento?.tipo === 'EXAMEN' &&
+                        ins.disciplinas &&
+                        ins.disciplinas.length > 0 && (
+                          <div class="text-xs text-steel mb-1">
+                            Disc: {ins.disciplinas.join(', ')}
+                          </div>
+                        )}
                       {(ins.categorias || []).join(', ') || 'General'}
                     </td>
                     <td class="px-6 py-4 text-right space-x-2">
@@ -194,7 +244,11 @@ export default function InscripcionesAdmin() {
       </div>
 
       <div class="mt-4">
-        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+        <Pagination
+          page={page}
+          totalPages={totalPages}
+          onPageChange={setPage}
+        />
       </div>
 
       {confirmPagoManual !== null && (

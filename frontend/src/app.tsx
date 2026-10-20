@@ -19,7 +19,7 @@ const NotFound = lazy(() => import('./routes/_404'));
 
 function RouteFallback() {
   return (
-    <div class="flex min-h-screen items-center justify-center bg-paper">
+    <div class="flex min-h-dvh items-center justify-center bg-paper">
       <Spinner text="Cargando…" />
     </div>
   );

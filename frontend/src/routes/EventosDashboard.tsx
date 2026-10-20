@@ -225,7 +225,7 @@ export default function EventosDashboard() {
 
   return (
     <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-ink">Próximos Eventos</h2>
+      <h2 class="text-fluid-lg font-semibold text-ink">Próximos Eventos</h2>
 
       {error && (
         <div class="bg-hinomaru-soft border border-hinomaru/20 text-hinomaru px-4 py-3 rounded text-sm">
@@ -262,11 +262,11 @@ export default function EventosDashboard() {
             return (
               <div
                 key={evento.id}
-                class="bg-surface rounded-lg shadow-sm border border-steel-soft p-6 space-y-4"
+                class="space-y-4 rounded-lg border border-steel-soft bg-surface p-5 shadow-sm sm:p-6"
               >
-                <div class="flex justify-between items-start">
+                <div class="flex flex-wrap items-start justify-between gap-3">
                   <div class="min-w-0">
-                    <h3 class="text-lg font-semibold text-ink">
+                    <h3 class="text-fluid-lg font-semibold text-ink">
                       {evento.tipo}
                     </h3>
                     <p class="text-sm text-steel mt-1">

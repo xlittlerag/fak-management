@@ -83,6 +83,20 @@
 
   --shadow-panel: 0 1px 2px rgba(16, 26, 46, 0.06);
   --shadow-float: 0 10px 30px -12px rgba(16, 26, 46, 0.28);
+
+  /*
+   * Tipografía fluida: evita saltos entre breakpoints y mantiene la lectura
+   * cómoda desde 320px hasta 1536px+. Los nombres no colisionan con las
+   * utilidades `text-*` estándar de Tailwind.
+   */
+  --text-fluid-lg: clamp(1.0625rem, 0.98rem + 0.42vw, 1.25rem);
+  --text-fluid-lg--line-height: 1.4;
+  --text-fluid-xl: clamp(1.25rem, 1.08rem + 0.86vw, 1.625rem);
+  --text-fluid-xl--line-height: 1.3;
+  --text-fluid-2xl: clamp(1.5rem, 1.18rem + 1.6vw, 2.25rem);
+  --text-fluid-2xl--line-height: 1.2;
+  --text-fluid-3xl: clamp(1.75rem, 1.3rem + 2.2vw, 2.75rem);
+  --text-fluid-3xl--line-height: 1.12;
 }
 
 @layer base {
@@ -92,12 +106,22 @@
     padding: 0;
   }
 
+  html {
+    /* Evita el zoom automático de iOS al rotar o al enfocar formularios. */
+    -webkit-text-size-adjust: 100%;
+  }
+
   body {
     @apply bg-paper text-ink font-sans antialiased;
   }
 
   * {
     box-sizing: border-box;
+  }
+
+  img {
+    max-width: 100%;
+    height: auto;
   }
 
   :focus-visible {
@@ -139,4 +163,201 @@ aside nav::-webkit-scrollbar-track {
 aside nav::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.2);
   border-radius: 2px;
+}
+
+/*
+ * Tablas responsive.
+ *
+ * En móvil cada fila se convierte en una tarjeta. Las etiquetas de columna
+ * se copian desde el <thead> a `data-label` (ver lib/responsive-tables.ts),
+ * de modo que no hay que duplicar el texto en cada celda. Desde 768px la
+ * tabla recupera su comportamiento nativo.
+ */
+.table-cards {
+  display: block;
+  width: 100%;
+}
+
+.table-cards thead {
+  display: none;
+}
+
+.table-cards tbody {
+  display: block;
+}
+
+.table-cards tr {
+  display: block;
+  margin: 0 0 0.75rem;
+  overflow: hidden;
+  border: 1px solid var(--color-steel-soft);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.table-cards tr:last-child {
+  margin-bottom: 0;
+}
+
+.table-cards td {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  width: 100%;
+  border: 0;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.table-cards td::before {
+  content: attr(data-label);
+  flex: 0 0 40%;
+  max-width: 40%;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-steel);
+}
+
+.table-cards td > * {
+  max-width: 100%;
+}
+
+.table-cards td > input,
+.table-cards td > select,
+.table-cards td > textarea,
+.table-cards td > div {
+  min-width: 0;
+}
+
+.table-cards td[data-label='']::before,
+.table-cards td:not([data-label])::before {
+  content: none;
+}
+
+@media (max-width: 767px) {
+  .table-cards tr:has(> td[colspan]) {
+    border: 0;
+    background: transparent;
+  }
+
+  .table-cards td[colspan] {
+    display: block;
+    padding: 2rem 1rem;
+    text-align: center;
+  }
+}
+
+.table-cards td[data-label='Acciones'],
+.table-cards td[data-label='Acción'],
+.table-cards td[data-label='Detalle'] {
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.table-cards td[data-label='Acciones']::before,
+.table-cards td[data-label='Acción']::before,
+.table-cards td[data-label='Detalle']::before {
+  flex-basis: 100%;
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .table-cards {
+    display: table;
+    border-collapse: collapse;
+  }
+
+  .table-cards thead {
+    display: table-header-group;
+  }
+
+  .table-cards tbody {
+    display: table-row-group;
+  }
+
+  .table-cards tr {
+    display: table-row;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: revert-layer;
+    border-radius: 0;
+    background: revert-layer;
+  }
+
+  .table-cards td,
+  .table-cards th {
+    display: table-cell;
+    width: auto;
+    border: revert-layer;
+    text-align: revert-layer;
+    white-space: revert-layer;
+    overflow-wrap: revert-layer;
+  }
+
+  .table-cards td::before {
+    content: none;
+  }
+}
+
+/*
+ * Área táctil mínima. Las reglas van sin @layer para ganarle a las utilidades
+ * de Tailwind; en desktop se reduce la altura para no romper la densidad de
+ * las tablas y barras de acciones.
+ */
+button,
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not(
+    [type='file']
+  ),
+select,
+textarea {
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  touch-action: manipulation;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not(
+    [type='file']
+  ),
+select,
+textarea {
+  font-size: 1rem;
+}
+
+.no-touch {
+  min-height: 0 !important;
+}
+
+.touch-target {
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+}
+
+@media (min-width: 768px) {
+  button {
+    min-height: 0;
+    min-width: 0;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not(
+      [type='file']
+    ),
+  select,
+  textarea {
+    min-height: 2.25rem;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='hidden']):not(
+      [type='file']
+    ),
+  select,
+  textarea {
+    font-size: 0.875rem;
+  }
 }
