@@ -17,8 +17,18 @@ pnpm test:email               # envía un email de prueba por SMTP (requiere SMT
 
 ## Automatización (opencode)
 
-- Al editar, opencode aplica `prettier` (formatter nativo, `.prettierrc`) y corre `eslint --fix` por workspace vía `.opencode/plugins/lint-on-edit.ts`; los problemas no corregibles se reportan en el log.
-- Gates reales: Husky `pre-commit` (`lint-staged`) y el job `lint` de CI (eslint sin `--fix` + `tsc -b` del frontend). Los comandos de esta sección siguen siendo la fuente de verdad.
+Chequeos por costo, de más barato a más caro:
+
+| Momento      | Qué corre                                                                                                         | Costo aprox. | Bloquea       |
+| ------------ | ----------------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
+| Al editar    | `prettier` + `eslint --fix` por workspace + escaneo de secretos del archivo (`.opencode/plugins/lint-on-edit.ts`) | < 1–2 s      | No (solo log) |
+| `pre-commit` | `lint-staged` + `check:secrets:staged`                                                                            | 2–5 s        | Sí            |
+| `pre-push`   | `preflight`: `audit --prod` + secretos versionados + `build` + `tsc -b` frontend                                  | 10–20 s      | Sí            |
+| CI           | `check:secrets`, `lint`, `build`, `test:e2e`, Trivy (imagen)                                                      | minutos      | Sí            |
+
+- Falsos positivos del escáner: agregar `secret-scan-ignore` en la línea.
+- Bypass de emergencia: `SKIP_PREFLIGHT=1 git push` (no recomendado).
+- Los comandos de esta sección siguen siendo la fuente de verdad.
 
 ## Architecture
 

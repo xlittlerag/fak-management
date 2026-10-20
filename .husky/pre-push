@@ -1,0 +1,6 @@
+if [ "${SKIP_PREFLIGHT:-0}" = "1" ]; then
+  echo "[pre-push] preflight omitido (SKIP_PREFLIGHT=1)"
+  exit 0
+fi
+
+pnpm run preflight

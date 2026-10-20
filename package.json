@@ -22,6 +22,10 @@
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand",
     "seed": "tsx prisma/seed.ts",
     "test:email": "tsx scripts/send-test-email.ts",
+    "check:secrets": "node scripts/check-secrets.mjs --tracked",
+    "check:secrets:staged": "node scripts/check-secrets.mjs --staged",
+    "security": "pnpm audit --prod && pnpm run check:secrets",
+    "preflight": "pnpm run security && pnpm run build && pnpm --dir frontend exec tsc -b",
     "prepare": "husky",
     "changelog": "sh scripts/changelog.sh"
   },

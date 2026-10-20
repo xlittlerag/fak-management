@@ -33,6 +33,9 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # Escaneo determinista de secretos versionados (sin red).
+      - run: pnpm run check:secrets
+
       # Sin --fix: en CI el lint verifica, no modifica.
       - run: pnpm exec eslint "src/**/*.ts" "test/**/*.ts"
 
@@ -56,14 +59,14 @@ jobs:
 
       - run: npx prisma db push
         env:
-          DATABASE_URL: "file:devdb"
+          DATABASE_URL: 'file:devdb'
 
       - run: pnpm run build
 
       - run: pnpm run test:e2e
         env:
           JWT_SECRET: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-          DATABASE_URL: "file:devdb"
+          DATABASE_URL: 'file:devdb'
           MERCADO_PAGO_ACCESS_TOKEN: test
           VITE_MERCADO_PAGO_PUBLIC_KEY: test
 
