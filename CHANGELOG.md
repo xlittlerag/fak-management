@@ -4,6 +4,16 @@ Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 Cada iteración se documenta en `docs/iteraciones/NN-nombre.md` y cada release se
 genera desde los commits con `git-cliff` (ver `docs/iteraciones/18-cicd-empaquetado.md`).
 
+## [1.2.0] - 2026-10-20
+
+### Agregado
+
+- Hacer configurable el SMTP y documentar proveedores (`email`)
+
+### Corregido
+
+- Actualizar overrides de qs y fast-uri (`security`)
+
 ## [1.1.1] - 2026-10-19
 
 ### Corregido
