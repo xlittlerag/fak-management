@@ -1,0 +1,34 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "import", "promise", "node"],
+  "env": {
+    "node": true,
+    "jest": true,
+    "es2024": true
+  },
+  "options": {
+    "typeAware": true
+  },
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn"
+  },
+  "rules": {
+    "typescript/no-explicit-any": "off",
+    "typescript/no-floating-promises": "warn",
+    "typescript/no-unsafe-argument": "warn",
+    "typescript/no-extraneous-class": ["warn", { "allowWithDecorator": true }]
+  },
+  "overrides": [
+    {
+      "files": ["test/**/*.ts", "src/**/*.spec.ts"],
+      "rules": {
+        "typescript/no-unsafe-assignment": "off",
+        "typescript/no-unsafe-call": "off",
+        "typescript/no-unsafe-member-access": "off",
+        "typescript/no-unsafe-return": "off"
+      }
+    }
+  ],
+  "ignorePatterns": ["dist/**", "frontend/**"]
+}

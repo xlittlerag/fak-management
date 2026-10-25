@@ -28,7 +28,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24
+          node-version: 26
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -37,9 +37,16 @@ jobs:
       - run: pnpm run check:secrets
 
       # Sin --fix: en CI el lint verifica, no modifica.
-      - run: pnpm exec eslint "src/**/*.ts" "test/**/*.ts"
+      - run: pnpm run lint
 
-      - run: pnpm --dir frontend exec tsc -b
+      - run: pnpm --filter frontend run lint
+
+      - run: pnpm run format:check
+
+      # Typecheck con TypeScript 7 (nativo); el build usa SWC y no tipa.
+      - run: pnpm run typecheck
+
+      - run: pnpm --filter frontend run typecheck
 
   test:
     runs-on: ubuntu-latest
@@ -52,7 +59,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24
+          node-version: 26
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile
@@ -81,7 +88,7 @@ jobs:
 
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 24
+          node-version: 26
           cache: pnpm
 
       - run: pnpm install --frozen-lockfile

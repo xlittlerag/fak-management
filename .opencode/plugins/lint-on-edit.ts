@@ -3,7 +3,7 @@
  *
  * En cada edición:
  *  1. Escanea el archivo en busca de secretos de alta señal (barato, node).
- *  2. Corre el eslint del workspace correspondiente (--fix) para .ts/.tsx.
+ *  2. Corre el oxlint del workspace correspondiente (--fix) para .ts/.tsx.
  *
  * Es no bloqueante: fire-and-forget para no demorar cada edición; los
  * hallazgos se reportan en el log. El formateo (prettier) lo maneja el
@@ -29,7 +29,7 @@ export const LintOnEdit = async ({ client, worktree, directory }) => {
   const log = (level, message) =>
     client.app.log({ body: { service: 'lint-on-edit', level, message } });
 
-  async function runEslint(file, args, key) {
+  async function runLint(file, args, key) {
     if (inFlight.has(key)) return;
     inFlight.add(key);
     try {
@@ -49,7 +49,7 @@ export const LintOnEdit = async ({ client, worktree, directory }) => {
           : file;
         await log(
           'warn',
-          `[lint] eslint reportó problemas no corregibles en ${relative}:\n${report.slice(0, 2000)}`,
+          `[lint] oxlint reportó problemas no corregibles en ${relative}:\n${report.slice(0, 2000)}`,
         );
       }
     } finally {
@@ -110,16 +110,16 @@ export const LintOnEdit = async ({ client, worktree, directory }) => {
       if (!/\.(ts|tsx)$/.test(relative)) return;
 
       if (relative.startsWith('frontend/src/')) {
-        void runEslint(
+        void runLint(
           abs,
-          ['--dir', 'frontend', 'exec', 'eslint', '--fix', abs],
+          ['exec', 'oxlint', '-c', 'frontend/.oxlintrc.json', '--fix', abs],
           `frontend:${abs}`,
         );
         return;
       }
 
       if (relative.startsWith('src/') || relative.startsWith('test/')) {
-        void runEslint(abs, ['exec', 'eslint', '--fix', abs], `backend:${abs}`);
+        void runLint(abs, ['exec', 'oxlint', '--fix', abs], `backend:${abs}`);
       }
     },
   };

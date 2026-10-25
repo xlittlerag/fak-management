@@ -425,7 +425,10 @@ export default function EventoDetalle() {
                   {categorias.map((c: CategoriaDef) => {
                     const selected = categoria.includes(c.nombre);
                     return (
-                      <label class="flex cursor-pointer items-center gap-2 text-sm text-ink">
+                      <label
+                        key={c.nombre}
+                        class="flex cursor-pointer items-center gap-2 text-sm text-ink"
+                      >
                         <input
                           type="checkbox"
                           checked={selected}
@@ -480,6 +483,7 @@ export default function EventoDetalle() {
 
                     return (
                       <div
+                        key={d}
                         class={`rounded-lg border p-3 ${selected ? 'border-ai/40 bg-ai-soft' : 'border-steel-soft bg-surface'}`}
                       >
                         <label class="flex cursor-pointer items-start gap-3">

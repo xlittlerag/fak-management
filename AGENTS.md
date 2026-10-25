@@ -8,8 +8,10 @@
 
 ```bash
 pnpm install                  # install deps
-pnpm run start:dev            # NestJS dev server
-pnpm run build                # compile TypeScript
+pnpm run start:dev            # NestJS dev server (SWC, sin typecheck)
+pnpm run build                # compile con SWC (rápido, sin typecheck)
+pnpm run typecheck            # typecheck con TypeScript 7 nativo (tsc)
+pnpm run lint                 # Oxlint type-aware (src + test)
 pnpm run test:e2e             # Jest E2E tests with supertest
 pnpm run seed                 # seed database with test data
 pnpm test:email               # envía un email de prueba por SMTP (requiere SMTP_* en .env)
@@ -19,12 +21,12 @@ pnpm test:email               # envía un email de prueba por SMTP (requiere SMT
 
 Chequeos por costo, de más barato a más caro:
 
-| Momento      | Qué corre                                                                                                         | Costo aprox. | Bloquea       |
-| ------------ | ----------------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
-| Al editar    | `prettier` + `eslint --fix` por workspace + escaneo de secretos del archivo (`.opencode/plugins/lint-on-edit.ts`) | < 1–2 s      | No (solo log) |
-| `pre-commit` | `lint-staged` + `check:secrets:staged`                                                                            | 2–5 s        | Sí            |
-| `pre-push`   | `preflight`: `audit --prod` + secretos versionados + `build` + `tsc -b` frontend                                  | 10–20 s      | Sí            |
-| CI           | `check:secrets`, `lint`, `build`, `test:e2e`, Trivy (imagen)                                                      | minutos      | Sí            |
+| Momento      | Qué corre                                                                                                        | Costo aprox. | Bloquea       |
+| ------------ | ---------------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
+| Al editar    | `prettier` + `oxlint --fix` por workspace + escaneo de secretos del archivo (`.opencode/plugins/lint-on-edit.ts`) | < 1–2 s      | No (solo log) |
+| `pre-commit` | `lint-staged` (`oxlint --fix` + `prettier`) + `check:secrets:staged`                                             | 1–3 s        | Sí            |
+| `pre-push`   | `preflight`: `audit --prod` + secretos + `typecheck` (TS 7) + typecheck frontend + `build` (SWC)                  | 6–8 s        | Sí            |
+| CI           | `check:secrets`, `format:check`, `lint`, `typecheck`, `build`, `test:e2e`, Trivy (imagen)                         | minutos      | Sí            |
 
 - Falsos positivos del escáner: agregar `secret-scan-ignore` en la línea.
 - Bypass de emergencia: `SKIP_PREFLIGHT=1 git push` (no recomendado).
@@ -36,6 +38,7 @@ Chequeos por costo, de más barato a más caro:
 - **Frontend:** Preact + Vite + Tailwind v4 (fully implemented — see frontend/ directory)
 - **Auth:** JWT with DNI-based login; argon2id passwords (`PasswordService`)
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
+- **Build toolchain:** backend emit con **SWC** (`nest-cli.json`, sin typecheck); typecheck con **TypeScript 7 nativo** (`typescript-native`, alias de `typescript@7`); `typescript@6` queda para ts-jest y el editor. Lint con **Oxlint** + `oxlint-tsgolint` (type-aware en backend), reemplaza ESLint.
 
 ## Key Conventions
 
@@ -96,6 +99,7 @@ Chequeos por costo, de más barato a más caro:
 - **Iteración 23** — Remediación de CVEs del scan (release v1.1.1): `overrides` en `pnpm-workspace.yaml`, `packageManager` pnpm 11.11.0, `apt-get upgrade` en la imagen, runtime sin `npm`/`npx`/corepack/pnpm (entrypoint invoca `prisma`/`tsx` por path), Trivy 0 HIGH/CRITICAL — see `docs/iteraciones/23-remediacion-cves.md`
 - **Iteración 24** — Optimización del build de imagen: etapa `prod-deps` (closure de producción aislada, sin poda), `corepack` fuera del runtime, `chown` solo de `data`/`uploads`, `.dockerignore` sin `.opencode`/`docs`/`frontend/e2e`, cache GHA (`mode=max`) en CI; imagen 2.09 GB → 718 MB — see `docs/iteraciones/24-optimizacion-build.md`
 - **Iteración 25** — Diseño responsive completo: tokens fluidos, targets táctiles de 44 px, inputs de 16 px en móvil, tabs/tablas como tarjetas con `data-label` automático, shells `dvh`, sidebar off-canvas y headers flexibles; suite E2E en 320/768/1024/1280/1536 — see `docs/iteraciones/25-responsive-design.md`
+- **Iteración 26** — Performance de build: Node 26 + digest pineado, SWC para el backend, TypeScript 7 nativo para typecheck, `pnpm deploy` (una sola instalación), builds FE/BE en paralelo y migración de ESLint a Oxlint (type-aware) — see `docs/iteraciones/26-build-performance.md`
 
 ## Pending / Next
 

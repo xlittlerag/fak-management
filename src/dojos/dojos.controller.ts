@@ -47,7 +47,7 @@ export class DojosController {
     }
 
     return this.dojosService.create({
-      ...dto,
+      nombre: dto.nombre,
       asociacion_id,
     });
   }

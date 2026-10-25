@@ -299,7 +299,10 @@ export default function EventosDashboard() {
                   <div class="flex flex-wrap gap-1">
                     <span class="text-xs text-steel mr-1">Disciplinas:</span>
                     {disciplinas.map((d) => (
-                      <span class="px-2 py-0.5 bg-ai-soft text-ai rounded text-xs">
+                      <span
+                        key={d}
+                        class="px-2 py-0.5 bg-ai-soft text-ai rounded text-xs"
+                      >
                         {DISCIPLINA_LABELS[d] || d}
                       </span>
                     ))}
@@ -319,7 +322,10 @@ export default function EventosDashboard() {
                 {evento.tipo === 'TORNEO' && cats.length > 0 && (
                   <div class="flex flex-wrap gap-1">
                     {cats.map((c: CategoriaDef) => (
-                      <span class="px-2 py-0.5 bg-paper text-steel rounded text-xs">
+                      <span
+                        key={c.nombre}
+                        class="px-2 py-0.5 bg-paper text-steel rounded text-xs"
+                      >
                         {c.nombre}
                       </span>
                     ))}
@@ -344,7 +350,10 @@ export default function EventosDashboard() {
                               categorias[evento.id] || []
                             ).includes(c.nombre);
                             return (
-                              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                              <label
+                                key={c.nombre}
+                                class="flex items-center gap-2 text-sm cursor-pointer"
+                              >
                                 <input
                                   type="checkbox"
                                   checked={selected}
@@ -417,6 +426,7 @@ export default function EventosDashboard() {
 
                             return (
                               <div
+                                key={d}
                                 class={`border rounded-lg p-3 ${selected ? 'border-ai/40 bg-ai-soft' : 'border-steel-soft bg-surface'}`}
                               >
                                 <label class="flex items-start gap-3 cursor-pointer">

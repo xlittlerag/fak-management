@@ -245,7 +245,7 @@ export class EventosService {
     }
 
     const tipo = dto.tipo ?? evento.tipo;
-    const mergedDto = { ...dto, tipo } as CreateEventoDto;
+    const mergedDto = Object.assign(new CreateEventoDto(), dto, { tipo });
     const updateAmbito = ambito;
     this.validarDatosPorTipo(mergedDto, updateAmbito);
 

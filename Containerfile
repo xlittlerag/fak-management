@@ -1,58 +1,79 @@
+# syntax=docker/dockerfile:1.7
 # ============================================================
 # Kendo Manager — Dockerfile (multi-stage)
 # ============================================================
 
 # Etapa Base -------------------------------------------------
-# Sin corepack/pnpm: el runtime no los necesita (ver etapa Final).
-FROM node:24-slim AS base
+# Digest pineado: evita que cada push del tag `slim` invalide todas las capas
+# (apt + pnpm install + builds) en el cache de CI. Bumpear con Renovate/Dependabot.
+FROM node:26-slim@sha256:36793bcbb160a6a16cede1e62b93f84e26b78a972a8a4c0b879c1c12f22761ec AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME/bin:$PATH"
 WORKDIR /app
 
-# Los paquetes del SO se actualizan a sus versiones parcheadas (la imagen base
-# puede traer CVEs ya resueltos en bookworm-security).
+# Solo paquetes de runtime. El `upgrade` se sacó: el digest pineado ya trae los
+# parches y el scan de Trivy hace de compuerta (ver docs/iteraciones/23 y 26).
 RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt/lists \
     apt-get update && apt-get install -y --no-install-recommends openssl rclone sqlite3 \
-    && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Etapa de tooling: corepack/pnpm solo existen en build/prod-deps.
+# Etapa de tooling: pnpm solo existe en build; el runtime final hereda de `base`.
+# Node 26 ya no trae corepack, así que pnpm se instala con npm (presente en la
+# imagen oficial y eliminado en la etapa final).
 FROM base AS tooling
-RUN corepack enable
+ARG PNPM_VERSION=11.11.0
+RUN npm install -g pnpm@${PNPM_VERSION} \
+    && pnpm config set store-dir /pnpm/store --global
 
-# Etapa Build -------------------------------------------------
-FROM tooling AS build
-ARG VITE_MERCADO_PAGO_PUBLIC_KEY
-ENV VITE_MERCADO_PAGO_PUBLIC_KEY=$VITE_MERCADO_PAGO_PUBLIC_KEY
-
-COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
-COPY frontend/package.json ./frontend/package.json
-COPY prisma ./prisma
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-
-COPY . .
-RUN cd frontend && pnpm run build
-RUN pnpm run build
-
-# Etapa de dependencias de producción -------------------------
-# Instala la closure de prod desde cero (sin node_modules de desarrollo) para
-# que la imagen final la copie una sola vez y sin poda.
-FROM tooling AS prod-deps
+# Etapa de dependencias --------------------------------------
+# Una sola instalación (dev + prod) compartida por los builds y por la closure
+# de producción: antes se instalaba dos veces.
+FROM tooling AS deps
+# El "prepare" (husky) es dev-only y rompería la instalación en la imagen.
+ENV HUSKY=0
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 COPY frontend/package.json ./frontend/package.json
 COPY prisma ./prisma
 COPY prisma.config.ts ./prisma.config.ts
-# El "prepare" (husky) es dev-only y rompería la instalación de producción.
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    --mount=type=cache,id=pnpm-cache,target=/root/.cache/pnpm \
+    pnpm install --frozen-lockfile
+
+# Builds en paralelo (BuildKit ejecuta las etapas independientes a la vez).
+FROM deps AS fe-build
+# Vite inlinea las variables VITE_* en build time (clave pública de Mercado Pago).
+ARG VITE_MERCADO_PAGO_PUBLIC_KEY
+ENV VITE_MERCADO_PAGO_PUBLIC_KEY=$VITE_MERCADO_PAGO_PUBLIC_KEY
+COPY . .
+RUN pnpm --filter frontend run build
+
+FROM deps AS be-build
+COPY . .
+RUN pnpm run build
+
+# Closure de producción en su propia etapa (sin node_modules de desarrollo).
+# Se materializa desde el store ya poblado: `pnpm deploy` copiaba 400 MB y
+# medía ~50 s, contra ~16 s de esta instalación
+# (ver docs/iteraciones/26-build-performance.md).
+FROM tooling AS prod-deps
+ENV HUSKY=0
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY frontend/package.json ./frontend/package.json
+COPY prisma ./prisma
+COPY prisma.config.ts ./prisma.config.ts
+# El "prepare" (husky) es dev-only: con --prod no está instalado y rompería la
+# instalación. Se quita del manifiesto solo en esta etapa.
 RUN node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));delete p.scripts.prepare;fs.writeFileSync('package.json',JSON.stringify(p,null,2)+'\n')"
-# Los build scripts están restringidos por allowBuilds en pnpm-workspace.yaml;
-# son necesarios para los binarios nativos (better-sqlite3, esbuild) y el motor
-# de Prisma. La generación del cliente se declara explícita por claridad.
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
-RUN pnpm exec prisma generate
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    --mount=type=cache,id=pnpm-cache,target=/root/.cache/pnpm \
+    pnpm install --prod --frozen-lockfile
+# El cliente Prisma se genera en el `postinstall` del propio install.
 
 # Etapa Final: Runtime ----------------------------------------
-FROM base
+# Hereda de `prod-deps` (node_modules de producción ya materializado) para no
+# copiar 400 MB en una capa nueva: esa copia costaba ~35 s del build.
+FROM prod-deps AS final
 ARG VERSION=dev
 ARG GIT_SHA=unknown
 LABEL org.opencontainers.image.title="kendo-manager" \
@@ -63,20 +84,18 @@ ENV NODE_ENV=production
 ENV DB_DIR=/app/data
 RUN groupadd -r kendo && useradd -r -g kendo -d /app -s /sbin/nologin kendo
 
-COPY --from=prod-deps /app/node_modules /app/node_modules
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
-COPY --from=build /app/prisma ./prisma
+COPY --from=be-build /app/package.json /app/pnpm-lock.yaml /app/pnpm-workspace.yaml ./
+COPY --from=be-build /app/prisma ./prisma
 
-# Runtime mínimo: se elimina npm (no se usa en ejecución) para no arrastrar sus
-# dependencias internas con CVEs; el entrypoint invoca prisma/tsx por path.
-# corepack/pnpm nunca llegan a esta etapa (base no los instala).
-# Ver docs/iteraciones/23-remediacion-cves.md.
-RUN rm -rf /usr/local/lib/node_modules/npm \
-    && rm -f /usr/local/bin/npm /usr/local/bin/npx
+# Runtime mínimo: se eliminan npm, pnpm y sus caches (no se usan en ejecución)
+# para no arrastrar dependencias internas con CVEs; el entrypoint invoca
+# prisma/tsx por path. Ver docs/iteraciones/23-remediacion-cves.md.
+RUN rm -rf /usr/local/lib/node_modules/npm /pnpm /root/.npm /root/.config/pnpm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm
 
-COPY --from=build /app/dist /app/dist
-COPY --from=build /app/frontend/dist ./frontend/dist
-COPY --from=build /app/prisma.config.ts ./prisma.config.ts
+COPY --from=be-build /app/dist /app/dist
+COPY --from=fe-build /app/frontend/dist ./frontend/dist
+COPY --from=be-build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY scripts /app/scripts
 
