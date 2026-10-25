@@ -12,7 +12,7 @@ import {
 } from 'crypto';
 
 // TOTP (RFC 6238, SHA-1, 6 dígitos, paso 30s) implementado sobre node:crypto:
-// se evita la dependencia ESM de otplib, incompatible con el runner jest.
+// se evita la dependencia ESM de otplib, incompatible con el runner de tests.
 // El secreto TOTP se guarda cifrado (AES-256-GCM), nunca en texto plano.
 // La clave de cifrado sale de TOTP_ENCRYPTION_KEY; sin ella el servicio
 // falla de forma explícita en lugar de guardar secretos sin cifrar.

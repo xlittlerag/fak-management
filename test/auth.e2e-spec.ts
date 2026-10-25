@@ -256,7 +256,8 @@ describe('Auth (e2e)', () => {
 
       // El JWT viaja solo en la cookie httpOnly, nunca en el cuerpo.
       expect(response.body).not.toHaveProperty('access_token');
-      const cookies: string[] = response.headers['set-cookie'] ?? [];
+      const cookies = (response.headers['set-cookie'] ??
+        []) as unknown as string[];
       expect(cookies.some((c) => c.startsWith('access_token='))).toBe(true);
 
       const session = await agent.get('/api/auth/session').expect(200);
@@ -439,7 +440,8 @@ describe('Auth (e2e)', () => {
       // El cuerpo ya no expone el token: solo la cookie lo transporta.
       expect(loginRes.body).not.toHaveProperty('access_token');
 
-      const cookies: string[] = loginRes.headers['set-cookie'] ?? [];
+      const cookies = (loginRes.headers['set-cookie'] ??
+        []) as unknown as string[];
       const session = cookies.find((c) => c.startsWith('access_token='));
       expect(session).toBeDefined();
       expect(session).toMatch(/HttpOnly/i);
@@ -494,7 +496,8 @@ describe('Auth (e2e)', () => {
 
       const logoutRes = await agent.post('/api/auth/logout').expect(200);
       expect(logoutRes.body).toEqual({ mensaje: expect.any(String) });
-      const cookies: string[] = logoutRes.headers['set-cookie'] ?? [];
+      const cookies = (logoutRes.headers['set-cookie'] ??
+        []) as unknown as string[];
       expect(cookies.some((c) => c.startsWith('access_token=;'))).toBe(true);
 
       await agent.get('/api/auth/session').expect(401);

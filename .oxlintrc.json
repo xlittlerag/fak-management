@@ -3,7 +3,7 @@
   "plugins": ["typescript", "import", "promise", "node"],
   "env": {
     "node": true,
-    "jest": true,
+    "vitest": true,
     "es2024": true
   },
   "options": {

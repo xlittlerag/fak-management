@@ -18,17 +18,18 @@
     "lint": "oxlint --type-aware src test",
     "lint:fix": "oxlint --type-aware --fix src test",
     "typecheck": "node ./node_modules/typescript-native/bin/tsc --noEmit -p tsconfig.build.json",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:cov": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
-    "test:debug": "node --experimental-vm-modules --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/jest/bin/jest.js --runInBand",
-    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand",
+    "typecheck:test": "node ./node_modules/typescript-native/bin/tsc --noEmit -p tsconfig.test.json",
+    "test": "vitest run --project unit",
+    "test:watch": "vitest --project unit",
+    "test:cov": "vitest run --coverage --project unit",
+    "test:debug": "vitest --inspectBrk --project e2e",
+    "test:e2e": "vitest run --project e2e",
     "seed": "tsx prisma/seed.ts",
     "test:email": "tsx scripts/send-test-email.ts",
     "check:secrets": "node scripts/check-secrets.mjs --tracked",
     "check:secrets:staged": "node scripts/check-secrets.mjs --staged",
     "security": "pnpm audit --prod && pnpm run check:secrets",
-    "preflight": "pnpm run security && pnpm run typecheck && pnpm --filter frontend run typecheck && pnpm run build",
+    "preflight": "pnpm run security && pnpm run typecheck && pnpm run typecheck:test && pnpm --filter frontend run typecheck && pnpm run build",
     "prepare": "husky",
     "changelog": "sh scripts/changelog.sh"
   },
@@ -91,44 +92,23 @@
     "@swc/core": "^1.16.20",
     "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
-    "@types/jest": "^30.0.0",
     "@types/multer": "^2.3.0",
     "@types/node": "^26.6.5",
     "@types/nodemailer": "^8.0.2",
     "@types/passport-jwt": "^4.0.1",
     "@types/qrcode": "^1.5.6",
     "@types/supertest": "^7.2.1",
+    "@vitest/coverage-v8": "^5.0.5",
     "husky": "^9.1.7",
-    "jest": "^30.5.2",
     "lint-staged": "^17.6.0",
     "oxlint": "1.89.0",
     "oxlint-tsgolint": "7.0.2005",
     "pino-pretty": "^13.2.0",
     "prettier": "^3.9.10",
-    "source-map-support": "^0.5.21",
     "supertest": "^7.3.1",
-    "ts-jest": "^29.4.15",
-    "ts-loader": "^9.6.2",
-    "ts-node": "^10.9.2",
-    "tsconfig-paths": "^4.2.0",
     "typescript": "^6.0.3",
-    "typescript-native": "npm:typescript@7.0.2"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": "src",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "**/*.(t|j)s"
-    ],
-    "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "typescript-native": "npm:typescript@7.0.2",
+    "unplugin-swc": "^2.0.0",
+    "vitest": "^5.0.5"
   }
 }

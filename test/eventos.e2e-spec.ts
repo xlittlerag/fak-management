@@ -19,21 +19,19 @@ describe('Eventos (e2e)', () => {
   beforeAll(async () => {
     ({ app, prisma, jwt } = await createTestApp());
     mpService = app.get(MercadoPagoService);
-    jest
-      .spyOn(mpService, 'createInscriptionPreference')
-      .mockImplementation(
-        (
-          userId: number,
-          userEmail: string,
-          amount: number,
-          inscripcionId: number,
-          eventoId: number,
-        ) => ({
-          preferenceId: `mp_insc_${inscripcionId}_${Date.now()}`,
-          initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_insc_${inscripcionId}`,
-          externalReference: `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`,
-        }),
-      );
+    vi.spyOn(mpService, 'createInscriptionPreference').mockImplementation(
+      async (
+        userId: number,
+        userEmail: string,
+        amount: number,
+        inscripcionId: number,
+        eventoId: number,
+      ) => ({
+        preferenceId: `mp_insc_${inscripcionId}_${Date.now()}`,
+        initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_insc_${inscripcionId}`,
+        externalReference: `inscripcion_user_${userId}_evento_${eventoId}_insc_${inscripcionId}_ts_${Date.now()}`,
+      }),
+    );
   });
 
   beforeEach(async () => {

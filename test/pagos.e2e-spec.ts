@@ -24,18 +24,18 @@ describe('Pagos (e2e)', () => {
     ({ app, prisma, jwt } = await createTestApp());
 
     mpService = app.get(MercadoPagoService);
-    jest
-      .spyOn(mpService, 'createFederativeFeePreference')
-      .mockImplementation((userId: number) => ({
+    vi.spyOn(mpService, 'createFederativeFeePreference').mockImplementation(
+      async (userId: number) => ({
         preferenceId: `mp_test_${userId}_${Date.now()}`,
         initPoint: `https://mercadopago.com/checkout/v1/preferences/mp_test_${userId}`,
         externalReference: `fee_user_${userId}_ts_${Date.now()}`,
         paymentMethods: {
           excludedPaymentTypes: [{ id: 'credit_card' }],
         },
-      }));
+      }),
+    );
 
-    jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
+    vi.spyOn(Payment.prototype, 'get').mockResolvedValue({
       id: 'test_payment_default',
       status: 'pending',
       external_reference: 'test_ref',
@@ -107,7 +107,7 @@ describe('Pagos (e2e)', () => {
 
       const externalReference = preferenceResponse.body.externalReference;
 
-      jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+      vi.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
         id: 'test_payment_id',
         status: 'approved',
         external_reference: externalReference,
@@ -137,7 +137,7 @@ describe('Pagos (e2e)', () => {
       await seedFeeConfig();
       const { user } = await createTestUser(prisma, jwt);
 
-      jest.spyOn(Payment.prototype, 'get').mockResolvedValue({
+      vi.spyOn(Payment.prototype, 'get').mockResolvedValue({
         id: 'test_payment_idem',
         status: 'approved',
         external_reference: `fee_user_${user.id}_ts_${Date.now()}`,
@@ -168,7 +168,7 @@ describe('Pagos (e2e)', () => {
     });
 
     it('debería ignorar webhook si el pago no está aprobado', async () => {
-      jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+      vi.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
         id: 'test_payment_pending',
         status: 'pending',
         external_reference: 'fee_user_1_ts_123',
@@ -231,7 +231,7 @@ describe('Pagos (e2e)', () => {
 
       it('acepta firma válida', async () => {
         process.env.MERCADO_PAGO_WEBHOOK_SECRET = SECRETO;
-        jest.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
+        vi.spyOn(Payment.prototype, 'get').mockResolvedValueOnce({
           id: DATA_ID,
           status: 'pending',
           external_reference: 'fee_user_1_ts_123',

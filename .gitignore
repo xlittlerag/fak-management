@@ -5,6 +5,7 @@
 /devdb*
 node_modules/
 dist/
+coverage/
 *.tsbuildinfo
 uploads/
 

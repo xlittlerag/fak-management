@@ -20,18 +20,18 @@ describe('Certificados (e2e)', () => {
   beforeAll(async () => {
     ({ app, prisma, jwt } = await createTestApp());
     mpService = app.get(MercadoPagoService);
-    jest.spyOn(mpService, 'createInscriptionPreference').mockResolvedValue({
+    vi.spyOn(mpService, 'createInscriptionPreference').mockResolvedValue({
       preferenceId: 'mp_test',
       initPoint: 'https://test.mp.com',
       externalReference: 'test_ref',
     });
-    jest.spyOn(mpService, 'createFederativeFeePreference').mockResolvedValue({
+    vi.spyOn(mpService, 'createFederativeFeePreference').mockResolvedValue({
       preferenceId: 'mp_fee_test',
       initPoint: 'https://test.mp.com/fee',
       externalReference: 'fee_test_ref',
       paymentMethods: { excludedPaymentTypes: [{ id: 'credit_card' }] },
     });
-    jest.spyOn(mpService, 'createReimpresionPreference').mockResolvedValue({
+    vi.spyOn(mpService, 'createReimpresionPreference').mockResolvedValue({
       preferenceId: 'mp_reimp_test',
       initPoint: 'https://test.mp.com/reimp',
       externalReference: 'reimp_test_ref',

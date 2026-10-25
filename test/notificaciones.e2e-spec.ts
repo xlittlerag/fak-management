@@ -32,7 +32,7 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Registro de usuario', () => {
     it('debería enviar email de bienvenida al registrarse', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendWelcomeEmail')
         .mockResolvedValue();
 
@@ -71,7 +71,7 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Solicitud de reseteo de contraseña', () => {
     it('debería enviar email con código de reseteo', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendPasswordResetEmail')
         .mockResolvedValue();
 
@@ -96,7 +96,7 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Aprobación/rechazo de inscripción', () => {
     it('debería enviar email al aprobar una inscripción', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendInscripcionStatusEmail')
         .mockResolvedValue();
 
@@ -145,7 +145,7 @@ describe('Notificaciones (e2e)', () => {
     });
 
     it('debería enviar email al rechazar una inscripción', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendInscripcionStatusEmail')
         .mockResolvedValue();
 
@@ -192,7 +192,7 @@ describe('Notificaciones (e2e)', () => {
 
   describe('Cambio de estado de certificación', () => {
     it('debería enviar email al rechazar certificación', async () => {
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendCertificacionStatusEmail')
         .mockResolvedValue();
 

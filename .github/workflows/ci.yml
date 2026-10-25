@@ -46,6 +46,9 @@ jobs:
       # Typecheck con TypeScript 7 (nativo); el build usa SWC y no tipa.
       - run: pnpm run typecheck
 
+      # Typecheck de src + test (incluye globals de Vitest).
+      - run: pnpm run typecheck:test
+
       - run: pnpm --filter frontend run typecheck
 
   test:
@@ -69,6 +72,8 @@ jobs:
           DATABASE_URL: 'file:devdb'
 
       - run: pnpm run build
+
+      - run: pnpm test
 
       - run: pnpm run test:e2e
         env:

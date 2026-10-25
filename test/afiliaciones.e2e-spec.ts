@@ -39,7 +39,7 @@ describe('Afiliaciones (e2e)', () => {
         rol: 'ADMIN_ASOCIACION',
       });
 
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendBajaInformadaFederacion')
         .mockResolvedValue();
 
@@ -169,7 +169,7 @@ describe('Afiliaciones (e2e)', () => {
       expect(bajaRes.body.estado).toBe('PENDIENTE');
       expect(bajaRes.body.tipo).toBe('BAJA_ASOCIACION');
 
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendBajaConfirmadaSocio')
         .mockResolvedValue();
 
@@ -271,7 +271,7 @@ describe('Afiliaciones (e2e)', () => {
       expect(altaRes.status).toBe(201);
       expect(altaRes.body.estado).toBe('PENDIENTE');
 
-      const spy = jest
+      const spy = vi
         .spyOn(notificaciones, 'sendAltaInformadaFederacion')
         .mockResolvedValue();
 
