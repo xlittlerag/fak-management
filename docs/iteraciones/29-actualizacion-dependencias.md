@@ -74,10 +74,27 @@ El E2E de navegador se corrió con Chromium del sistema
 (`PLAYWRIGHT_CHROMIUM_PATH`), porque el entorno NixOS no ejecuta el binario
 empaquetado por Playwright.
 
+## Corrección del CI de imagen
+
+El job `imagen` venía fallando con `buildx failed with: Learn more at
+https://docs.docker.com/go/build-cache-backends/`. El mensaje corresponde a un
+error del backend de cache de GHA, no al build: el mismo `Containerfile`
+compila sin problemas con `docker build --no-cache` local, y la compilación de
+las etapas previas del job también pasa.
+
+Se cambió `cache-to` de `type=gha,mode=max` (introducido en la iteración 24) a
+`type=gha,mode=min,ignore-error=true`:
+
+- `mode=min` exporta solo las capas de la imagen final, en lugar del cache de
+  todas las etapas.
+- `ignore-error=true` evita que un fallo del cache (evicción, límite de
+  tamaño) bloquee la publicación de la imagen.
+
 ## Archivos afectados
 
 - `package.json`, `frontend/package.json`, `pnpm-lock.yaml`
 - `pnpm-workspace.yaml` (override de `body-parser`)
+- `.github/workflows/ci.yml` (cache del build de imagen)
 - `docs/iteraciones/29-actualizacion-dependencias.md`
 - `AGENTS.md` (línea de iteración completada)
 - `CHANGELOG.md` y versiones `1.2.1` en el commit de release

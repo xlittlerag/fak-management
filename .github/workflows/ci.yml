@@ -143,9 +143,12 @@ jobs:
         with:
           context: .
           file: Containerfile
-          # Reutiliza capas entre ejecuciones (incluye todas las etapas).
+          # Reutiliza capas entre ejecuciones. `mode=min` cachea solo la imagen
+          # final: `mode=max` superaba el límite del cache de GHA y hacía
+          # fallar el build. `ignore-error` evita que un fallo del cache (p. ej.
+          # evicción o límite) bloquee la publicación de la imagen.
           cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-to: type=gha,mode=min,ignore-error=true
           # En PRs se construye sin publicar (el token de forks no escribe).
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
