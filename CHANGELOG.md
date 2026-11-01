@@ -4,6 +4,53 @@ Formato [Keep a Changelog](https://keepachangelog.com/es/1.1.0/).
 Cada iteración se documenta en `docs/iteraciones/NN-nombre.md` y cada release se
 genera desde los commits con `git-cliff` (ver `docs/iteraciones/18-cicd-empaquetado.md`).
 
+## [1.2.1] - 2026-11-01
+
+### Agregado
+
+- Implementar diseño responsive completo (`frontend`)
+
+### Build
+
+- Reemplazar nest build por SWC CLI (`swc`)
+- Reemplazar tsx por SWC y Node nativo en dev y seeds (`dev`)
+
+### CI/CD
+
+- Integrar escaneo de secretos y preflight por costo (`hooks`)
+
+### Corregido
+
+- Usar dockerfile en build para compatibilidad con la spec (`compose`)
+- Devolver 400 en validaciones y no cerrar sesión (`auth`)
+
+### Dependencias
+
+- Actualizar dependencias y remediar CVEs (`deps`)
+
+### Documentación
+
+- Documentar simplificación de dependencias y SWC (`iteracion-28`)
+- Evaluar y descartar el spike de Vite + SWC (`iteracion-28`)
+- Documentar actualización de dependencias (`iteracion-29`)
+
+### Refactor
+
+- Reemplazar Passport por verificación directa de JWT (`auth`)
+
+### Rendimiento
+
+- Optimizar tamaño y cache de la imagen (`build`)
+- Acelerar el build con SWC, TS 7 y Oxlint (`build`)
+
+### Tests
+
+- Migrar la suite de Jest a Vitest (`vitest`)
+
+### Varios
+
+- Agrupar commits de build (`changelog`)
+
 ## [1.2.0] - 2026-10-20
 
 ### Agregado
