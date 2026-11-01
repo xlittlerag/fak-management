@@ -76,17 +76,20 @@ empaquetado por Playwright.
 
 ## Corrección del CI de imagen
 
-El job `imagen` venía fallando con `buildx failed with: Learn more at
-https://docs.docker.com/go/build-cache-backends/`. El mensaje corresponde a un
-error del backend de cache de GHA, no al build: el mismo `Containerfile`
-compila sin problemas con `docker build --no-cache` local, y la compilación de
-las etapas previas del job también pasa.
+El job `imagen` venía fallando en ~1 segundo con `buildx failed with: Learn
+more at https://docs.docker.com/go/build-cache-backends/`. Esa URL la emite
+buildx en `notSupported(driver.CacheExport, ...)`: el builder por defecto
+(`docker` driver) **no soporta exportar cache**, y el workflow no ejecutaba
+`docker/setup-buildx-action`. La causa se introdujo en la iteración 24, al
+agregar `cache-to: type=gha`; el `Containerfile` nunca fue el problema (un
+`docker build --no-cache` local termina con éxito).
 
-Se cambió `cache-to` de `type=gha,mode=max` (introducido en la iteración 24) a
-`type=gha,mode=min,ignore-error=true`:
+Se agregó el paso `docker/setup-buildx-action` (pineado por SHA), que crea un
+builder `docker-container` con soporte de export, y se dejó
+`cache-to: type=gha,mode=max,ignore-error=true`:
 
-- `mode=min` exporta solo las capas de la imagen final, en lugar del cache de
-  todas las etapas.
+- `mode=max` conserva la intención de la iteración 24: cachear todas las etapas
+  (apt, `pnpm install` y builds).
 - `ignore-error=true` evita que un fallo del cache (evicción, límite de
   tamaño) bloquee la publicación de la imagen.
 

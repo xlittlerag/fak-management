@@ -130,6 +130,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # El driver `docker` por defecto no puede exportar cache a GHA
+      # ("Cache export is not supported for the docker driver"); setup-buildx
+      # crea un builder `docker-container`, que sí lo soporta.
+      - uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
       - uses: docker/metadata-action@c299e40c65443455700f0fdfc63efafe5b349051 # v5
         id: meta
         with:
@@ -143,12 +148,11 @@ jobs:
         with:
           context: .
           file: Containerfile
-          # Reutiliza capas entre ejecuciones. `mode=min` cachea solo la imagen
-          # final: `mode=max` superaba el límite del cache de GHA y hacía
-          # fallar el build. `ignore-error` evita que un fallo del cache (p. ej.
-          # evicción o límite) bloquee la publicación de la imagen.
+          # Reutiliza capas entre ejecuciones (incluye todas las etapas).
+          # `ignore-error` evita que un fallo del cache (evicción, límite)
+          # bloquee la publicación de la imagen.
           cache-from: type=gha
-          cache-to: type=gha,mode=min,ignore-error=true
+          cache-to: type=gha,mode=max,ignore-error=true
           # En PRs se construye sin publicar (el token de forks no escribe).
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
