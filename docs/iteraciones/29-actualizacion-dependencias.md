@@ -93,11 +93,39 @@ builder `docker-container` con soporte de export, y se dejó
 - `ignore-error=true` evita que un fallo del cache (evicción, límite de
   tamaño) bloquee la publicación de la imagen.
 
+## Corrección del scan de Trivy
+
+Con el job `imagen` arreglado, el `scan` pasó a ejecutarse y falló con 5 HIGH.
+Reproducido localmente con Trivy 0.76.1 contra la imagen publicada, todos los
+hallazgos estaban en `usr/local/lib/node_modules/pnpm`:
+
+| Paquete  | Instalado | Corregido                | CVE             |
+| -------- | --------- | ------------------------ | --------------- |
+| `tar`    | 7.5.19    | 7.5.21                   | CVE-2026-73566  |
+| `undici` | 6.27.0    | 6.29.1 / 7.30.1 / 8.12.2 | CVE-2026-109383 |
+| `undici` | 6.27.0    | 6.28.1 / 7.29.1 / 8.10.2 | CVE-2026-19534  |
+| `undici` | 6.27.0    | 6.29.1 / 7.30.1 / 8.12.2 | CVE-2026-87018  |
+| `undici` | 6.27.0    | 6.29.1 / 7.30.1 / 8.12.2 | CVE-2026-109869 |
+
+Son dependencias **internas de pnpm**, no del proyecto: los `overrides` del
+workspace no las alcanzan. El `Containerfile` creía limpiarlas con
+`rm -rf /usr/local/lib/node_modules/npm /pnpm`, pero `npm install -g pnpm`
+instala en `/usr/local/lib/node_modules/pnpm` (no en `PNPM_HOME=/pnpm`), así
+que ~20 MB de pnpm sobrevivían en la imagen final junto con sus binarios
+`pn`, `pnpx` y `pnx`. El fallo es preexistente (las CVE son posteriores al
+release 1.2.0); solo quedó expuesto al actualizar la base de datos de Trivy.
+
+Se amplió el `rm -rf` del runtime a `/usr/local/lib/node_modules/pnpm` y a esos
+binarios. Verificado con un build local + Trivy 0.76.1
+(`--severity HIGH,CRITICAL --ignore-unfixed`): 0 hallazgos en `debian 13.7` y
+0 en `node-pkg`, con la imagen arrancando en producción sin errores.
+
 ## Archivos afectados
 
 - `package.json`, `frontend/package.json`, `pnpm-lock.yaml`
 - `pnpm-workspace.yaml` (override de `body-parser`)
 - `.github/workflows/ci.yml` (cache del build de imagen)
+- `Containerfile` (limpieza de pnpm en el runtime)
 - `docs/iteraciones/29-actualizacion-dependencias.md`
 - `AGENTS.md` (línea de iteración completada)
 - `CHANGELOG.md` y versiones `1.2.1` en el commit de release

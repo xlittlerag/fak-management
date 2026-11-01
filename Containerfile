@@ -89,9 +89,14 @@ COPY --from=be-build /app/prisma ./prisma
 
 # Runtime mínimo: se eliminan npm, pnpm y sus caches (no se usan en ejecución)
 # para no arrastrar dependencias internas con CVEs; el entrypoint invoca
-# prisma/tsx por path. Ver docs/iteraciones/23-remediacion-cves.md.
-RUN rm -rf /usr/local/lib/node_modules/npm /pnpm /root/.npm /root/.config/pnpm \
-    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm
+# prisma por path. Ver docs/iteraciones/23-remediacion-cves.md.
+# `npm install -g` deja pnpm en /usr/local/lib/node_modules/pnpm (no en
+# PNPM_HOME=/pnpm), así que hay que borrar esa ruta explícitamente: son ~20 MB
+# con `tar` y `undici` propios que el scan de Trivy marca.
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/pnpm \
+    /pnpm /root/.npm /root/.config/pnpm \
+    && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/pnpm \
+    /usr/local/bin/pn /usr/local/bin/pnpx /usr/local/bin/pnx
 
 COPY --from=be-build /app/dist /app/dist
 COPY --from=fe-build /app/frontend/dist ./frontend/dist
