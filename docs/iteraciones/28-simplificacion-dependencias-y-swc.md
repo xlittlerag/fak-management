@@ -1,6 +1,6 @@
 # Iteración 28 — Simplificación de dependencias y SWC
 
-**Estado:** implementado (fases 1–3). Fase 5 (spike Vite + Preact + SWC) queda pendiente de evaluación.
+**Estado:** implementado (fases 1–3). Fase 5 (spike Vite + Preact + SWC) evaluada y descartada.
 
 ## Contexto
 
@@ -372,6 +372,45 @@ Si se quiere probar igual, el spike debe ir en un branch aparte y validar:
 **Criterio de aceptación del spike:** solo se adopta si hay una mejora
 medible en dev y se mantienen HMR/build sin regresiones. Si no, se documenta y
 se descarta.
+
+### Resultado del spike (Fase 5)
+
+Se implementó el spike en un worktree/branch aparte
+(`spike/vite-preact-swc`, eliminado al terminar) con:
+
+- `@vitejs/plugin-react-swc` + `@swc/plugin-prefresh` en el frontend.
+- `jsxImportSource: 'preact'`, alias de `react`/`react-dom`/`react/jsx-runtime`
+  a `preact/compat` y `preact/jsx-runtime`.
+- `jsc.transform.react.refresh` y `development` **solo en `serve`**; aplicarlos
+  también al build duplicaba los chunks de ruta (p. ej. `EventosAdmin` pasaba
+  de 23 kB a 48 kB por el `jsxDEV`).
+- `@swc/plugin-prefresh` para el manejo de `createContext`.
+
+Mediciones contra el baseline (`@preact/preset-vite`):
+
+| Métrica                                   | Baseline (`@preact/preset-vite`)  | Spike (`@vitejs/plugin-react-swc`) |
+| ----------------------------------------- | --------------------------------- | ---------------------------------- |
+| Arranque del dev server (3 corridas)      | 746 / 707 / 769 ms                | 521 / 451 / 452 ms                 |
+| Build de producción                       | ~0.5–0.6 s                        | ~0.6 s                             |
+| Tamaño total de `dist`                    | 395.165 B                         | 395.810 B (+0,16 %)                |
+| `vendor` (sin gzip / gzip)                | 73,38 kB / 28,05 kB               | 73,38 kB / 28,02 kB                |
+| React / React Refresh en el build         | —                                 | ausente                            |
+| `typecheck` del frontend                  | pasa                              | pasa                               |
+| **HMR real (cambio de texto en `Login`)** | **actualiza el DOM sin recargar** | **no actualiza el DOM ni recarga** |
+
+El HMR es el punto que invalida el spike: Vite registra el módulo y muestra
+`[vite] hot updated`, pero la página no cambia y tampoco se recarga. React
+Refresh necesita que un renderer se registre en
+`__REACT_DEVTOOLS_GLOBAL_HOOK__` con `scheduleRefresh` y `setRefreshHandler`;
+Preact no lo hace. `@swc/plugin-prefresh` solo transforma `createContext`, no
+aporta el runtime de Prefresh. El resultado es un HMR roto en silencio, peor
+que un fallback a recarga completa. Además, en dev se pierde la integración de
+`preact/debug` que sí carga el preset actual.
+
+**Decisión:** se descarta el spike y no se mergea. Se mantiene
+`@preact/preset-vite`; la mejora de arranque (~40 %) no compensa un HMR roto ni
+justifica dos toolchains. El branch y el worktree se eliminaron; `main` queda
+sin cambios de frontend por este spike.
 
 ## Archivos afectados
 
