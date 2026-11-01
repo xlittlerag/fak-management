@@ -106,6 +106,7 @@ Chequeos por costo, de más barato a más caro:
 - **Iteración 26** — Performance de build: Node 26 + digest pineado, SWC para el backend, TypeScript 7 nativo para typecheck, `pnpm install --prod` (una sola instalación), builds FE/BE en paralelo y migración de ESLint a Oxlint (type-aware) — see `docs/iteraciones/26-build-performance.md`
 - **Iteración 27** — Migración de Jest a Vitest: `unplugin-swc` para la metadata de DI, proyectos `unit`/`e2e`, ejecución serial por la base SQLite compartida, `vi.spyOn` en los mocks, `typecheck:test` con TS 7 (nuevo gate sobre `test/`), −219 snapshots en el lockfile — see `docs/iteraciones/27-vitest.md`
 - **Iteración 28** — Simplificación de dependencias y SWC: Passport reemplazado por `JwtService.verifyAsync`, `nest build`/`nest-cli.json` por SWC CLI (`.swcrc`), `tsx` por `@swc-node/register` en dev y Node 26 nativo en seeds, `ARGON2_OPTIONS` extraído para el seed del runtime, limpieza de `typescript`/`autoprefixer`/`postcss` del frontend y `@types/compression`/`@types/passport-jwt` — see `docs/iteraciones/28-simplificacion-dependencias-y-swc.md`
+- **Iteración 29** — Actualización de dependencias y release 1.2.1: NestJS 12.3.2, `nodemailer` 10.3.1, `multer` 2.5.0, `preact` 11.1.0, `axios` 1.21.0, `vite` 8.3.5, `oxlint` 1.90.0 y override `body-parser` 2.4.0; `pnpm audit --prod` sin vulnerabilidades — see `docs/iteraciones/29-actualizacion-dependencias.md`
 
 ## Pending / Next
 
