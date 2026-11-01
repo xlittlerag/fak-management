@@ -8,14 +8,14 @@
 
 ```bash
 pnpm install                  # install deps
-pnpm run start:dev            # NestJS dev server (SWC, sin typecheck)
-pnpm run build                # compile con SWC (rápido, sin typecheck)
+pnpm run start:dev            # NestJS dev server con @swc-node/register (sin typecheck)
+pnpm run build                # compile con SWC CLI (rápido, sin typecheck)
 pnpm run typecheck            # typecheck con TypeScript 7 nativo (tsc)
 pnpm run typecheck:test       # typecheck de src + test (globals de Vitest)
 pnpm run lint                 # Oxlint type-aware (src + test)
 pnpm test                     # tests unitarios (Vitest)
 pnpm run test:e2e             # E2E tests con Vitest + supertest
-pnpm run seed                 # seed database with test data
+pnpm run seed                 # seed con Node 26 nativo (TypeScript sin transformer)
 pnpm test:email               # envía un email de prueba por SMTP (requiere SMTP_* en .env)
 ```
 
@@ -23,12 +23,12 @@ pnpm test:email               # envía un email de prueba por SMTP (requiere SMT
 
 Chequeos por costo, de más barato a más caro:
 
-| Momento      | Qué corre                                                                                                            | Costo aprox. | Bloquea       |
-| ------------ | -------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
-| Al editar    | `prettier` + `oxlint --fix` por workspace + escaneo de secretos del archivo (`.opencode/plugins/lint-on-edit.ts`)     | < 1–2 s      | No (solo log) |
-| `pre-commit` | `lint-staged` (`oxlint --fix` + `prettier`) + `check:secrets:staged`                                                 | 1–3 s        | Sí            |
-| `pre-push`   | `preflight`: `audit --prod` + secretos + `typecheck` (TS 7) + `typecheck:test` + typecheck frontend + `build` (SWC)   | 8–10 s       | Sí            |
-| CI           | `check:secrets`, `format:check`, `lint`, `typecheck`, `typecheck:test`, `build`, `test`, `test:e2e`, Trivy (imagen)   | minutos      | Sí            |
+| Momento      | Qué corre                                                                                                           | Costo aprox. | Bloquea       |
+| ------------ | ------------------------------------------------------------------------------------------------------------------- | ------------ | ------------- |
+| Al editar    | `prettier` + `oxlint --fix` por workspace + escaneo de secretos del archivo (`.opencode/plugins/lint-on-edit.ts`)   | < 1–2 s      | No (solo log) |
+| `pre-commit` | `lint-staged` (`oxlint --fix` + `prettier`) + `check:secrets:staged`                                                | 1–3 s        | Sí            |
+| `pre-push`   | `preflight`: `audit --prod` + secretos + `typecheck` (TS 7) + `typecheck:test` + typecheck frontend + `build` (SWC) | 8–10 s       | Sí            |
+| CI           | `check:secrets`, `format:check`, `lint`, `typecheck`, `typecheck:test`, `build`, `test`, `test:e2e`, Trivy (imagen) | minutos      | Sí            |
 
 - Falsos positivos del escáner: agregar `secret-scan-ignore` en la línea.
 - Bypass de emergencia: `SKIP_PREFLIGHT=1 git push` (no recomendado).
@@ -40,7 +40,7 @@ Chequeos por costo, de más barato a más caro:
 - **Frontend:** Preact + Vite + Tailwind v4 (fully implemented — see frontend/ directory)
 - **Auth:** JWT with DNI-based login; argon2id passwords (`PasswordService`)
 - **API:** All routes prefixed with `/api` (set in `main.ts`)
-- **Build toolchain:** backend emit con **SWC** (`nest-cli.json`, sin typecheck); typecheck con **TypeScript 7 nativo** (`typescript-native`, alias de `typescript@7`); `typescript@6` queda para `@nestjs/cli` y el editor. Tests con **Vitest** + `unplugin-swc`. Lint con **Oxlint** + `oxlint-tsgolint` (type-aware en backend), reemplaza ESLint.
+- **Build toolchain:** backend emit con **SWC CLI** (`.swcrc`, sin typecheck); typecheck con **TypeScript 7 nativo** (`typescript-native`, alias de `typescript@7`); `typescript@6` queda para Prisma (peer opcional en producción) y el editor. Dev y scripts usan **`@swc-node/register`**; los seeds corren con **Node 26 nativo** (imports `.ts` explícitos). Tests con **Vitest** + `unplugin-swc`. Lint con **Oxlint** + `oxlint-tsgolint` (type-aware en backend), reemplaza ESLint.
 
 ## Key Conventions
 
@@ -105,6 +105,7 @@ Chequeos por costo, de más barato a más caro:
 - **Iteración 25** — Diseño responsive completo: tokens fluidos, targets táctiles de 44 px, inputs de 16 px en móvil, tabs/tablas como tarjetas con `data-label` automático, shells `dvh`, sidebar off-canvas y headers flexibles; suite E2E en 320/768/1024/1280/1536 — see `docs/iteraciones/25-responsive-design.md`
 - **Iteración 26** — Performance de build: Node 26 + digest pineado, SWC para el backend, TypeScript 7 nativo para typecheck, `pnpm install --prod` (una sola instalación), builds FE/BE en paralelo y migración de ESLint a Oxlint (type-aware) — see `docs/iteraciones/26-build-performance.md`
 - **Iteración 27** — Migración de Jest a Vitest: `unplugin-swc` para la metadata de DI, proyectos `unit`/`e2e`, ejecución serial por la base SQLite compartida, `vi.spyOn` en los mocks, `typecheck:test` con TS 7 (nuevo gate sobre `test/`), −219 snapshots en el lockfile — see `docs/iteraciones/27-vitest.md`
+- **Iteración 28** — Simplificación de dependencias y SWC: Passport reemplazado por `JwtService.verifyAsync`, `nest build`/`nest-cli.json` por SWC CLI (`.swcrc`), `tsx` por `@swc-node/register` en dev y Node 26 nativo en seeds, `ARGON2_OPTIONS` extraído para el seed del runtime, limpieza de `typescript`/`autoprefixer`/`postcss` del frontend y `@types/compression`/`@types/passport-jwt` — see `docs/iteraciones/28-simplificacion-dependencias-y-swc.md`
 
 ## Pending / Next
 
