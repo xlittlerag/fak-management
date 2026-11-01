@@ -4,8 +4,10 @@ import { defineConfig } from 'vitest/config';
 // SWC (vía unplugin-swc) es necesario porque esbuild no emite
 // `design:paramtypes`, metadata que NestJS usa para resolver la DI.
 // El plugin lee `experimentalDecorators`/`emitDecoratorMetadata` del tsconfig.
+// `swcrc: false` evita que @swc/core aplique el `.swcrc` del build (que emite
+// CommonJS) y rompa la resolución ESM de Vitest.
 export default defineConfig({
-  plugins: [swc.vite()],
+  plugins: [swc.vite({ swcrc: false })],
   test: {
     globals: true,
     environment: 'node',
