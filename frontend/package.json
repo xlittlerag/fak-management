@@ -27,11 +27,8 @@
     "@preact/preset-vite": "^2.10.6",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.5",
-    "autoprefixer": "^10.6.1",
-    "postcss": "^8.5.30",
     "rollup-plugin-visualizer": "^7.1.1",
     "tailwindcss": "^4.3.3",
-    "typescript": "~6.0.3",
     "vite": "^8.3.4"
   }
 }

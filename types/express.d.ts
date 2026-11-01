@@ -3,5 +3,8 @@ import { AuthUser } from '../src/common/interfaces/auth-user.interface';
 declare global {
   namespace Express {
     interface User extends AuthUser {}
+    interface Request {
+      user?: User;
+    }
   }
 }
