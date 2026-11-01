@@ -1,16 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { hash, verify } from '@node-rs/argon2';
+import { ARGON2_OPTIONS } from './argon2-options';
 
 /**
  * Único punto de hashing de secretos (passwords y códigos de blanqueo).
  * Argon2id con parámetros base OWASP: m=19 MiB, t=2, p=1.
  */
-export const ARGON2_OPTIONS = {
-  memoryCost: 19456,
-  timeCost: 2,
-  parallelism: 1,
-} as const;
-
 @Injectable()
 export class PasswordService {
   async hash(plain: string): Promise<string> {

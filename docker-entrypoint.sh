@@ -57,7 +57,7 @@ if [ "${SEED_DATABASE}" = "true" ]; then
   fi
   echo "→ Cargando datos de prueba (SEED_DATABASE=true)..."
   cd /app
-  DATABASE_URL="file:${DB_DIR}/${DB_FILE}" node /app/node_modules/tsx/dist/cli.mjs prisma/seed.ts 2>&1
+  DATABASE_URL="file:${DB_DIR}/${DB_FILE}" node /app/prisma/seed.ts 2>&1
 fi
 
 echo "→ Iniciando aplicación..."

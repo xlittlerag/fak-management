@@ -10,7 +10,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ThrottlerStorage } from '@nestjs/throttler';
 import { validationMessages } from '../src/utils/validation-messages';
 import { hash } from '@node-rs/argon2';
-import { ARGON2_OPTIONS } from '../src/auth/password.service';
+import { ARGON2_OPTIONS } from '../src/auth/argon2-options';
 import cookieParser from 'cookie-parser';
 import { corsOrigins } from '../src/utils/cors-origins';
 

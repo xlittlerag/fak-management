@@ -95,6 +95,7 @@ RUN rm -rf /usr/local/lib/node_modules/npm /pnpm /root/.npm /root/.config/pnpm \
 
 COPY --from=be-build /app/dist /app/dist
 COPY --from=fe-build /app/frontend/dist ./frontend/dist
+COPY --from=be-build /app/src/auth/argon2-options.ts ./src/auth/argon2-options.ts
 COPY --from=be-build /app/prisma.config.ts ./prisma.config.ts
 COPY docker-entrypoint.sh /app/docker-entrypoint.sh
 COPY scripts /app/scripts

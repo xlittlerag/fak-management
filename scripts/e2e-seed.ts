@@ -12,7 +12,7 @@
  */
 import { execSync } from 'node:child_process';
 import { hash } from '@node-rs/argon2';
-import { ARGON2_OPTIONS } from '../src/auth/password.service';
+import { ARGON2_OPTIONS } from '../src/auth/argon2-options.ts';
 import { PrismaClient } from '@prisma/client';
 import { PrismaBetterSqlite3 } from '@prisma/adapter-better-sqlite3';
 

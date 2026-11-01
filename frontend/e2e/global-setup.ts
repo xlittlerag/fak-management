@@ -10,7 +10,7 @@ const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..
  * Incluye `prisma db push`, por lo que `playwright test` es autosuficiente.
  */
 async function globalSetup(_config: FullConfig) {
-  execSync('pnpm exec tsx scripts/e2e-seed.ts', {
+  execSync('node scripts/e2e-seed.ts', {
     cwd: REPO_ROOT,
     stdio: 'inherit',
     env: {
